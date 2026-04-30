@@ -52,7 +52,7 @@ export const LanguageSelector: React.FC = () => {
                     : "hover:bg-white/5 text-white/50 hover:text-white"
                 )}
               >
-                <span className={cn("fi", `fi-${lang.flag}`, "rounded-sm w-4")}></span>
+                <span className={cn("fi", `fi-${lang.flag}`, "rounded-sm w-4 h-3 shrink-0")}></span>
                 <span>{lang.nativeName}</span>
               </button>
             ))}
