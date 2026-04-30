@@ -1,0 +1,393 @@
+/* ===== ANIMAÇÕES PARA SISTEMA DE TEMAS ===== */
+
+/* ===== KEYFRAMES ===== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0, -2px, 0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-2px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(2px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px hsl(var(--primary) / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.8);
+  }
+}
+
+@keyframes colorShift {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
+
+/* ===== CLASSES DE ANIMAÇÃO ===== */
+
+/* Animações básicas */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.3s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.animate-slide-out-right {
+  animation: slideOutRight 0.3s ease-out;
+}
+
+.animate-slide-out-left {
+  animation: slideOutLeft 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+
+.animate-scale-out {
+  animation: scaleOut 0.2s ease-out;
+}
+
+.animate-bounce {
+  animation: bounce 0.6s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-out;
+}
+
+.animate-glow {
+  animation: glow 2s infinite;
+}
+
+.animate-color-shift {
+  animation: colorShift 3s infinite linear;
+}
+
+/* ===== ANIMAÇÕES ESPECÍFICAS PARA TEMAS ===== */
+
+/* Animação para mudança de tema */
+.theme-switch-animation {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Animação para o toggle de tema */
+.theme-toggle-animation {
+  transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.theme-toggle-animation:active {
+  transform: scale(0.95);
+}
+
+/* Animação para o sidebar */
+.sidebar-enter {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.sidebar-exit {
+  animation: slideOutRight 0.3s ease-out;
+}
+
+.sidebar-enter-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.sidebar-exit-left {
+  animation: slideOutLeft 0.3s ease-out;
+}
+
+/* Animação para overlay */
+.overlay-enter {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.overlay-exit {
+  animation: fadeOut 0.2s ease-out;
+}
+
+/* ===== ANIMAÇÕES DE HOVER ===== */
+
+.hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px hsl(var(--foreground) / 0.1);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease-out;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease-out;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-rotate {
+  transition: transform 0.3s ease-out;
+}
+
+.hover-rotate:hover {
+  transform: rotate(5deg);
+}
+
+/* ===== ANIMAÇÕES DE LOADING ===== */
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dots {
+  0%, 20% {
+    color: hsl(var(--primary));
+    transform: scale(1);
+  }
+  50% {
+    color: hsl(var(--primary) / 0.5);
+    transform: scale(1.2);
+  }
+  100% {
+    color: hsl(var(--primary));
+    transform: scale(1);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.animate-dots {
+  animation: dots 1.4s infinite ease-in-out;
+}
+
+.animate-dots:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.animate-dots:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* ===== ANIMAÇÕES RESPONSIVAS ===== */
+
+/* Reduzir animações em telas pequenas */
+@media (max-width: 768px) {
+  .animate-slide-in-right,
+  .animate-slide-in-left {
+    animation-duration: 0.2s;
+  }
+  
+  .sidebar-enter,
+  .sidebar-exit,
+  .sidebar-enter-left,
+  .sidebar-exit-left {
+    animation-duration: 0.2s;
+  }
+}
+
+/* ===== ANIMAÇÕES DE PERFORMANCE ===== */
+
+/* Otimização para animações que usam transform */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+.will-change-auto {
+  will-change: auto;
+}
+
+/* ===== ESTADOS DE ANIMAÇÃO ===== */
+
+/* Pausar animações */
+.animations-paused * {
+  animation-play-state: paused !important;
+}
+
+/* Acelerar animações para debug */
+.animations-fast * {
+  animation-duration: 0.1s !important;
+  transition-duration: 0.1s !important;
+}
+
+/* ===== ANIMAÇÕES PARA ELEMENTOS ESPECÍFICOS ===== */
+
+/* Animação para botões */
+.button-press {
+  transition: transform 0.1s ease-out;
+}
+
+.button-press:active {
+  transform: scale(0.98);
+}
+
+/* Animação para cards */
+.card-hover {
+  transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px hsl(var(--foreground) / 0.1);
+}
+
+/* Animação para inputs */
+.input-focus {
+  transition: border-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.input-focus:focus {
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+}

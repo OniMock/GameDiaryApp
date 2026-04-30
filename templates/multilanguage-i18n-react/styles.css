@@ -1,0 +1,92 @@
+/* ===== SISTEMA DE INTERNACIONALIZAÇÃO - CSS OBRIGATÓRIO ===== */
+
+/* 
+⚠️ IMPORTANTE: Este CSS está configurado para TEMA ESCURO
+Adapte as cores para seguir o tema do seu site:
+- Tema claro: Mude cores escuras para claras
+- Múltiplos temas: Use variáveis CSS ou classes condicionais
+*/
+
+/* Importação das bandeiras dos países */
+@import 'flag-icons/css/flag-icons.min.css';
+
+/* Estilos opcionais para melhorar a aparência do seletor */
+.glass-card {
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+}
+
+/* Animação para o dropdown */
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.2s ease-out;
+}
+
+/* Scrollbar personalizada (opcional) */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-white\/30::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Estilos para as bandeiras */
+.fi {
+  display: inline-block;
+  width: 20px;
+  height: 15px;
+  border-radius: 3px;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Responsividade para dispositivos móveis */
+@media (max-width: 640px) {
+  .language-selector-dropdown {
+    right: 0;
+    left: auto;
+    min-width: 180px;
+  }
+}
+
+/* Tema escuro (opcional) */
+@media (prefers-color-scheme: dark) {
+  .glass-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Acessibilidade - foco visível */
+.language-selector-button:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.language-option:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: -2px;
+}

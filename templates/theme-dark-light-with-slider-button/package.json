@@ -1,0 +1,44 @@
+{
+  "name": "theme-system-template",
+  "version": "1.0.0",
+  "description": "Template completo de sistema de temas dark/light com transições suaves",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "vite",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "react",
+    "typescript",
+    "themes",
+    "dark-mode",
+    "light-mode",
+    "tailwindcss",
+    "template"
+  ],
+  "author": "AI Assistant",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "lucide-react": "^0.263.1",
+    "clsx": "^2.0.0",
+    "tailwind-merge": "^1.14.0",
+    "class-variance-authority": "^0.7.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.15",
+    "@types/react-dom": "^18.2.7",
+    "typescript": "^5.0.2",
+    "tailwindcss": "^3.3.0",
+    "tailwindcss-animate": "^1.0.7",
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.24",
+    "vite": "^4.4.5"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "react-dom": ">=16.8.0"
+  }
+}
