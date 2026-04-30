@@ -17,7 +17,7 @@ export const ToolsIndex: React.FC = () => {
     {
       id: 'placeholder_1',
       title: 'More Tools Soon',
-      subtitle: 'New features are being developed for the PSP database management.',
+      subtitle: 'In construction.',
       icon: <Clock className="w-8 h-8 text-emerald-500" />,
       href: '#tools',
       color: 'bg-emerald-500/10'
@@ -25,7 +25,7 @@ export const ToolsIndex: React.FC = () => {
     {
       id: 'placeholder_2',
       title: 'Advanced Settings',
-      subtitle: 'System-wide configuration and database maintenance tools.',
+      subtitle: 'In construction.',
       icon: <LayoutGrid className="w-8 h-8 text-purple-500" />,
       href: '#tools',
       color: 'bg-purple-500/10'
