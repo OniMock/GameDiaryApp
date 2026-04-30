@@ -1,0 +1,236 @@
+/* Game Sessions Tool Styles */
+
+@layer components {
+  .tool-container {
+    @apply container mx-auto px-4 flex flex-col animate-fade-in;
+  }
+
+
+  .tool-header {
+    @apply mb-6 flex items-center justify-between;
+  }
+
+  .tool-title {
+    @apply text-3xl font-bold tracking-tight text-foreground;
+  }
+
+  .tool-subtitle {
+    @apply text-foreground/60 text-sm mt-1;
+  }
+
+  /* Buttons */
+  .btn-import {
+    @apply flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20 text-foreground rounded shadow-sm transition-colors;
+  }
+
+  .btn-import-primary {
+    @apply flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white rounded shadow-sm transition-colors;
+  }
+
+  .btn-export {
+    @apply flex items-center gap-2 px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded shadow-sm transition-colors;
+  }
+
+  /* Layout Cards */
+  .tool-card {
+    @apply flex flex-col bg-card border border-border rounded-xl overflow-hidden h-full shadow-sm;
+  }
+
+  .tool-card-header {
+    @apply flex items-center justify-between p-4 border-b border-border bg-slate-50/80 dark:bg-black/20;
+  }
+
+
+
+
+  .tool-card-title {
+    @apply text-lg font-semibold text-card-foreground;
+  }
+
+  /* Game List Items */
+  .game-item {
+    @apply flex items-center justify-between p-3 rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-black/5 dark:hover:border-white/5;
+  }
+
+  .game-name {
+    @apply font-semibold text-card-foreground text-sm truncate;
+  }
+
+  .game-meta {
+    @apply text-xs text-foreground/70 dark:text-foreground/50 font-mono mt-0.5 flex items-center gap-2;
+  }
+
+  .game-id-text {
+    @apply text-blue-700 dark:text-blue-400 font-bold;
+  }
+
+  /* Timeline View */
+  .timeline-nav {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+    background-color: rgba(255, 255, 255, 0.6) !important;
+
+    border-radius: 0.5rem !important;
+    padding: 0.25rem 0.5rem !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .dark .timeline-nav {
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+
+
+
+
+
+
+
+  .timeline-date-text {
+    @apply text-sm font-medium w-32 text-center text-foreground/90;
+  }
+
+  .timeline-grid-line {
+    @apply absolute w-full border-t border-border/60 pointer-events-none z-0;
+  }
+
+  .timeline-grid-time {
+    @apply text-[11px] text-foreground/90 dark:text-foreground/70 font-bold leading-none select-none;
+  }
+
+  .timeline-grid-minute {
+    @apply text-[10px] font-mono text-foreground/50 dark:text-foreground/40 font-medium leading-none select-none;
+  }
+
+
+  .timeline-grid-subline {
+    @apply absolute w-full border-t border-border/10 pointer-events-none;
+  }
+
+  .timeline-zoom-control {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    padding: 0.375rem 0.75rem !important;
+    background-color: rgba(255, 255, 255, 0.6) !important;
+    border-radius: 9999px !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+    margin-right: 1rem !important;
+  }
+
+  .dark .timeline-zoom-control {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+
+
+
+
+
+  .timeline-zoom-slider {
+    @apply w-20 h-1.5 bg-white dark:bg-white/20 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-blue-400 hover:accent-blue-500 transition-all border border-black/10 shadow-sm ring-1 ring-black/[0.02];
+
+
+  }
+
+
+  .timeline-zoom-slider::-webkit-slider-runnable-track {
+    @apply rounded-lg;
+  }
+
+  .timeline-zoom-slider::-webkit-slider-thumb {
+    @apply appearance-none w-3 h-3 bg-blue-600 dark:bg-blue-400 rounded-full border-2 border-white dark:border-black shadow-md transition-transform hover:scale-125;
+  }
+
+  .timeline-date-picker-popover {
+    @apply absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-card border border-border rounded-xl shadow-2xl z-[100] p-4 w-64 animate-slide-up;
+  }
+
+  .timeline-picker-grid {
+    @apply grid grid-cols-3 gap-2;
+  }
+
+  .timeline-picker-item {
+    @apply px-2 py-1.5 text-xs font-semibold rounded-md transition-colors text-center cursor-pointer hover:bg-blue-500 hover:text-white border border-transparent;
+  }
+
+  .timeline-picker-item-active {
+    @apply bg-blue-500 text-white border-blue-400 shadow-sm;
+  }
+
+  .timeline-picker-header {
+    @apply flex items-center justify-between mb-3 pb-2 border-b border-border;
+  }
+
+  .timeline-picker-btn {
+    @apply p-1 hover:bg-black/5 dark:hover:bg-white/5 rounded-md transition-colors;
+  }
+
+
+
+
+  .timeline-column-header {
+    @apply p-2 text-center border-b border-border text-[10px] uppercase tracking-wider font-bold h-10 flex items-center justify-center;
+  }
+
+  .timeline-column-center {
+    @apply bg-background/40 z-10;
+  }
+
+  .timeline-column-side {
+    @apply bg-black/5 dark:bg-white/5 opacity-60;
+  }
+
+  .timeline-time-ruler {
+    @apply w-20 border-r border-border bg-slate-50 dark:bg-white/[0.03] shrink-0 relative flex flex-col;
+  }
+
+
+
+  /* Modals/Forms */
+  .form-label {
+    @apply block text-xs font-medium text-muted-foreground mb-1;
+  }
+
+  .form-input {
+    @apply w-full bg-background text-foreground border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+
+  .form-select {
+    @apply w-full bg-background text-foreground border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+
+  .form-select-option {
+    @apply bg-background text-foreground;
+  }
+
+  /* Dropzone & Import Section */
+  .import-dropzone {
+    @apply w-[450px] h-20 border-2 border-dashed rounded-xl flex items-center justify-center p-3 cursor-pointer transition-all;
+    @apply border-slate-300 bg-slate-50/50 text-muted-foreground;
+    @apply dark:border-white/20 dark:bg-white/5;
+  }
+
+  .import-dropzone:hover {
+    @apply border-blue-400 dark:border-white/40;
+  }
+
+  .import-dropzone-active {
+    @apply border-blue-500 bg-blue-500/10 text-blue-500 scale-[1.01] shadow-lg;
+  }
+
+
+  /* Tool Specific Layout Fixes */
+  .tool-main-layout {
+    @apply flex flex-col h-screen pt-16 pb-4 px-6 overflow-hidden bg-background;
+  }
+
+  .tool-grid-container {
+    @apply flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 min-h-0 mb-4 overflow-hidden;
+  }
+}
+
