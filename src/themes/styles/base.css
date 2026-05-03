@@ -44,6 +44,12 @@
   --primary-foreground: 0 0% 100%;
   --muted-foreground: 215 16% 35%;
   --border: 215 20% 80%;
+
+  /* Component Specific Colors */
+  --timeline-nav-bg: rgba(255, 255, 255, 0.6);
+  --timeline-nav-border: rgba(0, 0, 0, 0.1);
+  --timeline-zoom-bg: rgba(255, 255, 255, 0.6);
+  --dropzone-border: rgba(0, 0, 0, 0.15);
 }
 
 .dark {
@@ -56,6 +62,12 @@
   --primary-foreground: 220 48% 8%;
   --muted-foreground: 215 20% 65%;
   --border: 220 48% 15%;
+
+  /* Component Specific Colors */
+  --timeline-nav-bg: rgba(0, 0, 0, 0.4);
+  --timeline-nav-border: rgba(255, 255, 255, 0.1);
+  --timeline-zoom-bg: rgba(255, 255, 255, 0.1);
+  --dropzone-border: rgba(255, 255, 255, 0.2);
 }
 
 @layer base {

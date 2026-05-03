@@ -27,38 +27,40 @@ export function useGameSessionsStore() {
   }, [setAllGames, setAllSessions]);
 
   const deleteGame = useCallback((gameUidToDelete: number) => {
-    setGameData(prevData => {
-      const newGames: GameEntry[] = [];
-      const uidMap: Record<number, number> = {};
-      
-      prevData.games.forEach((g) => {
-        if (g.uid === gameUidToDelete) return; // skip
-        
-        const newId = newGames.length + 1; 
-        uidMap[g.uid] = newId;
-        
-        newGames.push({
-          ...g,
-          uid: newId
-        });
-      });
+    // 1. Calculate new game list and mapping
+    let nextId = 1;
+    const newGames: GameEntry[] = [];
+    const uidMap: Record<number, number> = {};
 
-      // We also need to update sessions here because of cross-data dependency
-      setSessions(prevSessions => {
-        return prevSessions
-          .filter(s => s.game_uid !== gameUidToDelete) // remove orphan
-          .map(s => ({
-            ...s,
-            game_uid: uidMap[s.game_uid]
-          }));
-      });
-
-      return {
-        games: newGames,
-        nextUid: newGames.length + 1
-      };
+    games.forEach((g) => {
+      if (g.uid !== gameUidToDelete) {
+        uidMap[g.uid] = nextId;
+        newGames.push({ ...g, uid: nextId });
+        nextId++;
+      }
     });
-  }, []);
+
+    // 2. Update Games State
+    setGameData({
+      games: newGames,
+      nextUid: nextId
+    });
+
+    // 3. Update Sessions State (only keep sessions for remaining games)
+    setSessions(prevSessions => {
+      return prevSessions
+        .filter(s => s.game_uid !== gameUidToDelete) // Remove sessions of the deleted game
+        .map(s => {
+          const newUid = uidMap[s.game_uid];
+          // If for some reason uidMap doesn't have it, we shouldn't lose it, 
+          // but based on logic above, all remaining games are in the map.
+          return {
+            ...s,
+            game_uid: newUid ?? s.game_uid 
+          };
+        });
+    });
+  }, [games]);
 
   const addGame = useCallback((game: Omit<GameEntry, 'uid'>) => {
     setGameData(prev => {

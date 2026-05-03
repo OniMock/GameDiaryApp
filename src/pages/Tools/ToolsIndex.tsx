@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
-import { Database, Clock, LayoutGrid } from 'lucide-react';
+import { Database, Clock, LayoutGrid, GitMerge } from 'lucide-react';
 
 export const ToolsIndex: React.FC = () => {
   const { t } = useLanguage();
@@ -15,11 +15,11 @@ export const ToolsIndex: React.FC = () => {
       color: 'bg-blue-500/10'
     },
     {
-      id: 'placeholder_1',
-      title: 'More Tools Soon',
-      subtitle: 'In construction.',
-      icon: <Clock className="w-8 h-8 text-emerald-500" />,
-      href: '#tools',
+      id: 'db_merge',
+      title: t('tools.dbMerge.title') || 'Database Merge',
+      subtitle: t('tools.dbMerge.subtitle') || 'Combine datasets',
+      icon: <GitMerge className="w-8 h-8 text-emerald-500" />,
+      href: '#tools/db_merge',
       color: 'bg-emerald-500/10'
     },
     {
@@ -33,8 +33,8 @@ export const ToolsIndex: React.FC = () => {
   ];
 
   return (
-    <div className="tool-container pb-20">
-      <header className="mb-12">
+    <div className="pb-20">
+      <header className="py-4 mb-8">
         <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
           {t('tools.hub.title') || 'System Tools'}
         </h1>
