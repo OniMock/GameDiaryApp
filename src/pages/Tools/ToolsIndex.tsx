@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
-import { Database, Clock, LayoutGrid, GitMerge } from 'lucide-react';
+import { Database, LayoutGrid, GitMerge } from 'lucide-react';
 
 export const ToolsIndex: React.FC = () => {
   const { t } = useLanguage();

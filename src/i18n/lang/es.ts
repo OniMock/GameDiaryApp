@@ -1,3 +1,5 @@
+import type { LanguageFile } from '../types/language';
+
 export const es: LanguageFile = {
   config: {
     code: 'es',

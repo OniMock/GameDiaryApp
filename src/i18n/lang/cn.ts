@@ -1,3 +1,5 @@
+import type { LanguageFile } from '../types/language';
+
 export const cn: LanguageFile = {
   config: {
     code: 'cn',

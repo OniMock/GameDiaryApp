@@ -4,7 +4,7 @@ import { useGameSessionsStore } from '../../features/GameSessions/model/store';
 import { GamesManager } from '../../features/GameSessions/ui/GamesManager';
 import { TimelineView } from '../../features/GameSessions/ui/Timeline/TimelineView';
 import { parseGames, parseSessions, exportGames, exportSessions } from '../../features/GameSessions/lib/parser';
-import { Download, UploadCloud, Plus } from 'lucide-react';
+import { Download, UploadCloud } from 'lucide-react';
 
 export const GameSessionsTool: React.FC = () => {
   const { t } = useLanguage();
