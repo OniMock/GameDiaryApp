@@ -3,7 +3,7 @@ import { useLanguage } from '../../i18n/hooks/use-language';
 import { useGameSessionsStore } from '../../features/GameSessions/model/store';
 import { GamesManager } from '../../features/GameSessions/ui/GamesManager';
 import { TimelineView } from '../../features/GameSessions/ui/Timeline/TimelineView';
-import { parseGames, parseSessions, exportGames, exportSessions, parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
+import { parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
 import { Download, UploadCloud } from 'lucide-react';
 
 export const GameSessionsTool: React.FC = () => {
@@ -20,18 +20,8 @@ export const GameSessionsTool: React.FC = () => {
         const { games, sessions, nextUid } = parseBackup(text);
         store.setAllGames(games, nextUid);
         store.setAllSessions(sessions);
-        return;
-      }
-
-      const arrayBuffer = await file.arrayBuffer();
-      if (file.name.toLowerCase().includes('games')) {
-        const { games, nextUid } = parseGames(arrayBuffer);
-        store.setAllGames(games, nextUid);
-      } else if (file.name.toLowerCase().includes('sessions')) {
-        const sessions = parseSessions(arrayBuffer);
-        store.setAllSessions(sessions);
       } else {
-        alert(t('actions.invalidFile') || 'Invalid file format');
+        alert(t('actions.invalidFileBackup') || 'Invalid file format. Please upload backup.json');
       }
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Error parsing file');
@@ -66,7 +56,7 @@ export const GameSessionsTool: React.FC = () => {
 
     const files = Array.from(e.dataTransfer.files);
     for (const file of files) {
-      if (file.name.endsWith('.dat') || file.name.endsWith('.json')) {
+      if (file.name.endsWith('.json')) {
         await processFile(file);
       }
     }
@@ -92,7 +82,7 @@ export const GameSessionsTool: React.FC = () => {
             {t('tools.gameSessions.title') || 'Game Sessions'}
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            {t('tools.gameSessions.subtitleBackup') || t('tools.gameSessions.subtitle') || 'Visual editor for backup.json'}
+            {t('tools.gameSessions.subtitleBackup') || 'Visual editor for backup.json'}
           </p>
         </div>
       </header>
@@ -101,7 +91,7 @@ export const GameSessionsTool: React.FC = () => {
         <input 
           type="file" 
           multiple 
-          accept=".dat,.json" 
+          accept=".json" 
           className="hidden" 
           ref={fileInputRef} 
           onChange={handleFileUpload} 
@@ -127,7 +117,7 @@ export const GameSessionsTool: React.FC = () => {
               {t('actions.dataManagement') || 'Data Management'}
             </span>
             <span className="text-base font-medium text-muted-foreground opacity-80 mt-1">
-              {t('actions.dropBackupFile') || t('actions.dropDatFiles') || 'Drag and drop your backup.json file here'}
+              {t('actions.dropBackupFile') || 'Drag and drop your backup.json file here'}
             </span>
           </div>
         </div>

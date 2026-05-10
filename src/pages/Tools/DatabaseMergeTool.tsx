@@ -1,13 +1,12 @@
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
 import { Plus, Trash2, Download, AlertCircle, GitMerge, UploadCloud } from 'lucide-react';
-import { parseGames, parseSessions, exportGames, exportSessions } from '../../features/GameSessions/lib/parser';
+import { parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
 import type { GameEntry, SessionEntry } from '../../features/GameSessions/model/domain/types';
 
 interface Dataset {
   id: string;
-  gamesFile: File;
-  sessionsFile: File;
+  name: string;
   games: GameEntry[];
   sessions: SessionEntry[];
 }
@@ -18,39 +17,31 @@ export const DatabaseMergeTool: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   
-  const gamesInputRef = useRef<HTMLInputElement>(null);
-  const sessionsInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const handleAddDataset = async () => {
     setError(null);
-    const gamesFile = gamesInputRef.current?.files?.[0];
-    const sessionsFile = sessionsInputRef.current?.files?.[0];
-    if (!gamesFile || !sessionsFile) {
-        setError(t('actions.invalidFile') || 'Please select both games.dat and sessions.dat');
-        return;
-    }
-    try {
-        const gamesBuffer = await gamesFile.arrayBuffer();
-        const parsedGames = parseGames(gamesBuffer).games;
-        
-        const sessionsBuffer = await sessionsFile.arrayBuffer();
-        const parsedSessions = parseSessions(sessionsBuffer);
-        
+    const file = fileInputRef.current?.files?.[0];
+    
+    if (file && file.name.toLowerCase().endsWith('.json')) {
+      try {
+        const text = await file.text();
+        const { games, sessions } = parseBackup(text);
         setDatasets(prev => [...prev, {
             id: crypto.randomUUID(),
-            gamesFile,
-            sessionsFile,
-            games: parsedGames,
-            sessions: parsedSessions
+            name: file.name,
+            games,
+            sessions
         }]);
-        
-        // Reset inputs
-        if (gamesInputRef.current) gamesInputRef.current.value = '';
-        if (sessionsInputRef.current) sessionsInputRef.current.value = '';
-    } catch (e) {
-        console.error(e);
-        setError(t('dbMerge.errorParsing') || 'Error parsing dataset. Ensure valid files.');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      } catch (e) {
+        setError(t('dbMerge.errorParsing') || 'Error parsing backup file');
+        return;
+      }
     }
+
+    setError(t('actions.invalidFileBackup') || 'Please select a backup.json file');
   };
 
   const removeDataset = (id: string) => {
@@ -76,30 +67,25 @@ export const DatabaseMergeTool: React.FC = () => {
     if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
 
     const files = Array.from(e.dataTransfer.files);
-    const gamesFile = files.find(f => f.name.toLowerCase().includes('games') && f.name.toLowerCase().endsWith('.dat'));
-    const sessionsFile = files.find(f => f.name.toLowerCase().includes('sessions') && f.name.toLowerCase().endsWith('.dat'));
-
-    if (gamesFile && sessionsFile) {
-        try {
-            const gamesBuffer = await gamesFile.arrayBuffer();
-            const parsedGames = parseGames(gamesBuffer).games;
-            
-            const sessionsBuffer = await sessionsFile.arrayBuffer();
-            const parsedSessions = parseSessions(sessionsBuffer);
-            
-            setDatasets(prev => [...prev, {
-                id: crypto.randomUUID(),
-                gamesFile,
-                sessionsFile,
-                games: parsedGames,
-                sessions: parsedSessions
-            }]);
-        } catch (err) {
-            console.error(err);
-            setError(t('dbMerge.errorParsing') || 'Error parsing dataset. Ensure valid files.');
-        }
+    const backupFile = files.find(f => f.name.toLowerCase().endsWith('.json'));
+    
+    if (backupFile) {
+      try {
+        const text = await backupFile.text();
+        const { games, sessions } = parseBackup(text);
+        setDatasets(prev => [...prev, {
+            id: crypto.randomUUID(),
+            name: backupFile.name,
+            games,
+            sessions
+        }]);
+        return;
+      } catch (err) {
+        setError(t('dbMerge.errorParsing') || 'Error parsing backup file');
+        return;
+      }
     } else {
-        setError(t('actions.invalidFile') || 'Please drop both games.dat and sessions.dat together');
+        setError(t('actions.invalidFileBackup') || 'Please drop a backup.json file');
     }
   };
 
@@ -153,16 +139,19 @@ export const DatabaseMergeTool: React.FC = () => {
       });
       
       const finalSessions = Array.from(mergedSessionsMap.values());
-      // Sort sessions chronologically as a best practice
       finalSessions.sort((a, b) => a.timestamp - b.timestamp);
       
-      // Export binary buffers
-      const outGamesBuffer = exportGames(finalGames, nextUid);
-      const outSessionsBuffer = exportSessions(finalSessions);
-      
-      // Download files automatically
-      downloadFile(outGamesBuffer, 'games.dat');
-      downloadFile(outSessionsBuffer, 'sessions.dat');
+      // Export as backup.json
+      const json = exportBackup(finalGames, finalSessions);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'backup.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       
     } catch (e) {
       console.error(e);
@@ -170,17 +159,6 @@ export const DatabaseMergeTool: React.FC = () => {
     }
   };
   
-  const downloadFile = (buffer: ArrayBuffer, filename: string) => {
-    const blob = new Blob([buffer], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
 
   return (
     <div className="py-4 pb-20">
@@ -223,20 +201,11 @@ export const DatabaseMergeTool: React.FC = () => {
             
             <div className="space-y-4 flex-1 flex flex-col justify-center">
               <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1 font-mono uppercase tracking-wide">games.dat</label>
+                <label className="block text-sm font-medium text-muted-foreground mb-1 font-mono uppercase tracking-wide">backup.json</label>
                 <input 
                   type="file" 
-                  accept=".dat" 
-                  ref={gamesInputRef}
-                  className="block w-full text-sm text-foreground file:cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-600 hover:file:bg-emerald-500/20 file:transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1 font-mono uppercase tracking-wide">sessions.dat</label>
-                <input 
-                  type="file" 
-                  accept=".dat" 
-                  ref={sessionsInputRef}
+                  accept=".json" 
+                  ref={fileInputRef}
                   className="block w-full text-sm text-foreground file:cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-600 hover:file:bg-emerald-500/20 file:transition-colors"
                 />
               </div>
@@ -301,8 +270,8 @@ export const DatabaseMergeTool: React.FC = () => {
                         {idx + 1}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-foreground text-lg">
-                          {t('dbMerge.datasetPair') || 'Dataset'} {idx + 1}
+                        <h3 className="font-semibold text-foreground text-lg truncate max-w-[250px]">
+                          {dataset.name}
                         </h3>
                         <div className="flex items-center gap-3 mt-1">
                           <span className="text-sm font-medium text-muted-foreground bg-muted px-2 py-1 rounded-md">
