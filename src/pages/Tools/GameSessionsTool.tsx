@@ -82,7 +82,7 @@ export const GameSessionsTool: React.FC = () => {
             {t('tools.gameSessions.title') || 'Game Sessions'}
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            {t('tools.gameSessions.subtitleBackup') || 'Visual editor for backup.json'}
+            {t('tools.gameSessions.subtitle') || 'Visual editor for backup.json'}
           </p>
         </div>
       </header>
