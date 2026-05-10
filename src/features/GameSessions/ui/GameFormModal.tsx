@@ -47,7 +47,7 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Ensure it doesn't try to save totally invalid length strings (just basic trim here, binaryHelper enforces exactly during save)
+    // Basic trim to ensure consistency
     const baseGame = {
       game_id: gameId.substring(0, 16).trim(),
       game_name: gameName.substring(0, 64).trim(),

@@ -9,7 +9,7 @@ export const ToolsIndex: React.FC = () => {
     {
       id: 'game_sessions',
       title: t('tools.gameSessions.title') || 'Game Sessions',
-      subtitle: t('tools.gameSessions.subtitle') || 'Visual editor for games.dat and sessions.dat',
+      subtitle: t('tools.gameSessions.subtitle') || 'Visual editor for backup.json',
       icon: <Database className="w-8 h-8 text-blue-500" />,
       href: '#tools/game_sessions',
       color: 'bg-blue-500/10'
