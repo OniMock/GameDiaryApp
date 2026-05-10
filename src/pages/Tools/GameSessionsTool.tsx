@@ -112,21 +112,21 @@ export const GameSessionsTool: React.FC = () => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`relative group flex flex-col items-center justify-center gap-1.5 p-6 rounded-2xl border-2 border-dashed transition-all cursor-pointer w-full
+          className={`relative group flex flex-row items-center justify-center gap-8 p-10 rounded-2xl border-2 border-dashed transition-all cursor-pointer w-full min-h-[140px]
             ${isDraggingOver 
               ? 'border-blue-500 bg-blue-500/10 scale-[1.01] shadow-xl' 
               : 'border-white/20 bg-card/40 hover:border-blue-400/50 hover:bg-card/80 shadow-inner'}`}
         >
-          <div className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all shadow-sm
+          <div className={`flex items-center justify-center w-20 h-20 rounded-2xl transition-all shadow-md shrink-0
             ${isDraggingOver ? 'bg-blue-500 text-white scale-110' : 'bg-blue-500/10 text-blue-500'}`}>
-            <UploadCloud size={20} className={isDraggingOver ? 'animate-bounce' : ''} />
+            <UploadCloud size={40} className={isDraggingOver ? 'animate-bounce' : ''} />
           </div>
           
-          <div className="flex flex-col items-center text-center">
-            <span className="text-base font-bold text-foreground">
+          <div className="flex flex-col items-start text-left">
+            <span className="text-3xl font-black text-foreground tracking-tight">
               {t('actions.dataManagement') || 'Data Management'}
             </span>
-            <span className="text-[10px] text-muted-foreground mt-0">
+            <span className="text-base font-medium text-muted-foreground opacity-80 mt-1">
               {t('actions.dropBackupFile') || t('actions.dropDatFiles') || 'Drag and drop your backup.json file here'}
             </span>
           </div>
