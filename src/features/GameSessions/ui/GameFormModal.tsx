@@ -76,7 +76,7 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
             <input 
               type="text" 
               value={gameId} 
-              onChange={e => setGameId(e.target.value)}
+              onChange={e => setGameId(e.target.value.replace(/-/g, ''))}
               className="form-input"
               maxLength={16}
               required

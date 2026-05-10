@@ -3,7 +3,7 @@ import { useLanguage } from '../../i18n/hooks/use-language';
 import { useGameSessionsStore } from '../../features/GameSessions/model/store';
 import { GamesManager } from '../../features/GameSessions/ui/GamesManager';
 import { TimelineView } from '../../features/GameSessions/ui/Timeline/TimelineView';
-import { parseGames, parseSessions, exportGames, exportSessions } from '../../features/GameSessions/lib/parser';
+import { parseGames, parseSessions, exportGames, exportSessions, parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
 import { Download, UploadCloud } from 'lucide-react';
 
 export const GameSessionsTool: React.FC = () => {
@@ -15,6 +15,14 @@ export const GameSessionsTool: React.FC = () => {
 
   const processFile = async (file: File) => {
     try {
+      if (file.name.toLowerCase().endsWith('.json')) {
+        const text = await file.text();
+        const { games, sessions, nextUid } = parseBackup(text);
+        store.setAllGames(games, nextUid);
+        store.setAllSessions(sessions);
+        return;
+      }
+
       const arrayBuffer = await file.arrayBuffer();
       if (file.name.toLowerCase().includes('games')) {
         const { games, nextUid } = parseGames(arrayBuffer);
@@ -58,30 +66,19 @@ export const GameSessionsTool: React.FC = () => {
 
     const files = Array.from(e.dataTransfer.files);
     for (const file of files) {
-      if (file.name.endsWith('.dat')) {
+      if (file.name.endsWith('.dat') || file.name.endsWith('.json')) {
         await processFile(file);
       }
     }
   };
 
-  const handleExportGames = () => {
-    const buffer = exportGames(store.games, store.nextUid);
-    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+  const handleExportBackup = () => {
+    const json = exportBackup(store.games, store.sessions);
+    const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'games.dat';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleExportSessions = () => {
-    const buffer = exportSessions(store.sessions);
-    const blob = new Blob([buffer], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sessions.dat';
+    a.download = 'backup.json';
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -95,7 +92,7 @@ export const GameSessionsTool: React.FC = () => {
             {t('tools.gameSessions.title') || 'Game Sessions'}
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            {t('tools.gameSessions.subtitle') || 'Visual editor for games.dat and sessions.dat'}
+            {t('tools.gameSessions.subtitleBackup') || t('tools.gameSessions.subtitle') || 'Visual editor for backup.json'}
           </p>
         </div>
       </header>
@@ -104,7 +101,7 @@ export const GameSessionsTool: React.FC = () => {
         <input 
           type="file" 
           multiple 
-          accept=".dat" 
+          accept=".dat,.json" 
           className="hidden" 
           ref={fileInputRef} 
           onChange={handleFileUpload} 
@@ -130,7 +127,7 @@ export const GameSessionsTool: React.FC = () => {
               {t('actions.dataManagement') || 'Data Management'}
             </span>
             <span className="text-[10px] text-muted-foreground mt-0">
-              {t('actions.dropDatFiles') || 'Drag and drop your games.dat and sessions.dat files here'}
+              {t('actions.dropBackupFile') || t('actions.dropDatFiles') || 'Drag and drop your backup.json file here'}
             </span>
           </div>
         </div>
@@ -154,11 +151,8 @@ export const GameSessionsTool: React.FC = () => {
       </div>
 
       <div className="shrink-0 flex gap-3 w-full justify-end">
-        <button onClick={handleExportGames} className="px-4 py-2 bg-emerald-600/10 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 border border-emerald-600/20">
-          <Download size={16} /> {t('actions.exportGames') || 'Export games.dat'}
-        </button>
-        <button onClick={handleExportSessions} className="px-4 py-2 bg-emerald-600/10 text-emerald-600 hover:bg-emerald-600 hover:text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 border border-emerald-600/20">
-          <Download size={16} /> {t('actions.exportSessions') || 'Export sessions.dat'}
+        <button onClick={handleExportBackup} className="px-6 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2.5">
+          <Download size={18} /> {t('actions.exportBackup') || 'Export backup.json'}
         </button>
       </div>
     </div>
