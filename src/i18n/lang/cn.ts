@@ -11,6 +11,8 @@ export const cn: LanguageFile = {
     "nav.home": "首页",
     "nav.tools": "工具",
     "nav.download": "下载",
+    "home.getStarted": "开始使用",
+    "home.download": "下载",
     "welcome.subtitle": "你的游戏日记。",
     "tools.gameSessions.title": "游戏会话",
     "tools.gameSessions.subtitle": "backup.json 可视化编辑器",

@@ -11,6 +11,8 @@ export const ptBr: LanguageFile = {
     "nav.home": "Início",
     "nav.tools": "Ferramentas",
     "nav.download": "Download",
+    "home.getStarted": "Começar",
+    "home.download": "Download",
     "welcome.subtitle": "Seu diário pessoal de jogos.",
     "tools.gameSessions.title": "Sessões de Jogo",
     "tools.gameSessions.subtitle": "Editor visual para backup.json",

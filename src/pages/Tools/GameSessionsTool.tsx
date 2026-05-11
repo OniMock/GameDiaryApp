@@ -78,7 +78,7 @@ export const GameSessionsTool: React.FC = () => {
       <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold text-foreground flex items-center gap-3">
-            <UploadCloud className="w-8 h-8 text-blue-500" />
+            <UploadCloud className="w-8 h-8 text-primary" />
             {t('tools.gameSessions.title') || 'Game Sessions'}
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
@@ -104,11 +104,11 @@ export const GameSessionsTool: React.FC = () => {
           onDrop={handleDrop}
           className={`relative group flex flex-row items-center justify-center gap-8 p-10 rounded-2xl border-2 border-dashed transition-all cursor-pointer w-full min-h-[140px]
             ${isDraggingOver 
-              ? 'border-blue-500 bg-blue-500/10 scale-[1.01] shadow-xl' 
-              : 'border-white/20 bg-card/40 hover:border-blue-400/50 hover:bg-card/80 shadow-inner'}`}
+              ? 'border-primary bg-primary/10 scale-[1.01] shadow-xl' 
+              : 'border-border bg-card/40 hover:border-primary/50 hover:bg-card shadow-inner'}`}
         >
           <div className={`flex items-center justify-center w-20 h-20 rounded-2xl transition-all shadow-md shrink-0
-            ${isDraggingOver ? 'bg-blue-500 text-white scale-110' : 'bg-blue-500/10 text-blue-500'}`}>
+            ${isDraggingOver ? 'bg-primary text-primary-foreground scale-110' : 'bg-primary/10 text-primary'}`}>
             <UploadCloud size={40} className={isDraggingOver ? 'animate-bounce' : ''} />
           </div>
           
@@ -141,8 +141,8 @@ export const GameSessionsTool: React.FC = () => {
       </div>
 
       <div className="shrink-0 flex gap-3 w-full justify-end">
-        <button onClick={handleExportBackup} className="px-6 py-2.5 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-lg flex items-center gap-2.5">
-          <Download size={18} /> {t('actions.exportBackup') || 'Export backup.json'}
+        <button onClick={handleExportBackup} className="px-6 py-2.5 bg-success text-white hover:bg-success/90 rounded-xl text-sm font-black transition-all shadow-md hover:shadow-lg flex items-center gap-2.5">
+          <Download size={18} className="text-white" /> <span className="text-white">{t('actions.exportBackup') || 'Export backup.json'}</span>
         </button>
       </div>
     </div>

@@ -8,45 +8,46 @@ export const Header: React.FC = () => {
   const { t } = useLanguage();
   const hash = useHashRouter();
 
-  const isHome = hash === '#home' || hash === '';
+  const isHome = hash === '#home' || hash === '' || hash === '#';
   const isTools = hash.startsWith('#tools');
+  const isDownload = hash === '#download';
 
   return (
-    <header className="fixed top-0 inset-x-0 z-50 h-14 bg-black/50 backdrop-blur-md border-b border-white/5 transition-all">
+    <header className="fixed top-0 inset-x-0 z-50 h-14 bg-background/80 backdrop-blur-md border-b border-border transition-all">
       <div className="container mx-auto px-4 h-full flex items-center justify-between">
         
         {/* Left Side: Logo & Nav */}
         <div className="flex items-center gap-8">
-          <div className="cursor-pointer select-none">
+          <a href="#home" className="select-none group transition-transform active:scale-95">
             <h1 className="text-xl font-bold tracking-tight">
-              <span className="text-white">Game</span>
-              <span className="text-[#3B82F6]">Diary</span>
+              <span className="text-foreground">Game</span>
+              <span className="text-primary">Diary</span>
             </h1>
-          </div>
+          </a>
 
           <nav className="hidden md:flex items-center gap-6">
             <a 
               href="#home" 
-              className={`text-sm font-medium relative group py-1 transition-colors ${isHome ? 'text-white' : 'text-white/60 hover:text-white'}`}
+              className={`text-sm font-medium relative group py-1 transition-colors ${isHome ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.home')}
-              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-[#3B82F6] transform transition-transform origin-left ${isHome ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isHome ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
             
             <a 
               href="#tools" 
-              className={`text-sm font-medium relative group py-1 transition-colors ${isTools ? 'text-white' : 'text-white/60 hover:text-white'}`}
+              className={`text-sm font-medium relative group py-1 transition-colors ${isTools ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.tools')}
-              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-[#3B82F6] transform transition-transform origin-left ${isTools ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isTools ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
 
             <a 
               href="#download" 
-              className={`text-sm font-medium relative group py-1 transition-colors ${hash === '#download' ? 'text-white' : 'text-white/60 hover:text-white'}`}
+              className={`text-sm font-medium relative group py-1 transition-colors ${isDownload ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.download')}
-              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-[#3B82F6] transform transition-transform origin-left ${hash === '#download' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isDownload ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
           </nav>
         </div>
@@ -54,7 +55,7 @@ export const Header: React.FC = () => {
         {/* Right Side: Actions */}
         <div className="flex items-center gap-2">
           <LanguageSelector />
-          <div className="w-[1px] h-4 bg-white/20 mx-1" />
+          <div className="w-[1px] h-4 bg-border mx-1" />
           <ThemeSelector variant="slider" size="md" />
         </div>
       </div>

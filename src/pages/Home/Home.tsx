@@ -1,22 +1,23 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
+import './Home.css';
 
 export const Home: React.FC = () => {
   const { t } = useLanguage();
 
   return (
-    <div className="min-h-screen pt-14 flex flex-col items-center justify-center text-center px-6 relative">
-      {/* Refined Background elements */}
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+    <div className="home-container">
+      {/* Top line decorator */}
+      <div className="home-top-line" />
 
       <div className="max-w-4xl mx-auto space-y-12 animate-fade-in-up">
         <div className="space-y-2">
-          <h1 className="text-6xl md:text-[7rem] font-[900] tracking-tighter select-none leading-none">
-            <span className="text-white drop-shadow-sm">Game</span>
-            <span className="text-[#1E3A8A] dark:text-[#3B82F6]">Diary</span>
+          <h1 className="home-hero-title">
+            <span className="text-foreground drop-shadow-sm">Game</span>
+            <span className="text-primary">Diary</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-foreground/80 font-medium max-w-xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-muted-foreground font-medium max-w-xl mx-auto leading-relaxed">
             {t('welcome.subtitle')}
           </p>
         </div>
@@ -26,29 +27,29 @@ export const Home: React.FC = () => {
           <div className="flex flex-wrap items-center justify-center gap-4">
             <a 
               href="#tools" 
-              className="px-8 py-3 bg-[#1E3A8A] dark:bg-[#3B82F6] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all active:scale-[0.98]"
+              className="px-8 py-3 bg-primary text-primary-foreground font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all active:scale-[0.98]"
             >
-              Get Started
+              {t('home.getStarted')}
             </a>
             <a 
               href="#download" 
-              className="px-8 py-3 bg-white/5 border border-white/10 text-white font-bold rounded-2xl shadow-lg hover:bg-white/10 hover:scale-[1.02] transition-all active:scale-[0.98]"
+              className="px-8 py-3 bg-card border border-border text-foreground font-bold rounded-2xl shadow-lg hover:bg-card/80 hover:scale-[1.02] transition-all active:scale-[0.98]"
             >
-              Download
+              {t('home.download')}
             </a>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-foreground/40">
-            <div className="h-px w-8 bg-foreground/10" />
-            <span>Track your journey</span>
-            <div className="h-px w-8 bg-foreground/10" />
+          <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-muted-foreground/40">
+            <div className="h-px w-8 bg-border" />
+            <span>{t('download.subtitle')}</span>
+            <div className="h-px w-8 bg-border" />
           </div>
         </div>
       </div>
 
       {/* Subtle Scroll Hint */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-20">
-        <div className="w-[1px] h-12 bg-gradient-to-b from-foreground to-transparent" />
+      <div className="home-scroll-hint">
+        <div className="home-scroll-line" />
       </div>
     </div>
   );

@@ -11,6 +11,8 @@ export const en: LanguageFile = {
     "nav.home": "Home",
     "nav.tools": "Tools",
     "nav.download": "Download",
+    "home.getStarted": "Get Started",
+    "home.download": "Download",
     "welcome.subtitle": "Your personal gaming journal.",
     "tools.gameSessions.title": "Game Sessions",
     "tools.gameSessions.subtitle": "Visual editor for backup.json",

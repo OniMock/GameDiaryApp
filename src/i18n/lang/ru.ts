@@ -11,6 +11,8 @@ export const ru: LanguageFile = {
     "nav.home": "Главная",
     "nav.tools": "Инструменты",
     "nav.download": "Скачать",
+    "home.getStarted": "Начать",
+    "home.download": "Скачать",
     "welcome.subtitle": "Ваш игровой дневник.",
     "tools.gameSessions.title": "Игровые сессии",
     "tools.gameSessions.subtitle": "Редактор backup.json",

@@ -42,24 +42,24 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
       <button
         onClick={toggleTheme}
         className={cn(
-          "relative inline-flex items-center rounded-full transition-colors duration-500 ease-in-out focus:outline-none border border-white/10",
+          "relative inline-flex items-center rounded-full transition-all duration-300 focus:outline-none border border-border shadow-inner group",
           sliderSizes[size],
-          isDark ? 'bg-white/10' : 'bg-white/20',
+          isDark ? 'bg-foreground/20' : 'bg-foreground/10',
           className
         )}
       >
         <span
           className={cn(
-            "absolute top-1/2 -translate-y-1/2 transform rounded-full transition-all duration-300 ease-in-out shadow-lg flex items-center justify-center",
+            "absolute top-1/2 -translate-y-1/2 transform rounded-full transition-all duration-300 ease-in-out shadow-md flex items-center justify-center",
             thumbSizes[size],
             translateClasses[size],
-            isDark ? 'bg-[#3B82F6]' : 'bg-white'
+            isDark ? 'bg-primary' : 'bg-background border border-border'
           )}
         >
           {isDark ? (
-            <Moon className={cn(iconSizes[size], "text-white")} />
+            <Moon className={cn(iconSizes[size], "text-primary-foreground")} />
           ) : (
-            <Sun className={cn(iconSizes[size], "text-[#1E3A8A]")} />
+            <Sun className={cn(iconSizes[size], "text-primary")} />
           )}
         </span>
       </button>
@@ -70,7 +70,7 @@ export const ThemeSelector: React.FC<ThemeSelectorProps> = ({
     <button
       onClick={toggleTheme}
       className={cn(
-        "rounded-lg p-2 transition-all duration-200 hover:bg-white/10 text-white/70 hover:text-white",
+        "rounded-lg p-2 transition-all duration-200 hover:bg-foreground/5 text-muted-foreground hover:text-foreground",
         className
       )}
     >

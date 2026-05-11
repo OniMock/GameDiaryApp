@@ -11,6 +11,8 @@ export const jp: LanguageFile = {
     "nav.home": "ホーム",
     "nav.tools": "ツール",
     "nav.download": "ダウンロード",
+    "home.getStarted": "使ってみる",
+    "home.download": "ダウンロード",
     "welcome.subtitle": "あなたのゲーム日記。",
     "tools.gameSessions.title": "ゲームセッション",
     "tools.gameSessions.subtitle": "backup.json のビジュアルエディタ",

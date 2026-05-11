@@ -206,12 +206,12 @@ export const DatabaseMergeTool: React.FC = () => {
                   type="file" 
                   accept=".json" 
                   ref={fileInputRef}
-                  className="block w-full text-sm text-foreground file:cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-emerald-500/10 file:text-emerald-600 hover:file:bg-emerald-500/20 file:transition-colors"
+                  className="block w-full text-sm text-foreground file:cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:transition-colors"
                 />
               </div>
               <button 
                 onClick={handleAddDataset}
-                className="w-full mt-4 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md transition-all font-medium flex items-center justify-center gap-2 transform active:scale-[0.98]"
+                className="w-full mt-4 py-3 px-4 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-md transition-all font-medium flex items-center justify-center gap-2 transform active:scale-[0.98]"
               >
                 <Plus className="w-5 h-5" />
                 {t('dbMerge.addDataset') || 'Add Dataset'}
@@ -227,7 +227,7 @@ export const DatabaseMergeTool: React.FC = () => {
               </div>
               
               {error && (
-                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-sm flex items-start gap-3 mt-4 animate-in fade-in">
+                <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-xl text-destructive text-sm flex items-start gap-3 mt-4 animate-in fade-in">
                   <AlertCircle className="w-5 h-5 shrink-0" />
                   <span className="leading-tight">{error}</span>
                 </div>
@@ -246,11 +246,10 @@ export const DatabaseMergeTool: React.FC = () => {
               <button
                 onClick={handleMerge}
                 disabled={datasets.length < 2}
-                style={{ color: 'white' }}
-                className="py-2.5 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-muted disabled:text-muted-foreground/50 rounded-xl shadow-sm hover:shadow-md transition-all font-bold flex items-center justify-center gap-2"
+                className="py-2.5 px-6 bg-success hover:bg-success/90 disabled:bg-muted disabled:text-muted-foreground/50 text-white rounded-xl shadow-sm hover:shadow-md transition-all font-black flex items-center justify-center gap-2"
               >
-                <Download size={20} style={{ color: 'white' }} />
-                <span style={{ color: 'white' }}>
+                <Download size={20} className="text-white" />
+                <span className="text-white">
                   {t('dbMerge.mergeAndDownload') || 'Merge & Download'}
                 </span>
               </button>
@@ -258,15 +257,15 @@ export const DatabaseMergeTool: React.FC = () => {
 
             {datasets.length === 0 ? (
               <div className="flex flex-col items-center justify-center flex-1 text-muted-foreground border-2 border-dashed border-border rounded-xl">
-                <GitMerge className="w-12 h-12 mb-4 text-emerald-500/40" />
+                <GitMerge className="w-12 h-12 mb-4 text-primary/40" />
                 <p className="font-medium text-center px-4">{t('dbMerge.noDatasets') || 'No datasets added yet. Add at least two to merge.'}</p>
               </div>
             ) : (
               <div className="space-y-4 flex-1">
                 {datasets.map((dataset, idx) => (
-                  <div key={dataset.id} className="flex items-center justify-between p-5 bg-background border border-border rounded-xl shadow-sm hover:border-emerald-500/30 transition-colors group">
+                  <div key={dataset.id} className="flex items-center justify-between p-5 bg-background border border-border rounded-xl shadow-sm hover:border-primary/30 transition-colors group">
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-600 font-bold text-lg group-hover:scale-110 transition-transform">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-lg group-hover:scale-110 transition-transform">
                         {idx + 1}
                       </div>
                       <div>
@@ -285,7 +284,7 @@ export const DatabaseMergeTool: React.FC = () => {
                     </div>
                     <button 
                       onClick={() => removeDataset(dataset.id)}
-                      className="p-3 text-muted-foreground hover:text-white hover:bg-red-500 rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-background"
+                      className="p-3 text-muted-foreground hover:text-destructive-foreground hover:bg-destructive rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-destructive"
                       title="Remove dataset"
                     >
                       <Trash2 className="w-5 h-5" />

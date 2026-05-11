@@ -129,7 +129,7 @@ export const Download: React.FC = () => {
                 
                 <a 
                   href={release?.zipUrl}
-                  className="inline-flex items-center gap-3 px-10 py-5 bg-foreground text-background rounded-2xl font-black text-lg hover:scale-105 transition-all shadow-xl shadow-foreground/10 active:scale-95"
+                  className="inline-flex items-center gap-3 px-10 py-5 bg-primary text-primary-foreground rounded-2xl font-black text-lg hover:scale-105 transition-all shadow-xl shadow-primary/20 active:scale-95"
                 >
                   <DownloadIcon size={24} />
                   {t('download.package.button')} {release?.version}
