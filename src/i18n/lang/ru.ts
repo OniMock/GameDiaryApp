@@ -10,6 +10,7 @@ export const ru: LanguageFile = {
   translations: {
     "nav.home": "Главная",
     "nav.tools": "Инструменты",
+    "nav.download": "Скачать",
     "welcome.subtitle": "Ваш игровой дневник.",
     "tools.gameSessions.title": "Игровые сессии",
     "tools.gameSessions.subtitle": "Редактор backup.json",
@@ -48,5 +49,40 @@ export const ru: LanguageFile = {
     "dbMerge.errorParsing": "Ошибка обработки",
     "dbMerge.dropPrompt": "ПЕРЕТАЩИТЕ СЮДА",
     "dbMerge.backToTools": "Назад",
+
+    "download.title": "Скачать GameDiary",
+    "download.subtitle": "Отслеживайте свои игровые успехи на PSP.",
+    "download.latestVersion": "Последняя версия",
+    "download.releaseDate": "Дата выпуска",
+    "download.codename": "Кодовое имя",
+    "download.app.title": "Приложение GameDiary",
+    "download.app.desc":
+      "Основное приложение для просмотра статистики и дневника.",
+    "download.plugin.title": "Плагин GameDiary",
+    "download.plugin.desc":
+      "Фоновый плагин, автоматически отслеживающий время игры.",
+    "download.install.title": "Руководство по установке",
+    "download.install.app.step1": "Подключите PSP к ПК через USB.",
+    "download.install.app.step2": "Скопируйте папку GameDiary в PSP/GAME/.",
+    "download.install.app.step3":
+      "Запустите GameDiary из меню «Игра» на вашей PSP.",
+    "download.install.plugin.step1":
+      "Скопируйте GameDiary.prx в папку seplugins/.",
+    "download.install.plugin.step2":
+      'ARK-4: Добавьте "psp, GameDiary.prx, on" и "ps1, GameDiary.prx, on" в plugins.txt.',
+    "download.install.plugin.step3":
+      'PRO/ME: Добавьте "ms0:/seplugins/GameDiary.prx 1" в game.txt и pops.txt.',
+    "download.install.plugin.step4": "Перезагрузите PSP или обновите плагины.",
+    "download.requirements.title": "Требования",
+    "download.requirements.cfw": "Кастомная прошивка (PRO, ME или ARK-4)",
+    "download.requirements.storage":
+      "Минимум 10 МБ свободного места на Memory Stick",
+    "download.package.title": "Полный пакет GameDiary",
+    "download.package.desc":
+      "Включает приложение (EBOOT.PBP) и плагин (PRX) в одном ZIP-архиве.",
+    "download.package.button": "Скачать",
+    "download.package.appIncluded": "Приложение включено",
+    "download.package.pluginIncluded": "Плагин включен",
+    "download.viewOnGithub": "Посмотреть на GitHub",
   },
 };

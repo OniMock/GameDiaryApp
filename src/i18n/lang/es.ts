@@ -10,6 +10,7 @@ export const es: LanguageFile = {
   translations: {
     "nav.home": "Inicio",
     "nav.tools": "Herramientas",
+    "nav.download": "Descargar",
     "welcome.subtitle": "Tu diario personal de juegos.",
     "tools.gameSessions.title": "Sesiones de juego",
     "tools.gameSessions.subtitle": "Editor visual para backup.json",
@@ -49,5 +50,39 @@ export const es: LanguageFile = {
     "dbMerge.errorParsing": "Error al procesar archivos.",
     "dbMerge.dropPrompt": "O SUELTA AQUÍ",
     "dbMerge.backToTools": "Volver a herramientas",
+
+    "download.title": "Obtener GameDiary",
+    "download.subtitle": "Sigue tu progreso en la PSP.",
+    "download.latestVersion": "Última Versión",
+    "download.releaseDate": "Fecha de Lanzamiento",
+    "download.codename": "Codinome",
+    "download.app.title": "App GameDiary",
+    "download.app.desc":
+      "La aplicación principal para ver tus estadísticas y diario.",
+    "download.plugin.title": "Plugin GameDiary",
+    "download.plugin.desc":
+      "El plugin de fondo que rastrea tu tiempo automáticamente.",
+    "download.install.title": "Guía de Instalación",
+    "download.install.app.step1": "Conecta tu PSP al PC por USB.",
+    "download.install.app.step2": "Copia la carpeta GameDiary a PSP/GAME/.",
+    "download.install.app.step3":
+      "Inicia GameDiary desde el menú Juego en tu PSP.",
+    "download.install.plugin.step1":
+      "Copia GameDiary.prx a la carpeta seplugins/.",
+    "download.install.plugin.step2":
+      'ARK-4: Añade "psp, GameDiary.prx, on" y "ps1, GameDiary.prx, on" a plugins.txt.',
+    "download.install.plugin.step3":
+      'PRO/ME: Añade "ms0:/seplugins/GameDiary.prx 1" a game.txt y pops.txt.',
+    "download.install.plugin.step4": "Reinicia tu PSP o recarga los plugins.",
+    "download.requirements.title": "Requisitos",
+    "download.requirements.cfw": "Custom Firmware (PRO, ME, o ARK-4)",
+    "download.requirements.storage": "Al menos 10MB libres en el Memory Stick",
+    "download.package.title": "Paquete Completo GameDiary",
+    "download.package.desc":
+      "Incluye el App (EBOOT.PBP) y el Plugin (PRX) en un único arquivo ZIP.",
+    "download.package.button": "Descargar",
+    "download.package.appIncluded": "App incluido",
+    "download.package.pluginIncluded": "Plugin incluido",
+    "download.viewOnGithub": "Ver en GitHub",
   },
 };

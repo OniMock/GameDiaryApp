@@ -23,9 +23,20 @@ export const Home: React.FC = () => {
 
         {/* Primary Action / UI Element */}
         <div className="flex flex-col items-center gap-6">
-          <button className="px-8 py-3 bg-[#1E3A8A] dark:bg-[#3B82F6] text-white font-semibold rounded-full shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all active:scale-[0.98]">
-            In construction
-          </button>
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a 
+              href="#tools" 
+              className="px-8 py-3 bg-[#1E3A8A] dark:bg-[#3B82F6] text-white font-bold rounded-2xl shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all active:scale-[0.98]"
+            >
+              Get Started
+            </a>
+            <a 
+              href="#download" 
+              className="px-8 py-3 bg-white/5 border border-white/10 text-white font-bold rounded-2xl shadow-lg hover:bg-white/10 hover:scale-[1.02] transition-all active:scale-[0.98]"
+            >
+              Download
+            </a>
+          </div>
 
           <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-foreground/40">
             <div className="h-px w-8 bg-foreground/10" />

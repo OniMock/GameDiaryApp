@@ -10,6 +10,7 @@ export const jp: LanguageFile = {
   translations: {
     "nav.home": "ホーム",
     "nav.tools": "ツール",
+    "nav.download": "ダウンロード",
     "welcome.subtitle": "あなたのゲーム日記。",
     "tools.gameSessions.title": "ゲームセッション",
     "tools.gameSessions.subtitle": "backup.json のビジュアルエディタ",
@@ -48,5 +49,41 @@ export const jp: LanguageFile = {
     "dbMerge.errorParsing": "解析エラー",
     "dbMerge.dropPrompt": "ここにドロップ",
     "dbMerge.backToTools": "戻る",
+
+    "download.title": "GameDiaryを入手",
+    "download.subtitle": "PSPでのゲームプレイを記録しましょう。",
+    "download.latestVersion": "最新バージョン",
+    "download.releaseDate": "リリース日",
+    "download.codename": "コードネーム",
+    "download.app.title": "GameDiary アプリ",
+    "download.app.desc": "統計の表示や日記の管理を行うメインアプリ。",
+    "download.plugin.title": "GameDiary プラグイン",
+    "download.plugin.desc":
+      "プレイ時間を自動的に記録するバックグラウンドプラグイン。",
+    "download.install.title": "インストールガイド",
+    "download.install.app.step1": "PSPをUSBでPCに接続します。",
+    "download.install.app.step2":
+      "GameDiaryフォルダをPSP/GAME/にコピーします。",
+    "download.install.app.step3":
+      "PSPのゲームメニューからGameDiaryを起動します。",
+    "download.install.plugin.step1":
+      "GameDiary.prxをseplugins/フォルダにコピーします。",
+    "download.install.plugin.step2":
+      'ARK-4: plugins.txtに"psp, GameDiary.prx, on"と"ps1, GameDiary.prx, on"を追加します。',
+    "download.install.plugin.step3":
+      'PRO/ME: game.txtとpops.txtに"ms0:/seplugins/GameDiary.prx 1"を追加します。',
+    "download.install.plugin.step4":
+      "PSPを再起動するか、プラグインを再読み込みします。",
+    "download.requirements.title": "要件",
+    "download.requirements.cfw":
+      "カスタムファームウェア (PRO, ME, または ARK-4)",
+    "download.requirements.storage": "メモリースティックに10MB以上の空き容量",
+    "download.package.title": "GameDiary コンプリートパッケージ",
+    "download.package.desc":
+      "App (EBOOT.PBP) と Plugin (PRX) が1つのZIPファイルに含まれています。",
+    "download.package.button": "ダウンロード",
+    "download.package.appIncluded": "アプリ同梱",
+    "download.package.pluginIncluded": "プラグイン同梱",
+    "download.viewOnGithub": "GitHubで表示",
   },
 };

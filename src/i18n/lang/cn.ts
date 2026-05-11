@@ -10,6 +10,7 @@ export const cn: LanguageFile = {
   translations: {
     "nav.home": "首页",
     "nav.tools": "工具",
+    "nav.download": "下载",
     "welcome.subtitle": "你的游戏日记。",
     "tools.gameSessions.title": "游戏会话",
     "tools.gameSessions.subtitle": "backup.json 可视化编辑器",
@@ -48,5 +49,39 @@ export const cn: LanguageFile = {
     "dbMerge.errorParsing": "解析错误",
     "dbMerge.dropPrompt": "拖拽到这里",
     "dbMerge.backToTools": "返回",
+    "requirements.title": "系统要求",
+    "requirements.cfw": "自制系统 (PRO, ME 或 ARK-4)",
+    "requirements.storage": "记忆棒至少 10MB 剩余空间",
+
+    "download.title": "获取 GameDiary",
+    "download.subtitle": "在 PSP 上记录您的游戏历程。",
+    "download.latestVersion": "最新版本",
+    "download.releaseDate": "发布日期",
+    "download.codename": "代号",
+    "download.app.title": "GameDiary 应用",
+    "download.app.desc": "查看统计数据和管理日记的主程序。",
+    "download.plugin.title": "GameDiary 插件",
+    "download.plugin.desc": "自动记录游戏时间的后台插件。",
+    "download.install.title": "安装指南",
+    "download.install.app.step1": "通过 USB 将 PSP 连接到电脑。",
+    "download.install.app.step2": "将 GameDiary 文件夹复制到 PSP/GAME/。",
+    "download.install.app.step3": "从 PSP 的游戏菜单启动 GameDiary。",
+    "download.install.plugin.step1":
+      "将 GameDiary.prx 复制到 seplugins/ 文件夹。",
+    "download.install.plugin.step2":
+      'ARK-4: 在 plugins.txt 中添加 "psp, GameDiary.prx, on" 和 "ps1, GameDiary.prx, on"。',
+    "download.install.plugin.step3":
+      'PRO/ME: 在 game.txt 和 pops.txt 中添加 "ms0:/seplugins/GameDiary.prx 1"。',
+    "download.install.plugin.step4": "重启 PSP 或重新加载插件。",
+    "download.requirements.title": "系统要求",
+    "download.requirements.cfw": "自制系统 (PRO, ME 或 ARK-4)",
+    "download.requirements.storage": "记忆棒至少 10MB 剩余空间",
+    "download.package.title": "GameDiary 完整包",
+    "download.package.desc":
+      "包含 App (EBOOT.PBP) 和 插件 (PRX) 的单个 ZIP 文件。",
+    "download.package.button": "下载",
+    "download.package.appIncluded": "包含应用",
+    "download.package.pluginIncluded": "包含插件",
+    "download.viewOnGithub": "在 GitHub 上查看",
   },
 };

@@ -40,6 +40,14 @@ export const Header: React.FC = () => {
               {t('nav.tools')}
               <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-[#3B82F6] transform transition-transform origin-left ${isTools ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
+
+            <a 
+              href="#download" 
+              className={`text-sm font-medium relative group py-1 transition-colors ${hash === '#download' ? 'text-white' : 'text-white/60 hover:text-white'}`}
+            >
+              {t('nav.download')}
+              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-[#3B82F6] transform transition-transform origin-left ${hash === '#download' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+            </a>
           </nav>
         </div>
 

@@ -10,6 +10,7 @@ export const fr: LanguageFile = {
   translations: {
     "nav.home": "Accueil",
     "nav.tools": "Outils",
+    "nav.download": "Télécharger",
     "welcome.subtitle": "Votre journal de jeu personnel.",
     "tools.gameSessions.title": "Sessions de jeu",
     "tools.gameSessions.subtitle": "Éditeur visuel pour backup.json",
@@ -49,5 +50,41 @@ export const fr: LanguageFile = {
     "dbMerge.errorParsing": "Erreur de lecture des fichiers.",
     "dbMerge.dropPrompt": "OU DÉPOSEZ ICI",
     "dbMerge.backToTools": "Retour aux outils",
+
+    "download.title": "Obtenir GameDiary",
+    "download.subtitle": "Suivez votre parcours de jeu sur PSP.",
+    "download.latestVersion": "Dernière Version",
+    "download.releaseDate": "Date de Sortie",
+    "download.codename": "Nom de code",
+    "download.app.title": "App GameDiary",
+    "download.app.desc":
+      "L'application principale pour voir vos stats et gérer votre journal.",
+    "download.plugin.title": "Plugin GameDiary",
+    "download.plugin.desc":
+      "Le plugin d'arrière-plan qui suit votre temps de jeu automatiquement.",
+    "download.install.title": "Guide d'Installation",
+    "download.install.app.step1": "Connectez votre PSP à votre PC via USB.",
+    "download.install.app.step2": "Copiez le dossier GameDiary dans PSP/GAME/.",
+    "download.install.app.step3":
+      "Lancez GameDiary depuis le menu Jeu de votre PSP.",
+    "download.install.plugin.step1":
+      "Copiez GameDiary.prx dans le dossier seplugins/.",
+    "download.install.plugin.step2":
+      'ARK-4 : Ajoutez "psp, GameDiary.prx, on" et "ps1, GameDiary.prx, on" à plugins.txt.',
+    "download.install.plugin.step3":
+      'PRO/ME : Ajoutez "ms0:/seplugins/GameDiary.prx 1" à game.txt et pops.txt.',
+    "download.install.plugin.step4":
+      "Redémarrez votre PSP ou rechargez vos plugins.",
+    "download.requirements.title": "Configuration Requise",
+    "download.requirements.cfw": "Custom Firmware (PRO, ME, ou ARK-4)",
+    "download.requirements.storage":
+      "Au moins 10 Mo d'espace libre sur Memory Stick",
+    "download.package.title": "Pack Complet GameDiary",
+    "download.package.desc":
+      "Comprend l'App (EBOOT.PBP) et le Plugin (PRX) dans um seul fichier ZIP.",
+    "download.package.button": "Télécharger",
+    "download.package.appIncluded": "App inclus",
+    "download.package.pluginIncluded": "Plugin inclus",
+    "download.viewOnGithub": "Voir sur GitHub",
   },
 };
