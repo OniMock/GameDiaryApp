@@ -203,11 +203,11 @@
 
   /* Tool Specific Layout Fixes */
   .tool-main-layout {
-    @apply flex flex-col h-[calc(100vh-1rem)] pb-4 overflow-hidden bg-background;
+    @apply flex flex-col min-h-screen md:h-[calc(100vh-1rem)] pb-4 overflow-y-auto md:overflow-hidden bg-background;
   }
 
   .tool-grid-container {
-    @apply flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 min-h-0 mb-4 overflow-hidden;
+    @apply flex-1 grid grid-cols-1 md:grid-cols-4 gap-6 min-h-0 mb-4 overflow-y-auto md:overflow-hidden;
   }
 }
 

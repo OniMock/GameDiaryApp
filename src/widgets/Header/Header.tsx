@@ -28,26 +28,26 @@ export const Header: React.FC = () => {
           <nav className="hidden md:flex items-center gap-6">
             <a 
               href="#home" 
-              className={`text-sm font-medium relative group py-1 transition-colors ${isHome ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`text-sm font-medium relative group transition-colors ${isHome ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.home')}
-              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isHome ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+              <span className={`absolute -bottom-1 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isHome ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
             
             <a 
               href="#tools" 
-              className={`text-sm font-medium relative group py-1 transition-colors ${isTools ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`text-sm font-medium relative group transition-colors ${isTools ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.tools')}
-              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isTools ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+              <span className={`absolute -bottom-1 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isTools ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
 
             <a 
               href="#download" 
-              className={`text-sm font-medium relative group py-1 transition-colors ${isDownload ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+              className={`text-sm font-medium relative group transition-colors ${isDownload ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.download')}
-              <span className={`absolute bottom-0 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isDownload ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+              <span className={`absolute -bottom-1 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isDownload ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
           </nav>
         </div>

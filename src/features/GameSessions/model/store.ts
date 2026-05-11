@@ -4,6 +4,7 @@ import type { GameEntry, SessionEntry } from './domain/types';
 export function useGameSessionsStore() {
   const [gameData, setGameData] = useState<{ games: GameEntry[], nextUid: number }>({ games: [], nextUid: 1 });
   const [sessions, setSessions] = useState<SessionEntry[]>([]);
+  const [selectedGameUid, setSelectedGameUid] = useState<number | null>(null);
 
   const games = gameData.games;
   const nextUid = gameData.nextUid;
@@ -114,9 +115,15 @@ export function useGameSessionsStore() {
     return GAME_COLORS[uid % GAME_COLORS.length];
   }, [GAME_COLORS]);
 
+  const toggleSelectGame = useCallback((uid: number) => {
+    setSelectedGameUid(prev => prev === uid ? null : uid);
+  }, []);
+
   return {
     games,
     sessions,
+    selectedGameUid,
+    toggleSelectGame,
     loadData,
     clearData,
     deleteGame,

@@ -12,6 +12,7 @@ export const GameSessionsTool: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [activeTab, setActiveTab] = useState<'games' | 'timeline'>('timeline');
 
   const processFile = async (file: File) => {
     try {
@@ -123,15 +124,37 @@ export const GameSessionsTool: React.FC = () => {
         </div>
       </div>
 
+      {/* Mobile Tab Switcher */}
+      <div className="flex md:hidden mb-4 bg-card/60 border border-border p-1 rounded-xl shadow-sm">
+        <button 
+          onClick={() => setActiveTab('games')}
+          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'games' ? 'bg-primary text-white shadow-md' : 'text-foreground/60 hover:text-foreground'}`}
+        >
+          {t('game.manager') || 'Games'}
+        </button>
+        <button 
+          onClick={() => setActiveTab('timeline')}
+          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'timeline' ? 'bg-primary text-white shadow-md' : 'text-foreground/60 hover:text-foreground'}`}
+        >
+          {t('sessions.timeline') || 'Timeline'}
+        </button>
+      </div>
+
       <div className="tool-grid-container px-0 md:px-0">
-        <div className="col-span-1 min-h-0 h-full overflow-hidden"> 
-          <GamesManager {...store} />
+        <div className={`md:col-span-1 md:h-full overflow-hidden ${activeTab === 'games' ? 'block' : 'hidden md:block'}`}> 
+          <GamesManager 
+            {...store} 
+            selectedGameUid={store.selectedGameUid}
+            onToggleSelect={store.toggleSelectGame}
+          />
         </div>
 
-        <div className="col-span-3 min-h-0 h-full overflow-hidden">
+        <div className={`md:col-span-3 md:h-full overflow-hidden ${activeTab === 'timeline' ? 'block' : 'hidden md:block'}`}>
           <TimelineView 
             sessions={store.sessions}
             games={store.games}
+            selectedGameUid={store.selectedGameUid}
+            onToggleSelect={store.toggleSelectGame}
             getGameColor={store.getGameColor}
             onAddSession={store.addSession}
             onUpdateSession={store.updateSession}

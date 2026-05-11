@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import type { GameEntry } from '../model/domain/types';
 import { GameFormModal } from './GameFormModal';
 import { useLanguage } from '../../../i18n/hooks/use-language';
+import { cn } from '../../../shared/lib/utils';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
 
 interface GamesManagerProps {
   games: GameEntry[];
+  selectedGameUid?: number | null;
+  onToggleSelect?: (uid: number) => void;
   addGame: (game: Omit<GameEntry, 'uid'>) => void;
   updateGame: (game: GameEntry) => void;
   deleteGame: (uid: number) => void;
@@ -13,7 +16,7 @@ interface GamesManagerProps {
 }
 
 export const GamesManager: React.FC<GamesManagerProps> = ({ 
-  games, addGame, updateGame, deleteGame, getGameColor 
+  games, selectedGameUid, onToggleSelect, addGame, updateGame, deleteGame, getGameColor 
 }) => {
   const { t } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -57,8 +60,6 @@ export const GamesManager: React.FC<GamesManagerProps> = ({
 
   return (
     <div className="tool-card h-full flex flex-col">
-
-      
       <div className="tool-card-header">
         <h2 className="tool-card-title">{t('game.manager') || 'Game Manager'} ({games.length})</h2>
         <button 
@@ -76,59 +77,67 @@ export const GamesManager: React.FC<GamesManagerProps> = ({
             {t('game.noGames') || 'No games added yet.'}
           </div>
         ) : (
-          games.map(game => (
-            <div 
-              key={game.uid}
-              className="game-item cursor-grab active:cursor-grabbing group"
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData('game_uid', game.uid.toString());
-                e.dataTransfer.effectAllowed = 'move';
-                // Add a small opacity for the ghost item
-                (e.target as HTMLElement).style.opacity = '0.5';
-              }}
-              onDragEnd={(e) => {
-                (e.target as HTMLElement).style.opacity = '1';
-              }}
-            >
-
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div 
-                  className="w-10 h-10 rounded-md shrink-0 flex items-center justify-center font-bold text-white shadow-inner"
-                  style={{ backgroundColor: getGameColor(game.uid) }}
-                >
-                  {game.game_name.charAt(0).toUpperCase()}
+          games.map(game => {
+            const isSelected = selectedGameUid === game.uid;
+            return (
+              <div 
+                key={game.uid}
+                onClick={() => onToggleSelect?.(game.uid)}
+                className={cn(
+                  "game-item cursor-grab active:cursor-grabbing group transition-all duration-200 border-2",
+                  isSelected 
+                    ? "border-primary bg-primary/10 shadow-md scale-[1.02]" 
+                    : "border-transparent hover:bg-foreground/5"
+                )}
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('game_uid', game.uid.toString());
+                  e.dataTransfer.effectAllowed = 'move';
+                  // Add a small opacity for the ghost item
+                  (e.target as HTMLElement).style.opacity = '0.5';
+                }}
+                onDragEnd={(e) => {
+                  (e.target as HTMLElement).style.opacity = '1';
+                }}
+              >
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <div 
+                    className="w-10 h-10 rounded-md shrink-0 flex items-center justify-center font-bold text-white shadow-inner"
+                    style={{ backgroundColor: getGameColor(game.uid) }}
+                  >
+                    {game.game_name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="game-name" title={game.game_name}>
+                      {game.game_name}
+                    </div>
+                    <div className="game-meta">
+                      <span>UID: {game.uid}</span>
+                      <span>•</span>
+                      <span className="game-id-text">{game.game_id}</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <div className="game-name" title={game.game_name}>
-                    {game.game_name}
-                  </div>
-                  <div className="game-meta">
-                    <span>UID: {game.uid}</span>
-                    <span>•</span>
-                    <span className="game-id-text">{game.game_id}</span>
-                  </div>
+                
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-4">
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleOpenEdit(game); }}
+                    className="p-1.5 text-foreground/60 hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors"
+                    title="Edit"
+                  >
+                    <Edit2 size={16} />
+                  </button>
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleDelete(game.uid); }}
+                    className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
               </div>
-              
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-4">
-                <button 
-                  onClick={() => handleOpenEdit(game)}
-                  className="p-1.5 text-foreground/60 hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors"
-                  title="Edit"
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button 
-                  onClick={() => handleDelete(game.uid)}
-                  className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-colors"
-                  title="Delete"
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 

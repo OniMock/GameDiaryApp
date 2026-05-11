@@ -1,13 +1,16 @@
 .home-container {
-  min-height: 100vh;
-  padding-top: 3.5rem; /* pt-14 */
+  /* MainLayout already adds pt-14 via the <main> element,
+     so we subtract that height here to keep content truly centered.
+     The padding-bottom shifts the optical center upward (classic hero technique). */
+  min-height: calc(100vh - 3.5rem);
   display: flex;
   flex-direction: column;
-  items-center: center;
+  align-items: center;
   justify-content: center;
   text-align: center;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
+  padding-bottom: 8rem;
   position: relative;
   overflow: hidden;
 }

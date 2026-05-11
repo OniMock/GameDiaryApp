@@ -8,34 +8,36 @@ import { useLanguage } from '../../../../i18n/hooks/use-language';
 interface TimelineViewProps {
   sessions: SessionEntry[];
   games: GameEntry[];
+  selectedGameUid?: number | null;
+  onToggleSelect?: (uid: number) => void;
   getGameColor: (uid: number) => string;
   onAddSession: (session: SessionEntry) => void;
   onUpdateSession: (oldTimestamp: number, oldUid: number, upSession: SessionEntry) => void;
   onDeleteSession: (timestamp: number, uid: number) => void;
 }
 
-export const TimelineView: React.FC<TimelineViewProps> = ({ 
-  sessions, games, getGameColor, onAddSession, onUpdateSession, onDeleteSession 
+export const TimelineView: React.FC<TimelineViewProps> = ({
+  sessions, games, selectedGameUid, onToggleSelect, getGameColor, onAddSession, onUpdateSession, onDeleteSession
 }) => {
   const { t, currentLanguage } = useLanguage();
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [editingSession, setEditingSession] = useState<SessionEntry | null>(null);
-  
+
   const [showPicker, setShowPicker] = useState(false);
   const [pickerView, setPickerView] = useState<'months' | 'years'>('months');
   const [pickerYear, setPickerYear] = useState(() => currentDate.getFullYear());
 
   const [zoom, setZoom] = useState(2);
-  
+
   // Resize state
-  const [resizingSession, setResizingSession] = useState<{ 
-    session: SessionEntry, 
+  const [resizingSession, setResizingSession] = useState<{
+    session: SessionEntry,
     originalStartTs: number,
     originalDurationSec: number,
-    handle: 'top' | 'bottom' 
+    handle: 'top' | 'bottom'
   } | null>(null);
   const [resizingCurrentTs, setResizingCurrentTs] = useState(0);
-  
+
   const wasResizingRef = useRef(false);
   const [isGameOver, setIsGameOver] = useState<{ dayIdx: number, mins: number } | null>(null);
 
@@ -60,7 +62,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
     for (let mins = 0; mins < 1440; mins += step) {
       const isHour = mins % 60 === 0;
-      
+
       // Ruler calculations
       // Only show text labels when there is enough vertical space (approx 20px between labels)
       let showLabel = false;
@@ -73,10 +75,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       if (isHour) {
         rTicks.push({ mins, isHour: true });
       } else {
-        rTicks.push({ 
-          mins, 
-          isHour: false, 
-          label: showLabel ? `:${String(mins % 60).padStart(2, '0')}` : undefined 
+        rTicks.push({
+          mins,
+          isHour: false,
+          label: showLabel ? `:${String(mins % 60).padStart(2, '0')}` : undefined
         });
       }
 
@@ -112,12 +114,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     const rect = columnsContainerRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
-    
+
     // Determine which column (dayIdx: -1, 0, 1)
     const colWidth = rect.width / 3;
     const dayIdx = Math.floor(x / colWidth) - 1;
     const clampedDayIdx = Math.max(-1, Math.min(1, dayIdx));
-    
+
     const mins = snapMins(Math.max(0, Math.min(1440, Math.round(y / zoom))));
     return dayBounds[clampedDayIdx + 1].startTimestamp + (mins * 60);
   };
@@ -147,7 +149,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           const nextS = otherSessions
             .filter(s => s.timestamp >= session.timestamp)
             .sort((a, b) => a.timestamp - b.timestamp)[0];
-          
+
           finalEnd = resizingCurrentTs;
           if (nextS && finalEnd > nextS.timestamp) {
             finalEnd = nextS.timestamp;
@@ -159,7 +161,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           const prevS = otherSessions
             .filter(s => (s.timestamp + s.duration) <= currentEnd)
             .sort((a, b) => (b.timestamp + b.duration) - (a.timestamp + a.duration))[0];
-            
+
           finalStart = resizingCurrentTs;
           const prevEnd = prevS ? (prevS.timestamp + prevS.duration) : 0;
           if (prevS && finalStart < prevEnd) {
@@ -168,10 +170,10 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         }
 
         const finalDuration = Math.max(60, finalEnd - finalStart);
-        onUpdateSession(session.timestamp, session.game_uid, { 
-          ...session, 
-          timestamp: finalStart, 
-          duration: finalDuration 
+        onUpdateSession(session.timestamp, session.game_uid, {
+          ...session,
+          timestamp: finalStart,
+          duration: finalDuration
         });
 
         setResizingSession(null);
@@ -214,7 +216,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     const timestamp = dayBounds[dayIdx+1].startTimestamp + (mins * 60);
 
     // Intelligent duration: try 1h, but shrink if there's a gap
-    let duration = 60 * 60; 
+    let duration = 60 * 60;
     const nextSession = [...sessions]
       .filter(s => s.timestamp > timestamp)
       .sort((a, b) => a.timestamp - b.timestamp)[0];
@@ -230,6 +232,43 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
       onAddSession({ game_uid, duration, timestamp });
     } else {
       alert(t('sessions.overlap') || "Overlap!");
+    }
+  };
+
+  const handleTimelineClick = (e: React.PointerEvent, dayIdx: number) => {
+    // ONLY place session if the user clicked the background column directly
+    // This prevents adding sessions when clicking existing sessions or handles
+    if (e.target !== e.currentTarget) return;
+
+    // Only place session if a game is selected AND we're not currently resizing/interacting with another session
+    if (selectedGameUid !== null && selectedGameUid !== undefined && !resizingSession && !wasResizingRef.current) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const mins = snapMins(Math.max(0, Math.min(1440, Math.round(y / zoom))));
+      const timestamp = dayBounds[dayIdx+1].startTimestamp + (mins * 60);
+
+      // Intelligent duration: try 1h, but shrink if there's a gap
+      let duration = 60 * 60;
+      const nextSession = [...sessions]
+        .filter(s => s.timestamp > timestamp)
+        .sort((a, b) => a.timestamp - b.timestamp)[0];
+
+      if (nextSession) {
+        const gapSeconds = nextSession.timestamp - timestamp;
+        if (gapSeconds < duration) {
+          duration = Math.max(60, gapSeconds); // At least 1 min
+        }
+      }
+
+      if (duration >= 60 && !checkOverlap(timestamp, timestamp + duration, sessions)) {
+        onAddSession({ game_uid: selectedGameUid, duration, timestamp });
+        // Auto-deselect after placement to prevent accidental multiple sessions
+        if (typeof onToggleSelect === 'function') {
+          onToggleSelect(selectedGameUid);
+        }
+      } else {
+        alert(t('sessions.overlap') || "Overlap!");
+      }
     }
   };
 
@@ -256,21 +295,21 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
   const renderSessionBlock = (s: SessionEntry, dayIdx: number) => {
     const { startTimestamp: dStart, endTimestamp: dEnd } = dayBounds[dayIdx + 1];
-    
+
     // Calculate effective start and end for THIS day column
     const isResizingThis = resizingSession?.session.timestamp === s.timestamp && resizingSession?.session.game_uid === s.game_uid;
-    
+
     let activeStart = s.timestamp;
     let activeEnd = s.timestamp + s.duration;
 
     if (isResizingThis) {
       const otherSessions = sessions.filter(sess => !(sess.timestamp === s.timestamp && sess.game_uid === s.game_uid));
-      
+
       if (resizingSession.handle === 'bottom') {
         const nextS = otherSessions
           .filter(sess => sess.timestamp >= s.timestamp)
           .sort((a, b) => a.timestamp - b.timestamp)[0];
-        
+
         activeEnd = resizingCurrentTs;
         if (nextS && activeEnd > nextS.timestamp) {
           activeEnd = nextS.timestamp;
@@ -281,7 +320,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         const prevS = otherSessions
           .filter(sess => (sess.timestamp + sess.duration) <= (s.timestamp + s.duration))
           .sort((a, b) => (b.timestamp + b.duration) - (a.timestamp + a.duration))[0];
-          
+
         activeStart = resizingCurrentTs;
         const prevEnd = prevS ? (prevS.timestamp + prevS.duration) : 0;
         if (prevS && activeStart < prevEnd) {
@@ -296,7 +335,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
     const visStart = Math.max(activeStart, dStart);
     const visEnd = Math.min(activeEnd, dEnd + 1);
-    
+
     const topMins = Math.floor((visStart - dStart) / 60);
     const durMins = Math.ceil((visEnd - visStart) / 60);
 
@@ -305,63 +344,75 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     const endsAfter = activeEnd > dEnd + 1;
 
     return (
-      <div 
-        key={`${s.timestamp}-${s.game_uid}-${dayIdx}`} 
-        className={`session-block absolute left-1 right-1 rounded shadow-md flex flex-col p-1 border-white/20 cursor-pointer overflow-hidden group transition-all 
+      <div
+        key={`${s.timestamp}-${s.game_uid}-${dayIdx}`}
+        className={`session-block absolute left-1 right-1 rounded shadow-md flex flex-col p-1 border-white/20 cursor-pointer overflow-hidden group transition-all
           ${isResizingThis ? 'z-50 ring-2 ring-white/50 animate-pulse-subtle' : 'z-10'}
           ${startsBefore ? 'rounded-t-none border-t-0' : 'border-t'}
           ${endsAfter ? 'rounded-b-none' : ''}
-        `} 
-        style={{ 
-          top: topMins * zoom, 
-          height: Math.max(5, durMins) * zoom, 
-          backgroundColor: getGameColor(s.game_uid), 
-          opacity: isResizingThis ? 1 : 0.9, 
-        }} 
-        onClick={() => !resizingSession && !wasResizingRef.current && setEditingSession(s)}
+        `}
+        style={{
+          top: topMins * zoom,
+          height: Math.max(5, durMins) * zoom,
+          backgroundColor: getGameColor(s.game_uid),
+          opacity: isResizingThis ? 1 : 0.9,
+          touchAction: 'none'
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!resizingSession && !wasResizingRef.current) setEditingSession(s);
+        }}
+        onPointerDown={(e) => {
+          // Prevent placing a new session when clicking an existing one
+          e.stopPropagation();
+        }}
       >
-        {/* Top Handle - Only show on the actual start day */}
+        {/* Top Handle - Invisible but large hit area */}
         {!startsBefore && (
-          <div 
-            className="absolute top-0 left-0 right-0 h-1.5 cursor-ns-resize hover:bg-white/20 z-20"
+          <div
+            className="absolute -top-4 left-0 right-0 h-8 cursor-ns-resize z-20 group/handle-top"
+            style={{ touchAction: 'none' }}
             onPointerDown={(e) => {
               e.stopPropagation();
-              setResizingSession({ 
-                session: s, 
-                originalStartTs: s.timestamp, 
+              setResizingSession({
+                session: s,
+                originalStartTs: s.timestamp,
                 originalDurationSec: s.duration,
-                handle: 'top' 
+                handle: 'top'
               });
               setResizingCurrentTs(s.timestamp);
             }}
-          />
+          >
+            <div className="absolute bottom-4 left-0 right-0 h-1 bg-white/20 group-hover/handle-top:bg-white/40 transition-colors" />
+          </div>
         )}
 
         <span className="text-[10px] sm:text-xs font-bold text-white leading-tight truncate drop-shadow-sm">{game?.game_name || t('game.unknown') || 'Unknown'}</span>
-        
+
         {durMins * zoom > 20 && (
           <span className="text-[8px] sm:text-[9px] text-white/90 drop-shadow flex flex-wrap gap-1">
             <span>{formatTime(activeStart)}</span>
             {durMins * zoom > 35 && <span>- {formatTime(activeEnd)}</span>}
           </span>
         )}
-        
-        {/* Bottom Handle - Only show on the actual end day */}
+
+        {/* Bottom Handle - Invisible but large hit area */}
         {!endsAfter && (
-          <div 
-            className="absolute bottom-0 left-0 right-0 h-2 cursor-ns-resize hover:bg-black/20 transition-colors flex items-center justify-center group/handle"
+          <div
+            className="absolute -bottom-4 left-0 right-0 h-8 cursor-ns-resize z-20 flex items-center justify-center group/handle-bottom"
+            style={{ touchAction: 'none' }}
             onPointerDown={(e) => {
               e.stopPropagation();
-              setResizingSession({ 
-                session: s, 
+              setResizingSession({
+                session: s,
                 originalStartTs: s.timestamp,
-                originalDurationSec: s.duration, 
-                handle: 'bottom' 
+                originalDurationSec: s.duration,
+                handle: 'bottom'
               });
               setResizingCurrentTs(activeEnd);
             }}
           >
-            <div className="w-4 h-0.5 bg-white/40 rounded-full group-hover/handle:bg-white/80" />
+            <div className="absolute top-4 w-6 h-1 bg-white/20 rounded-full group-hover/handle-bottom:bg-white/50 transition-colors" />
           </div>
         )}
       </div>
@@ -401,12 +452,12 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                 <button onClick={() => setPickerYear(y => y + 1)} className="timeline-picker-btn"><ChevronRight size={16} /></button>
               </div>
               <div className="timeline-picker-grid">
-                {pickerView === 'months' ? 
+                {pickerView === 'months' ?
                   Array.from({ length: 12 }, (_, i) => {
                     const d = new Date(2000, i, 1);
                     const m = d.toLocaleDateString(currentLanguage, { month: 'short' });
                     return <div key={m} className={`timeline-picker-item ${currentDate.getMonth() === i && currentDate.getFullYear() === pickerYear ? 'timeline-picker-item-active' : ''}`} onClick={() => selectDate(i, pickerYear)}>{m}</div>
-                  }) : 
+                  }) :
                   Array.from({ length: 12 }, (_, i) => pickerYear - 5 + i).map(y => (
                     <div key={y} className={`timeline-picker-item ${pickerYear === y ? 'timeline-picker-item-active' : ''}`} onClick={() => { setPickerYear(y); setPickerView('months'); }}>{y}</div>
                   ))
@@ -435,7 +486,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
             </div>
             <div ref={columnsContainerRef} className="flex-1 flex relative" style={{ height: 1440 * zoom }}>
               {gridTicks.map(tick => (
-                <div 
+                <div
                   key={`grid-${tick.mins}`}
                   className={`absolute w-full border-t border-border pointer-events-none ${tick.dash ? 'border-dashed' : ''}`}
                   style={{ top: tick.mins * zoom, opacity: tick.opacity }}
@@ -447,7 +498,14 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                 const dayIdx = idx - 1;
                 const isOverThisDay = isGameOver?.dayIdx === dayIdx;
                 return (
-                  <div key={idx} className={`flex-1 relative border-r border-border last:border-r-0 ${idx === 1 ? 'timeline-column-center' : 'timeline-column-side'} ${isOverThisDay ? 'bg-blue-500/5' : ''}`} onDragOver={(e) => handleDragOver(e, dayIdx)} onDragLeave={() => setIsGameOver(null)} onDrop={(e) => handleDrop(e, dayIdx)}>
+                  <div
+                    key={idx}
+                    className={`flex-1 relative border-r border-border last:border-r-0 ${idx === 1 ? 'timeline-column-center' : 'timeline-column-side'} ${isOverThisDay ? 'bg-blue-500/5' : ''} ${selectedGameUid !== null && selectedGameUid !== undefined ? 'cursor-crosshair' : ''}`}
+                    onPointerDown={(e) => handleTimelineClick(e, dayIdx)}
+                    onDragOver={(e) => handleDragOver(e, dayIdx)}
+                    onDragLeave={() => setIsGameOver(null)}
+                    onDrop={(e) => handleDrop(e, dayIdx)}
+                  >
                     {sessions.map(s => renderSessionBlock(s, dayIdx))}
                     {isOverThisDay && <div className="absolute inset-x-1 border-2 border-blue-500/50 bg-blue-500/10 pointer-events-none z-50 rounded" style={{ top: isGameOver.mins * zoom, height: 60 * zoom }} />}
                   </div>
