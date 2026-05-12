@@ -25,7 +25,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   const [editingSession, setEditingSession] = useState<SessionEntry | null>(null);
 
   const [showPicker, setShowPicker] = useState(false);
-  const [pickerView, setPickerView] = useState<'months' | 'years'>('months');
+  const [pickerView, setPickerView] = useState<'days' | 'months' | 'years'>('days');
+  const [pickerMonth, setPickerMonth] = useState(() => currentDate.getMonth());
   const [pickerYear, setPickerYear] = useState(() => currentDate.getFullYear());
 
   const [zoom, setZoom] = useState(2);
@@ -40,6 +41,42 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         .map(g => g.uid)
     );
   }, [games, searchQuery]);
+
+  // Track which months/years have activity for the searched game
+  const activityMonths = useMemo(() => {
+    if (!matchingGameUids) return null;
+    const months = new Set<string>();
+    sessions.forEach(s => {
+      if (matchingGameUids.has(s.game_uid)) {
+        const d = new Date(s.timestamp * 1000);
+        months.add(`${d.getFullYear()}-${d.getMonth()}`);
+      }
+    });
+    return months;
+  }, [sessions, matchingGameUids]);
+
+  // Track which specific days have activity for the searched game
+  const activityDays = useMemo(() => {
+    if (!matchingGameUids) return null;
+    const days = new Set<string>();
+    sessions.forEach(s => {
+      if (matchingGameUids.has(s.game_uid)) {
+        const d = new Date(s.timestamp * 1000);
+        days.add(`${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`);
+      }
+    });
+    return days;
+  }, [sessions, matchingGameUids]);
+
+  // Check if a specific day has a matching session
+  const dayHasMatch = (bounds: { startTimestamp: number, endTimestamp: number }) => {
+    if (!matchingGameUids) return false;
+    return sessions.some(s => 
+      matchingGameUids.has(s.game_uid) && 
+      s.timestamp >= bounds.startTimestamp && 
+      s.timestamp < bounds.endTimestamp
+    );
+  };
 
   // Resize state
   const [resizingSession, setResizingSession] = useState<{
@@ -436,10 +473,23 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     );
   };
 
-  const selectDate = (month: number, year: number) => {
-    const n = new Date(currentDate);
-    n.setFullYear(year); n.setMonth(month);
-    setCurrentDate(n); setShowPicker(false);
+  const selectDate = (day: number, month: number, year: number) => {
+    const n = new Date(year, month, day);
+    setCurrentDate(n); 
+    setShowPicker(false);
+  };
+
+  const getCalendarDays = (month: number, year: number) => {
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const days = [];
+    
+    // Add empty slots for the first week
+    // Adjusting for Monday start if needed, but keeping standard Sunday=0 for simplicity
+    for (let i = 0; i < firstDay; i++) days.push(null);
+    
+    for (let d = 1; d <= daysInMonth; d++) days.push(d);
+    return days;
   };
 
   return (
@@ -462,21 +512,110 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
           <button onClick={nextDay} className="p-1 hover:bg-black/10 dark:hover:bg-white/10 text-foreground rounded transition-colors"><ChevronRight size={18} /></button>
           {showPicker && (
-            <div ref={pickerRef} className="timeline-date-picker-popover">
+            <div ref={pickerRef} className="timeline-date-picker-popover w-72">
               <div className="timeline-picker-header">
-                <button onClick={() => setPickerYear(y => y - 1)} className="timeline-picker-btn"><ChevronLeft size={16} /></button>
-                <button onClick={() => setPickerView(v => v === 'months' ? 'years' : 'months')} className="text-sm font-bold hover:text-blue-500 transition-colors">{pickerYear}</button>
-                <button onClick={() => setPickerYear(y => y + 1)} className="timeline-picker-btn"><ChevronRight size={16} /></button>
+                <button 
+                  onClick={() => {
+                    if (pickerView === 'days') setPickerMonth(m => m === 0 ? 11 : m - 1);
+                    if (pickerView === 'days' && pickerMonth === 0) setPickerYear(y => y - 1);
+                    if (pickerView === 'months') setPickerYear(y => y - 1);
+                    if (pickerView === 'years') setPickerYear(y => y - 10);
+                  }} 
+                  className="timeline-picker-btn"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                
+                <div className="flex gap-1">
+                  <button 
+                    onClick={() => setPickerView('months')}
+                    className="text-sm font-bold hover:text-blue-500 transition-colors"
+                  >
+                    {new Date(pickerYear, pickerMonth).toLocaleDateString(currentLanguage, { month: 'long' })}
+                  </button>
+                  <button 
+                    onClick={() => setPickerView('years')}
+                    className="text-sm font-bold hover:text-blue-500 transition-colors"
+                  >
+                    {pickerYear}
+                  </button>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    if (pickerView === 'days') setPickerMonth(m => m === 11 ? 0 : m + 1);
+                    if (pickerView === 'days' && pickerMonth === 11) setPickerYear(y => y + 1);
+                    if (pickerView === 'months') setPickerYear(y => y + 1);
+                    if (pickerView === 'years') setPickerYear(y => y + 10);
+                  }} 
+                  className="timeline-picker-btn"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
-              <div className="timeline-picker-grid">
-                {pickerView === 'months' ?
+
+              {pickerView === 'days' && (
+                <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
+                    <span key={d} className="text-[10px] font-bold text-muted-foreground">{d}</span>
+                  ))}
+                </div>
+              )}
+
+              <div className={`grid gap-1 ${pickerView === 'days' ? 'grid-cols-7' : 'grid-cols-3'}`}>
+                {pickerView === 'days' && 
+                  getCalendarDays(pickerMonth, pickerYear).map((day, i) => {
+                    if (day === null) return <div key={`empty-${i}`} />;
+                    const hasActivity = activityDays?.has(`${pickerYear}-${pickerMonth}-${day}`);
+                    const isToday = new Date().toDateString() === new Date(pickerYear, pickerMonth, day).toDateString();
+                    const isSelected = currentDate.toDateString() === new Date(pickerYear, pickerMonth, day).toDateString();
+                    
+                    return (
+                      <div 
+                        key={day} 
+                        className={`timeline-picker-item relative aspect-square flex flex-col items-center justify-center
+                          ${isSelected ? 'timeline-picker-item-active' : ''}
+                          ${isToday && !isSelected ? 'ring-1 ring-primary/40' : ''}
+                        `} 
+                        onClick={() => selectDate(day, pickerMonth, pickerYear)}
+                      >
+                        <span className="text-xs">{day}</span>
+                        {hasActivity && (
+                          <div className={`absolute bottom-1 w-1 h-1 rounded-full ${isSelected ? 'bg-white' : 'bg-blue-500 animate-pulse'}`} />
+                        )}
+                      </div>
+                    );
+                  })
+                }
+
+                {pickerView === 'months' &&
                   Array.from({ length: 12 }, (_, i) => {
-                    const d = new Date(2000, i, 1);
-                    const m = d.toLocaleDateString(currentLanguage, { month: 'short' });
-                    return <div key={m} className={`timeline-picker-item ${currentDate.getMonth() === i && currentDate.getFullYear() === pickerYear ? 'timeline-picker-item-active' : ''}`} onClick={() => selectDate(i, pickerYear)}>{m}</div>
-                  }) :
+                    const mName = new Date(2000, i, 1).toLocaleDateString(currentLanguage, { month: 'short' });
+                    const hasActivity = activityMonths?.has(`${pickerYear}-${i}`);
+                    return (
+                      <div 
+                        key={mName} 
+                        className={`timeline-picker-item relative py-3 ${pickerMonth === i ? 'timeline-picker-item-active' : ''}`} 
+                        onClick={() => { setPickerMonth(i); setPickerView('days'); }}
+                      >
+                        {mName}
+                        {hasActivity && (
+                          <div className={`absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${pickerMonth === i ? 'bg-white' : 'bg-blue-500 animate-pulse'}`} />
+                        )}
+                      </div>
+                    );
+                  })
+                }
+
+                {pickerView === 'years' &&
                   Array.from({ length: 12 }, (_, i) => pickerYear - 5 + i).map(y => (
-                    <div key={y} className={`timeline-picker-item ${pickerYear === y ? 'timeline-picker-item-active' : ''}`} onClick={() => { setPickerYear(y); setPickerView('months'); }}>{y}</div>
+                    <div 
+                      key={y} 
+                      className={`timeline-picker-item py-3 ${pickerYear === y ? 'timeline-picker-item-active' : ''}`} 
+                      onClick={() => { setPickerYear(y); setPickerView('months'); }}
+                    >
+                      {y}
+                    </div>
                   ))
                 }
               </div>
@@ -489,11 +628,24 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         <div className="flex border-b border-border shrink-0">
           <div className="w-20 shrink-0 border-r border-border" />
 
-          {dayDates.map((date, idx) => (
-            <div key={idx} className={`flex-1 timeline-column-header ${idx === 1 ? 'text-blue-500 bg-blue-500/5' : 'text-muted-foreground'}`}>
-              {date.toLocaleDateString(currentLanguage, { weekday: 'short', day: 'numeric' })}
-            </div>
-          ))}
+          {dayDates.map((date, idx) => {
+            const hasMatch = dayHasMatch(dayBounds[idx]);
+            return (
+              <div 
+                key={idx} 
+                className={`flex-1 timeline-column-header relative transition-all duration-500 ${idx === 1 ? 'text-blue-500 bg-blue-500/5' : 'text-muted-foreground'}
+                  ${hasMatch ? 'bg-blue-500/10 shadow-[inset_0_-2px_0_0_#3b82f6]' : ''}
+                `}
+              >
+                {date.toLocaleDateString(currentLanguage, { weekday: 'short', day: 'numeric' })}
+                {hasMatch && (
+                  <div className="absolute top-1 right-1">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" />
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <div className="flex-1 overflow-hidden flex">
