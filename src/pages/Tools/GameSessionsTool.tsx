@@ -26,12 +26,6 @@ export const GameSessionsTool: React.FC = () => {
     );
   }, [store.games, searchQuery]);
 
-  // Filtered sessions (only show sessions for the filtered games)
-  const filteredSessions = useMemo(() => {
-    if (!searchQuery) return store.sessions;
-    const gameUids = new Set(filteredGames.map(g => g.uid));
-    return store.sessions.filter(s => gameUids.has(s.game_uid));
-  }, [store.sessions, filteredGames, searchQuery]);
 
   const processFile = async (file: File) => {
     try {

@@ -1,4 +1,4 @@
-import type { GameEntry, SessionEntry, Category } from '../model/domain/types';
+import type { GameEntry, SessionEntry } from '../model/domain/types';
 
 
 
