@@ -4,7 +4,8 @@ import { useGameSessionsStore } from '../../features/GameSessions/model/store';
 import { GamesManager } from '../../features/GameSessions/ui/GamesManager';
 import { TimelineView } from '../../features/GameSessions/ui/Timeline/TimelineView';
 import { parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
-import { Download, UploadCloud } from 'lucide-react';
+import { Download, UploadCloud, Search, X } from 'lucide-react';
+import { useMemo } from 'react';
 
 export const GameSessionsTool: React.FC = () => {
   const { t } = useLanguage();
@@ -13,6 +14,24 @@ export const GameSessionsTool: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [activeTab, setActiveTab] = useState<'games' | 'timeline'>('timeline');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filtered games
+  const filteredGames = useMemo(() => {
+    if (!searchQuery) return store.games;
+    const q = searchQuery.toLowerCase();
+    return store.games.filter(g => 
+      g.game_name.toLowerCase().includes(q) || 
+      g.game_id.toLowerCase().includes(q)
+    );
+  }, [store.games, searchQuery]);
+
+  // Filtered sessions (only show sessions for the filtered games)
+  const filteredSessions = useMemo(() => {
+    if (!searchQuery) return store.sessions;
+    const gameUids = new Set(filteredGames.map(g => g.uid));
+    return store.sessions.filter(s => gameUids.has(s.game_uid));
+  }, [store.sessions, filteredGames, searchQuery]);
 
   const processFile = async (file: File) => {
     try {
@@ -124,26 +143,49 @@ export const GameSessionsTool: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Tab Switcher */}
-      <div className="flex md:hidden mb-4 bg-card/60 border border-border p-1 rounded-xl shadow-sm">
-        <button 
-          onClick={() => setActiveTab('games')}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'games' ? 'bg-primary text-white shadow-md' : 'text-foreground/60 hover:text-foreground'}`}
-        >
-          {t('game.manager') || 'Games'}
-        </button>
-        <button 
-          onClick={() => setActiveTab('timeline')}
-          className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'timeline' ? 'bg-primary text-white shadow-md' : 'text-foreground/60 hover:text-foreground'}`}
-        >
-          {t('sessions.timeline') || 'Timeline'}
-        </button>
+      <div className="flex flex-col md:flex-row md:items-center gap-3 mb-4">
+        {/* Mobile Tab Switcher */}
+        <div className="flex md:hidden bg-card/60 border border-border p-1 rounded-xl shadow-sm flex-1">
+          <button 
+            onClick={() => setActiveTab('games')}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'games' ? 'bg-primary text-white shadow-md' : 'text-foreground/60 hover:text-foreground'}`}
+          >
+            {t('game.manager') || 'Games'}
+          </button>
+          <button 
+            onClick={() => setActiveTab('timeline')}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${activeTab === 'timeline' ? 'bg-primary text-white shadow-md' : 'text-foreground/60 hover:text-foreground'}`}
+          >
+            {t('sessions.timeline') || 'Timeline'}
+          </button>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative flex-1 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <input 
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('game.search') || 'Search games by name or ID...'}
+            className="w-full pl-12 pr-10 py-3 bg-card border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm group-hover:border-primary/30"
+          />
+          {searchQuery && (
+            <button 
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 hover:bg-muted rounded-full transition-colors"
+            >
+              <X className="w-4 h-4 text-muted-foreground" />
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="tool-grid-container px-0 md:px-0">
         <div className={`md:col-span-1 md:h-full overflow-hidden ${activeTab === 'games' ? 'block' : 'hidden md:block'}`}> 
           <GamesManager 
             {...store} 
+            games={filteredGames}
             selectedGameUid={store.selectedGameUid}
             onToggleSelect={store.toggleSelectGame}
           />
@@ -153,6 +195,7 @@ export const GameSessionsTool: React.FC = () => {
           <TimelineView 
             sessions={store.sessions}
             games={store.games}
+            searchQuery={searchQuery}
             selectedGameUid={store.selectedGameUid}
             onToggleSelect={store.toggleSelectGame}
             getGameColor={store.getGameColor}

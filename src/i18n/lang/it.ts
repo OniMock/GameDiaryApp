@@ -31,6 +31,7 @@ export const it: LanguageFile = {
     "game.unknown": "Sconosciuto",
     "game.manager": "Gestione giochi",
     "game.duplicateId": "ID già esistente.",
+    "game.search": "Cerca giochi per nome o ID...",
     "sessions.timeline": "Vista timeline",
     "sessions.edit": "Modifica sessione",
     "sessions.overlap": "Sovrapposizione rilevata!",

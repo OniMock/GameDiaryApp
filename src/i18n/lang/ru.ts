@@ -30,6 +30,7 @@ export const ru: LanguageFile = {
     "game.unknown": "Неизвестно",
     "game.manager": "Менеджер игр",
     "game.duplicateId": "ID уже существует.",
+    "game.search": "Поиск игр по названию или ID...",
     "sessions.timeline": "Хронология",
     "sessions.edit": "Редактировать сессию",
     "sessions.overlap": "Перекрытие!",

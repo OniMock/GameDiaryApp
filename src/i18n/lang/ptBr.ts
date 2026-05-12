@@ -36,6 +36,7 @@ export const ptBr: LanguageFile = {
     "game.unknown": "Desconhecido",
     "game.manager": "Gerenciador de Jogos",
     "game.duplicateId": "Este ID de Jogo já está na sua lista.",
+    "game.search": "Pesquisar jogos por nome ou ID...",
     "sessions.timeline": "Visão da Linha do Tempo",
     "sessions.edit": "Editar Sessão",
     "sessions.overlap": "Sobreposição Detectada!",

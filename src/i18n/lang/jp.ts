@@ -30,6 +30,7 @@ export const jp: LanguageFile = {
     "game.unknown": "不明",
     "game.manager": "ゲーム管理",
     "game.duplicateId": "IDは既に存在します。",
+    "game.search": "名前またはIDでゲームを検索...",
     "sessions.timeline": "タイムライン",
     "sessions.edit": "セッション編集",
     "sessions.overlap": "重複検出！",

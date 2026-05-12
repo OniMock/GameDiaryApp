@@ -30,6 +30,7 @@ export const cn: LanguageFile = {
     "game.unknown": "未知",
     "game.manager": "游戏管理",
     "game.duplicateId": "ID已存在。",
+    "game.search": "按名称或ID搜索游戏...",
     "sessions.timeline": "时间线视图",
     "sessions.edit": "编辑会话",
     "sessions.overlap": "检测到重叠！",

@@ -8,6 +8,7 @@ import { useLanguage } from '../../../../i18n/hooks/use-language';
 interface TimelineViewProps {
   sessions: SessionEntry[];
   games: GameEntry[];
+  searchQuery?: string;
   selectedGameUid?: number | null;
   onToggleSelect?: (uid: number) => void;
   getGameColor: (uid: number) => string;
@@ -17,7 +18,7 @@ interface TimelineViewProps {
 }
 
 export const TimelineView: React.FC<TimelineViewProps> = ({
-  sessions, games, selectedGameUid, onToggleSelect, getGameColor, onAddSession, onUpdateSession, onDeleteSession
+  sessions, games, searchQuery = '', selectedGameUid, onToggleSelect, getGameColor, onAddSession, onUpdateSession, onDeleteSession
 }) => {
   const { t, currentLanguage } = useLanguage();
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -28,6 +29,17 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   const [pickerYear, setPickerYear] = useState(() => currentDate.getFullYear());
 
   const [zoom, setZoom] = useState(2);
+
+  // Search filter logic
+  const matchingGameUids = useMemo(() => {
+    if (!searchQuery) return null;
+    const q = searchQuery.toLowerCase();
+    return new Set(
+      games
+        .filter(g => g.game_name.toLowerCase().includes(q) || g.game_id.toLowerCase().includes(q))
+        .map(g => g.uid)
+    );
+  }, [games, searchQuery]);
 
   // Resize state
   const [resizingSession, setResizingSession] = useState<{
@@ -343,19 +355,24 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
     const startsBefore = activeStart < dStart;
     const endsAfter = activeEnd > dEnd + 1;
 
+    // Search highlights
+    const isMatch = !matchingGameUids || matchingGameUids.has(s.game_uid);
+    const opacity = isResizingThis ? 1 : (isMatch ? 0.9 : 0.25);
+
     return (
       <div
         key={`${s.timestamp}-${s.game_uid}-${dayIdx}`}
         className={`session-block absolute left-1 right-1 rounded shadow-md flex flex-col p-1 border-white/20 cursor-pointer overflow-hidden group transition-all
-          ${isResizingThis ? 'z-50 ring-2 ring-white/50 animate-pulse-subtle' : 'z-10'}
+          ${isResizingThis ? 'z-50 ring-2 ring-white/50 animate-pulse-subtle' : (isMatch ? 'z-10' : 'z-0')}
           ${startsBefore ? 'rounded-t-none border-t-0' : 'border-t'}
           ${endsAfter ? 'rounded-b-none' : ''}
+          ${!isMatch ? 'grayscale-[0.5] hover:grayscale-0 hover:opacity-80' : ''}
         `}
         style={{
           top: topMins * zoom,
           height: Math.max(5, durMins) * zoom,
           backgroundColor: getGameColor(s.game_uid),
-          opacity: isResizingThis ? 1 : 0.9,
+          opacity: opacity,
           touchAction: 'none'
         }}
         onClick={(e) => {

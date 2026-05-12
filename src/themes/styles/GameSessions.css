@@ -37,7 +37,7 @@
   }
 
   .tool-card-header {
-    @apply flex items-center justify-between p-4 border-b border-border bg-slate-50/80 dark:bg-black/20;
+    @apply flex items-center justify-between p-4 border-b border-border bg-black/[0.03] dark:bg-white/[0.02];
   }
 
 
@@ -176,7 +176,7 @@
   }
 
   .timeline-time-ruler {
-    @apply w-20 border-r border-border bg-slate-50 dark:bg-white/[0.03] shrink-0 relative flex flex-col;
+    @apply w-20 border-r border-border bg-black/[0.01] dark:bg-white/[0.01] shrink-0 relative flex flex-col;
   }
 
 
