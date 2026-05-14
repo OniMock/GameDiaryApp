@@ -12,6 +12,53 @@ import type { GameEntry } from '../../features/GameSessions/model/domain/types';
 import JSZip from 'jszip';
 import { cn } from '../../shared/lib/utils';
 
+const resizeImageBlob = async (blob: Blob, platform: string): Promise<Blob> => {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      
+      let targetWidth = img.width;
+      let targetHeight = img.height;
+
+      if (platform === 'psx' || img.width === img.height) {
+        targetWidth = 80;
+        targetHeight = 80;
+      } else if (platform === 'psp' || img.width > img.height) {
+        targetWidth = 144;
+        targetHeight = 80;
+      }
+
+      canvas.width = targetWidth;
+      canvas.height = targetHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve(blob);
+        return;
+      }
+      
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+      
+      canvas.toBlob((resizedBlob) => {
+        if (resizedBlob) {
+          resolve(resizedBlob);
+        } else {
+          resolve(blob);
+        }
+      }, 'image/png');
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(blob);
+    };
+    img.src = url;
+  });
+};
+
 export const GameSessionsTool: React.FC = () => {
   const { t } = useLanguage();
   const store = useGameSessionsStore();
@@ -111,13 +158,14 @@ export const GameSessionsTool: React.FC = () => {
         
         // Fetch icons in parallel with a limit or just all at once
         const promises = store.games.map(async (game) => {
-          const { url } = getCoverData(game.game_id, mapping);
+          const { url, platform } = getCoverData(game.game_id, mapping);
           if (url) {
             try {
               const response = await fetch(url);
               if (response.ok) {
                 const blob = await response.blob();
-                iconsFolder?.file(`${game.game_id}.png`, blob);
+                const resizedBlob = await resizeImageBlob(blob, platform);
+                iconsFolder?.file(`${game.game_id}.png`, resizedBlob);
               }
             } catch (err) {
               console.error(`Failed to fetch icon for ${game.game_id}:`, err);
