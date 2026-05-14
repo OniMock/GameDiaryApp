@@ -208,10 +208,13 @@
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  transform: translateZ(0); /* Fixes disappearing bug on scroll */
+  backface-visibility: hidden;
 }
 
 .bento-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) translateZ(0);
   border-color: hsl(var(--primary) / 0.4);
   box-shadow: 0 20px 40px -15px rgba(0,0,0,0.2);
   background-color: hsl(var(--card) / 0.7);
