@@ -1,13 +1,16 @@
-import React, { useRef, useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
 import { useGameSessionsStore } from '../../features/GameSessions/model/store';
 import { GamesManager } from '../../features/GameSessions/ui/GamesManager';
 import { TimelineView } from '../../features/GameSessions/ui/Timeline/TimelineView';
 import { parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
-import { Download, UploadCloud, Search, X } from 'lucide-react';
+import { Download, UploadCloud, Search, X, Loader2 } from 'lucide-react';
 import { GamePreviewCard } from '../../shared/ui/GamePreviewCard';
 import { useGameCovers } from '../../shared/hooks/use-game-covers';
+import { getCoverData } from '../../shared/lib/game-covers';
 import type { GameEntry } from '../../features/GameSessions/model/domain/types';
+import JSZip from 'jszip';
+import { cn } from '../../shared/lib/utils';
 
 export const GameSessionsTool: React.FC = () => {
   const { t } = useLanguage();
@@ -19,6 +22,8 @@ export const GameSessionsTool: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'games' | 'timeline'>('timeline');
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredGame, setHoveredGame] = useState<{ game: GameEntry, x: number, y: number } | null>(null);
+  const [includeIcons, setIncludeIcons] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   // Filtered games
   const filteredGames = useMemo(() => {
@@ -30,6 +35,19 @@ export const GameSessionsTool: React.FC = () => {
     );
   }, [store.games, searchQuery]);
 
+
+  // Check if there's at least one game with a cover available for export
+  const hasCovers = useMemo(() => {
+    return store.games.some(game => {
+      const { url } = getCoverData(game.game_id, mapping);
+      return !!url;
+    });
+  }, [store.games, mapping]);
+
+  // Ensure checkbox is unchecked if no covers are available
+  useEffect(() => {
+    if (!hasCovers) setIncludeIcons(false);
+  }, [hasCovers]);
 
   const processFile = async (file: File) => {
     try {
@@ -80,15 +98,56 @@ export const GameSessionsTool: React.FC = () => {
     }
   };
 
-  const handleExportBackup = () => {
-    const json = exportBackup(store.games, store.sessions);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExportBackup = async () => {
+    setIsExporting(true);
+    try {
+      const json = exportBackup(store.games, store.sessions);
+      
+      if (includeIcons) {
+        const zip = new JSZip();
+        zip.file('backup.json', json);
+        
+        const iconsFolder = zip.folder('icons');
+        
+        // Fetch icons in parallel with a limit or just all at once
+        const promises = store.games.map(async (game) => {
+          const { url } = getCoverData(game.game_id, mapping);
+          if (url) {
+            try {
+              const response = await fetch(url);
+              if (response.ok) {
+                const blob = await response.blob();
+                iconsFolder?.file(`${game.game_id}.png`, blob);
+              }
+            } catch (err) {
+              console.error(`Failed to fetch icon for ${game.game_id}:`, err);
+            }
+          }
+        });
+
+        await Promise.all(promises);
+        
+        const content = await zip.generateAsync({ type: 'blob' });
+        const url = URL.createObjectURL(content);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'GameDiary_Export.zip';
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'backup.json';
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    } catch (err) {
+      alert('Error during export: ' + (err instanceof Error ? err.message : String(err)));
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -206,9 +265,44 @@ export const GameSessionsTool: React.FC = () => {
         </div>
       </div>
 
-      <div className="shrink-0 flex gap-3 w-full justify-end">
-        <button onClick={handleExportBackup} className="px-6 py-2.5 bg-success text-white hover:bg-success/90 rounded-xl text-sm font-black transition-all shadow-md hover:shadow-lg flex items-center gap-2.5">
-          <Download size={18} className="text-white" /> <span className="text-white">{t('actions.exportBackup') || 'Export backup.json'}</span>
+      <div className="shrink-0 flex flex-col md:flex-row items-center gap-4 w-full justify-end mt-4">
+        <label 
+          className={cn(
+            "flex items-center gap-2 cursor-pointer group transition-opacity",
+            !hasCovers && "opacity-40 cursor-not-allowed pointer-events-none"
+          )}
+        >
+          <div className="relative flex items-center justify-center">
+            <input 
+              type="checkbox" 
+              className="peer sr-only"
+              checked={includeIcons}
+              disabled={!hasCovers}
+              onChange={(e) => setIncludeIcons(e.target.checked)}
+            />
+            <div className="w-5 h-5 border-2 border-border rounded transition-all peer-checked:bg-primary peer-checked:border-primary group-hover:border-primary/50" />
+            <X className="absolute w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+          </div>
+          <span className="text-sm font-bold text-foreground/70 group-hover:text-foreground transition-colors">
+            {t('actions.includeIcons') || 'Include Game Icons (.zip)'}
+          </span>
+        </label>
+
+        <button 
+          onClick={handleExportBackup} 
+          disabled={isExporting}
+          className="px-6 py-2.5 bg-success text-white hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl text-sm font-black transition-all shadow-md hover:shadow-lg flex items-center gap-2.5 min-w-[200px] justify-center"
+        >
+          {isExporting ? (
+            <Loader2 size={18} className="animate-spin text-white" />
+          ) : (
+            <Download size={18} className="text-white" />
+          )}
+          <span className="text-white">
+            {isExporting 
+              ? (t('actions.exporting') || 'Exporting...') 
+              : (includeIcons ? (t('actions.exportZip') || 'Export ZIP') : (t('actions.exportBackup') || 'Export backup.json'))}
+          </span>
         </button>
       </div>
 

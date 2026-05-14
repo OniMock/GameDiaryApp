@@ -38,6 +38,11 @@ export const de: LanguageFile = {
     "welcome.subtitle": "Dein persönliches Spieltagebuch.",
     "tools.gameSessions.title": "Spiel-Sitzungen",
     "tools.gameSessions.subtitle": "Visueller Editor für backup.json",
+    "actions.invalidFileBackup":
+      "Ungültiges Dateiformat. Bitte backup.json hochladen.",
+    "actions.includeIcons": "Spiel-Icons einschließen (.zip)",
+    "actions.exportZip": "ZIP exportieren",
+    "actions.exporting": "Exportiere...",
     "actions.dataManagement": "Datenverwaltung",
     "game.add": "Spiel hinzufügen",
     "game.delete": "Spiel löschen",

@@ -43,6 +43,9 @@ export const ptBr: LanguageFile = {
     "actions.dataManagement": "Gerenciamento de Dados",
     "actions.invalidFileBackup":
       "Formato inválido. Envie um arquivo backup.json.",
+    "actions.includeIcons": "Incluir Ícones dos Jogos (.zip)",
+    "actions.exportZip": "Exportar ZIP",
+    "actions.exporting": "Exportando...",
 
     "game.add": "Adicionar Jogo",
     "game.delete": "Excluir Jogo",

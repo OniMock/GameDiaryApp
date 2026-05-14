@@ -43,6 +43,9 @@ export const en: LanguageFile = {
     "actions.dataManagement": "Data Management",
     "actions.invalidFileBackup":
       "Invalid file format. Please upload backup.json.",
+    "actions.includeIcons": "Include Game Icons (.zip)",
+    "actions.exportZip": "Export ZIP",
+    "actions.exporting": "Exporting...",
 
     "game.add": "Add Game",
     "game.delete": "Delete Game",
