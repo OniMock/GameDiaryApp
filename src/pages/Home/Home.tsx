@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
-import { Cpu, Gamepad2, Globe, ArrowRight, Download, ChevronDown, Activity, Layers, Zap, Clock, Play } from 'lucide-react';
+import { Cpu, Gamepad2, Globe, ArrowRight, Download, ChevronDown, Activity } from 'lucide-react';
 import './Home.css';
 
 export const Home: React.FC = () => {
