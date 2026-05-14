@@ -1,20 +1,24 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
 import { useGameSessionsStore } from '../../features/GameSessions/model/store';
 import { GamesManager } from '../../features/GameSessions/ui/GamesManager';
 import { TimelineView } from '../../features/GameSessions/ui/Timeline/TimelineView';
 import { parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
 import { Download, UploadCloud, Search, X } from 'lucide-react';
-import { useMemo } from 'react';
+import { GamePreviewCard } from '../../shared/ui/GamePreviewCard';
+import { useGameCovers } from '../../shared/hooks/use-game-covers';
+import type { GameEntry } from '../../features/GameSessions/model/domain/types';
 
 export const GameSessionsTool: React.FC = () => {
   const { t } = useLanguage();
   const store = useGameSessionsStore();
+  const { mapping } = useGameCovers();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [activeTab, setActiveTab] = useState<'games' | 'timeline'>('timeline');
   const [searchQuery, setSearchQuery] = useState('');
+  const [hoveredGame, setHoveredGame] = useState<{ game: GameEntry, x: number, y: number } | null>(null);
 
   // Filtered games
   const filteredGames = useMemo(() => {
@@ -182,6 +186,7 @@ export const GameSessionsTool: React.FC = () => {
             games={filteredGames}
             selectedGameUid={store.selectedGameUid}
             onToggleSelect={store.toggleSelectGame}
+            onHoverGame={(game, x, y) => setHoveredGame(game ? { game, x, y } : null)}
           />
         </div>
 
@@ -196,6 +201,7 @@ export const GameSessionsTool: React.FC = () => {
             onAddSession={store.addSession}
             onUpdateSession={store.updateSession}
             onDeleteSession={store.deleteSession}
+            onHoverGame={(game, x, y) => setHoveredGame(game ? { game, x, y } : null)}
           />
         </div>
       </div>
@@ -205,6 +211,16 @@ export const GameSessionsTool: React.FC = () => {
           <Download size={18} className="text-white" /> <span className="text-white">{t('actions.exportBackup') || 'Export backup.json'}</span>
         </button>
       </div>
+
+      {hoveredGame && (
+        <GamePreviewCard 
+          game={hoveredGame.game}
+          x={hoveredGame.x}
+          y={hoveredGame.y}
+          mapping={mapping}
+          getGameColor={store.getGameColor}
+        />
+      )}
     </div>
   );
 };

@@ -15,10 +15,11 @@ interface TimelineViewProps {
   onAddSession: (session: SessionEntry) => void;
   onUpdateSession: (oldTimestamp: number, oldUid: number, upSession: SessionEntry) => void;
   onDeleteSession: (timestamp: number, uid: number) => void;
+  onHoverGame?: (game: GameEntry | null, x: number, y: number) => void;
 }
 
 export const TimelineView: React.FC<TimelineViewProps> = ({
-  sessions, games, searchQuery = '', selectedGameUid, onToggleSelect, getGameColor, onAddSession, onUpdateSession, onDeleteSession
+  sessions, games, searchQuery = '', selectedGameUid, onToggleSelect, getGameColor, onAddSession, onUpdateSession, onDeleteSession, onHoverGame
 }) => {
   const { t, currentLanguage } = useLanguage();
   const [currentDate, setCurrentDate] = useState(() => new Date());
@@ -416,9 +417,18 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           e.stopPropagation();
           if (!resizingSession && !wasResizingRef.current) setEditingSession(s);
         }}
+        onMouseMove={(e) => {
+          if (game && !resizingSession) {
+            onHoverGame?.(game, e.clientX, e.clientY);
+          }
+        }}
+        onMouseLeave={() => {
+          onHoverGame?.(null, 0, 0);
+        }}
         onPointerDown={(e) => {
           // Prevent placing a new session when clicking an existing one
           e.stopPropagation();
+          onHoverGame?.(null, 0, 0); // Hide preview when clicking
         }}
       >
         {/* Top Handle - Invisible but large hit area */}

@@ -64,6 +64,81 @@
     @apply text-blue-700 dark:text-blue-400 font-bold;
   }
 
+  .game-cover-container {
+    @apply relative shrink-0 rounded-md overflow-hidden bg-foreground/5 border border-border/50 shadow-sm transition-all duration-300 group-hover:scale-105 group-hover:shadow-md flex items-center justify-center;
+  }
+
+  .game-cover-container.is-psp {
+    @apply w-20 h-11;
+  }
+
+  .game-cover-container.is-psx {
+    @apply w-12 h-12;
+  }
+
+  .game-cover-container.is-unknown {
+    @apply w-10 h-10;
+  }
+
+  .game-cover-img {
+    @apply w-full h-full object-cover animate-fade-in;
+  }
+
+  .game-color-indicator {
+    @apply w-1 h-full absolute left-0 top-0 z-10 opacity-80 group-hover:opacity-100 transition-opacity;
+  }
+
+  .game-cover-placeholder {
+    @apply text-[10px] font-black text-foreground/20 uppercase tracking-tighter select-none;
+  }
+
+  /* Preview Card */
+  .game-preview-card {
+    @apply fixed z-[200] pointer-events-none flex flex-col gap-0 bg-card/95 backdrop-blur-xl border-2 border-primary/20 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden animate-fade-in duration-200;
+    width: 280px;
+
+    @media (width < 768px) {
+      width: 180px;
+      @apply rounded-xl border;
+    }
+  }
+
+  .game-preview-image-container {
+    @apply relative w-full bg-black/20 flex items-center justify-center;
+  }
+
+  .game-preview-image-container.is-psx {
+    aspect-ratio: 1/1;
+  }
+
+  .game-preview-image-container.is-psp {
+    aspect-ratio: 480/272;
+  }
+
+  .game-preview-content {
+    @apply p-4 bg-gradient-to-b from-transparent to-black/5 dark:to-white/5;
+
+    @media (width < 768px) {
+      @apply p-2.5;
+    }
+  }
+
+  .game-preview-name {
+    @apply text-lg font-black text-foreground leading-tight mb-1;
+
+    @media (width < 768px) {
+      @apply text-sm mb-0.5;
+    }
+  }
+
+  .game-preview-meta {
+    @apply text-xs font-bold text-primary/80 flex items-center gap-2;
+
+    @media (width < 768px) {
+      @apply text-[10px] gap-1;
+    }
+  }
+
   /* Timeline View */
   .timeline-nav {
     display: flex !important;

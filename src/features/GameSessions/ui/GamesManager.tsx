@@ -4,6 +4,8 @@ import { GameFormModal } from './GameFormModal';
 import { useLanguage } from '../../../i18n/hooks/use-language';
 import { cn } from '../../../shared/lib/utils';
 import { Plus, Trash2, Edit2 } from 'lucide-react';
+import { useGameCovers } from '../../../shared/hooks/use-game-covers';
+import { getCoverData } from '../../../shared/lib/game-covers';
 
 interface GamesManagerProps {
   games: GameEntry[];
@@ -13,14 +15,17 @@ interface GamesManagerProps {
   updateGame: (game: GameEntry) => void;
   deleteGame: (uid: number) => void;
   getGameColor: (uid: number) => string;
+  onHoverGame?: (game: GameEntry | null, x: number, y: number) => void;
 }
 
 export const GamesManager: React.FC<GamesManagerProps> = ({ 
-  games, selectedGameUid, onToggleSelect, addGame, updateGame, deleteGame, getGameColor 
+  games, selectedGameUid, onToggleSelect, addGame, updateGame, deleteGame, getGameColor, onHoverGame
 }) => {
   const { t } = useLanguage();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGame, setEditingGame] = useState<GameEntry | undefined>(undefined);
+  const { mapping } = useGameCovers();
+  const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
 
   const handleOpenAdd = () => {
     setEditingGame(undefined);
@@ -59,7 +64,7 @@ export const GamesManager: React.FC<GamesManagerProps> = ({
   };
 
   return (
-    <div className="tool-card h-full flex flex-col">
+    <div className="tool-card h-full flex flex-col relative">
       <div className="tool-card-header">
         <h2 className="tool-card-title">{t('game.manager') || 'Game Manager'} ({games.length})</h2>
         <button 
@@ -79,10 +84,16 @@ export const GamesManager: React.FC<GamesManagerProps> = ({
         ) : (
           games.map(game => {
             const isSelected = selectedGameUid === game.uid;
+            const { url: coverUrl, platform } = getCoverData(game.game_id, mapping);
+            const hasError = imgErrors[game.uid];
+            const showImage = coverUrl && !hasError;
+            
             return (
               <div 
                 key={game.uid}
                 onClick={() => onToggleSelect?.(game.uid)}
+                onMouseMove={(e) => onHoverGame?.(game, e.clientX, e.clientY)}
+                onMouseLeave={() => onHoverGame?.(null, 0, 0)}
                 className={cn(
                   "game-item cursor-grab active:cursor-grabbing group transition-all duration-200 border-2",
                   isSelected 
@@ -101,11 +112,27 @@ export const GamesManager: React.FC<GamesManagerProps> = ({
                 }}
               >
                 <div className="flex items-center gap-3 overflow-hidden">
-                  <div 
-                    className="w-10 h-10 rounded-md shrink-0 flex items-center justify-center font-bold text-white shadow-inner"
-                    style={{ backgroundColor: getGameColor(game.uid) }}
-                  >
-                    {game.game_name.charAt(0).toUpperCase()}
+                  <div className={cn("game-cover-container", `is-${platform}`)}>
+                    <div 
+                      className="game-color-indicator" 
+                      style={{ backgroundColor: getGameColor(game.uid) }}
+                    />
+                    {showImage ? (
+                      <img 
+                        src={coverUrl} 
+                        alt={game.game_name}
+                        className="game-cover-img"
+                        loading="lazy"
+                        onError={() => {
+                          setImgErrors(prev => ({ ...prev, [game.uid]: true }));
+                        }}
+                      />
+                    ) : (
+                      <div 
+                        className="w-full h-full opacity-40 group-hover:opacity-60 transition-opacity"
+                        style={{ backgroundColor: getGameColor(game.uid) }}
+                      />
+                    )}
                   </div>
                   <div className="min-w-0">
                     <div className="game-name" title={game.game_name}>
