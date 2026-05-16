@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import type { GameEntry, Category } from '../model/domain/types';
 import { CATEGORY_DEFAULTS } from '../model/domain/types';
 import { useLanguage } from '../../../i18n/hooks/use-language';
+import { useGameCovers } from '../../../shared/hooks/use-game-covers';
+import { getCoverData, cleanGameId } from '../../../shared/lib/game-covers';
 
 interface GameFormModalProps {
   isOpen: boolean;
@@ -17,6 +19,29 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
   const [gameName, setGameName] = useState('');
   const [category, setCategory] = useState<Category>(0);
   const [apitype, setApitype] = useState('');
+
+  const { mapping } = useGameCovers();
+  const cleanedId = cleanGameId(gameId);
+  const { url: coverUrl } = getCoverData(cleanedId, mapping);
+  const relativePath = mapping[cleanedId];
+
+  // Auto-suggest name based on Game ID mapping
+  useEffect(() => {
+    if (relativePath && !initialData) {
+      const match = relativePath.match(/Named_Titles\/(.+)\.png$/i);
+      if (match && match[1]) {
+        // Only set the name if it's currently empty, to avoid overwriting user input
+        if (!gameName) {
+          setGameName(match[1]);
+        }
+        // Auto-select category based on platform if the user hasn't touched it
+        if (relativePath.startsWith('psx/') && category === 0 && !gameName) {
+          setCategory(1);
+          setApitype(CATEGORY_DEFAULTS[1]);
+        }
+      }
+    }
+  }, [relativePath, initialData]);
 
   // Reset or load initial data when modal opens
   useEffect(() => {
@@ -71,12 +96,20 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
         </div>
         
         <form onSubmit={handleSubmit} className="p-4 space-y-4">
+          {coverUrl && (
+            <div className="w-full flex justify-center pb-2 animate-fade-in">
+              <div className="h-40 max-w-full rounded-xl overflow-hidden border-2 border-primary/20 shadow-lg bg-black/20 flex items-center justify-center">
+                <img src={coverUrl} alt="Cover Preview" className="max-w-full h-full object-contain drop-shadow-md" />
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="form-label">{t('game.id') || 'Game ID'}</label>
             <input 
               type="text" 
               value={gameId} 
-              onChange={e => setGameId(e.target.value.replace(/-/g, ''))}
+              onChange={e => setGameId(e.target.value.replace(/-/g, '').toUpperCase())}
               className="form-input"
               maxLength={16}
               required
