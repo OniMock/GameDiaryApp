@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { GameEntry, Category } from '../model/domain/types';
 import { CATEGORY_DEFAULTS } from '../model/domain/types';
 import { useLanguage } from '../../../i18n/hooks/use-language';
+import { ChevronDown } from 'lucide-react';
 import { useGameCovers } from '../../../shared/hooks/use-game-covers';
 import { getCoverData, cleanGameId } from '../../../shared/lib/game-covers';
 
@@ -131,17 +132,22 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
 
           <div>
             <label className="form-label">{t('game.category') || 'Category'}</label>
-            <select 
-              value={category}
-              onChange={handleCategoryChange}
-              className="form-select appearance-none"
-            >
-              <option value={0} className="form-select-option">PSP (0)</option>
-              <option value={1} className="form-select-option">PS1 (1)</option>
-              <option value={2} className="form-select-option">Homebrew (2)</option>
-              <option value={3} className="form-select-option">VSH (3)</option>
-              <option value={4} className="form-select-option">Unknown (4)</option>
-            </select>
+            <div className="relative">
+              <select 
+                value={category}
+                onChange={handleCategoryChange}
+                className="form-select appearance-none w-full pr-10"
+              >
+                <option value={0} className="form-select-option">PSP (0)</option>
+                <option value={1} className="form-select-option">PS1 (1)</option>
+                <option value={2} className="form-select-option">Homebrew (2)</option>
+                <option value={3} className="form-select-option">VSH (3)</option>
+                <option value={4} className="form-select-option">Unknown (4)</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground">
+                <ChevronDown size={18} />
+              </div>
+            </div>
           </div>
 
           <div className="pt-4 flex justify-end gap-2 border-t border-border mt-4">
