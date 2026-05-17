@@ -26,7 +26,7 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
   const { url: coverUrl } = getCoverData(cleanedId, mapping);
   const relativePath = mapping[cleanedId];
 
-  // Auto-suggest name based on Game ID mapping
+  // Auto-suggest name and category based on Game ID mapping
   useEffect(() => {
     if (relativePath && !initialData) {
       const match = relativePath.match(/Named_Titles\/(.+)\.png$/i);
@@ -35,10 +35,16 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
         if (!gameName) {
           setGameName(match[1]);
         }
-        // Auto-select category based on platform if the user hasn't touched it
-        if (relativePath.startsWith('psx/') && category === 0 && !gameName) {
-          setCategory(1);
+        // Auto-select category based on platform path
+        if (relativePath.startsWith('psx/')) {
+          setCategory(1); // PS1 (1)
           setApitype(CATEGORY_DEFAULTS[1]);
+        } else if (relativePath.startsWith('psp/')) {
+          setCategory(0); // PSP (0)
+          setApitype(CATEGORY_DEFAULTS[0]);
+        } else if (relativePath.startsWith('homebrew/')) {
+          setCategory(2); // Homebrew (2)
+          setApitype(CATEGORY_DEFAULTS[2]);
         }
       }
     }
