@@ -26,7 +26,11 @@ export const getCoverData = (gameId: string, mapping: Record<string, string>): {
     return { url: null, platform: 'unknown' };
   }
 
-  const platform: Platform = relativePath.startsWith('psx/') ? 'psx' : relativePath.startsWith('psp/') ? 'psp' : 'unknown';
+  const platform: Platform = 
+    relativePath.startsWith('psx/') ? 'psx' : 
+    relativePath.startsWith('psp/') ? 'psp' : 
+    relativePath.startsWith('homebrew/') ? 'psp' : // Homebrews use the same landscape aspect ratio
+    'unknown';
   
   return { 
     url: `${RAW_URL_BASE}${relativePath}`,
