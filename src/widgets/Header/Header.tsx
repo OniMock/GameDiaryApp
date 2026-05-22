@@ -11,6 +11,19 @@ export const Header: React.FC = () => {
   const isHome = hash === '#home' || hash === '' || hash === '#';
   const isTools = hash.startsWith('#tools');
   const isDownload = hash === '#download';
+  const isSupport = hash === '#support';
+
+  const handleHomeClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+
+    if (window.location.hash !== '#home') {
+      window.location.hash = 'home';
+    }
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  };
 
   return (
     <header className="fixed top-0 inset-x-0 z-50 h-14 bg-background/80 backdrop-blur-md border-b border-border transition-all">
@@ -18,7 +31,7 @@ export const Header: React.FC = () => {
         
         {/* Left Side: Logo & Nav */}
         <div className="flex items-center gap-8">
-          <a href="#home" className="select-none group transition-transform active:scale-95">
+          <a href="#home" onClick={handleHomeClick} className="select-none group transition-transform active:scale-95">
             <h1 className="text-xl font-bold tracking-tight">
               <span className="text-foreground">Game</span>
               <span className="text-primary">Diary</span>
@@ -28,6 +41,7 @@ export const Header: React.FC = () => {
           <nav className="hidden md:flex items-center gap-6">
             <a 
               href="#home" 
+              onClick={handleHomeClick}
               className={`text-sm font-medium relative group transition-colors ${isHome ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.home')}
@@ -48,6 +62,14 @@ export const Header: React.FC = () => {
             >
               {t('nav.download')}
               <span className={`absolute -bottom-1 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isDownload ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+            </a>
+
+            <a
+              href="#support"
+              className={`text-sm font-medium relative group transition-colors ${isSupport ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              {t('nav.support')}
+              <span className={`absolute -bottom-1 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isSupport ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
           </nav>
         </div>

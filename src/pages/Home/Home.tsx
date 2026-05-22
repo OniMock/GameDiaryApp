@@ -1,10 +1,25 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
-import { Cpu, Gamepad2, Globe, ArrowRight, Download, ChevronDown, Activity, Zap } from 'lucide-react';
+import { Cpu, Gamepad2, Globe, ArrowRight, Download, ChevronDown, Activity, Zap, Coffee, ExternalLink, HeartHandshake } from 'lucide-react';
 import './Home.css';
+
+const SUPPORT_URL = 'https://buymeacoffee.com/onimock';
 
 export const Home: React.FC = () => {
   const { t } = useLanguage();
+
+  React.useEffect(() => {
+    if (window.location.hash !== '#support') {
+      return;
+    }
+
+    window.requestAnimationFrame(() => {
+      document.getElementById('support')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      });
+    });
+  }, []);
 
   return (
     <div className="home-wrapper">
@@ -203,6 +218,45 @@ export const Home: React.FC = () => {
               </div>
             </div>
 
+          </div>
+        </section>
+
+        {/* SUPPORT SECTION */}
+        <section id="support" className="home-support-section animate-fade-in-up">
+          <div className="support-content">
+            <div className="support-copy">
+              <div className="support-badge">
+                <HeartHandshake size={16} />
+                <span>{t('home.support.badge')}</span>
+              </div>
+              <h2 className="support-title">{t('home.support.title')}</h2>
+              <p className="support-desc">{t('home.support.desc')}</p>
+              <a
+                href={SUPPORT_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="support-button group"
+              >
+                <Coffee size={18} />
+                <span>{t('home.support.button')}</span>
+                <ExternalLink size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+              </a>
+            </div>
+
+            <a
+              href={SUPPORT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="support-qr-card"
+              aria-label={t('home.support.qrAlt')}
+            >
+              <img
+                src="/buy-me-coffee-qrcode.png"
+                alt={t('home.support.qrAlt')}
+                className="support-qr-image"
+              />
+              <span>{t('home.support.qrLabel')}</span>
+            </a>
           </div>
         </section>
 
