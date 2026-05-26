@@ -14,6 +14,7 @@ export const jp: LanguageFile = {
     "nav.support": "サポート",
     "home.getStarted": "使ってみる",
     "home.download": "ダウンロード",
+    "home.support.sectionTitle": "サポート",
     "home.support.badge": "プロジェクトを支援",
     "home.support.title": "GameDiary が気に入りましたか？コーヒーをごちそうしてください。",
     "home.support.desc": "GameDiary が PSP のプレイセッション記録に役立ったなら、Buy Me a Coffee から開発を支援できます。いただいた支援は、プロジェクトの継続、Web ツールの改善、新バージョンの準備に役立ちます。",

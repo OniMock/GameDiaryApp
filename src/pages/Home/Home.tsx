@@ -221,42 +221,68 @@ export const Home: React.FC = () => {
           </div>
         </section>
 
-        {/* SUPPORT SECTION */}
+        {/* SUPPORT SECTION (REDESIGNED) */}
         <section id="support" className="home-support-section animate-fade-in-up">
+          <div className="text-center mb-12 relative z-10">
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+              {t('home.support.sectionTitle') || 'Support the Project'}
+            </h2>
+            <div className="h-1 w-12 bg-amber-500 mx-auto mt-4 rounded-full" />
+          </div>
+          
+          <div className="support-glow"></div>
           <div className="support-content">
+            {/* Left/Top Content */}
             <div className="support-copy">
               <div className="support-badge">
                 <HeartHandshake size={16} />
                 <span>{t('home.support.badge')}</span>
               </div>
-              <h2 className="support-title">{t('home.support.title')}</h2>
-              <p className="support-desc">{t('home.support.desc')}</p>
+              <h2 className="support-title">
+                {t('home.support.title')}
+              </h2>
+              <p className="support-desc">
+                {t('home.support.desc')}
+              </p>
+              <div className="support-actions">
+                <a
+                  href={SUPPORT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="support-button group"
+                >
+                  <Coffee size={18} className="text-[#17130a]" />
+                  <span>{t('home.support.button')}</span>
+                  <ExternalLink size={16} className="opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
+              </div>
+            </div>
+
+            {/* Right/Bottom Content - QR Code */}
+            <div className="support-visual">
               <a
                 href={SUPPORT_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="support-button group"
+                className="support-qr-wrapper group"
+                aria-label={t('home.support.qrAlt')}
               >
-                <Coffee size={18} />
-                <span>{t('home.support.button')}</span>
-                <ExternalLink size={16} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                <div className="support-qr-glow"></div>
+                <div className="support-qr-card">
+                  <div className="support-qr-image-container">
+                    <img
+                      src="/buy-me-coffee-qrcode.png"
+                      alt={t('home.support.qrAlt')}
+                      className="support-qr-image"
+                    />
+                  </div>
+                  <div className="support-qr-text">
+                    <Coffee size={14} />
+                    <span>{t('home.support.qrLabel')}</span>
+                  </div>
+                </div>
               </a>
             </div>
-
-            <a
-              href={SUPPORT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="support-qr-card"
-              aria-label={t('home.support.qrAlt')}
-            >
-              <img
-                src="/buy-me-coffee-qrcode.png"
-                alt={t('home.support.qrAlt')}
-                className="support-qr-image"
-              />
-              <span>{t('home.support.qrLabel')}</span>
-            </a>
           </div>
         </section>
 

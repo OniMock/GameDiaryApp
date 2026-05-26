@@ -14,6 +14,7 @@ export const fr: LanguageFile = {
     "nav.support": "Soutien",
     "home.getStarted": "Commencer",
     "home.download": "Télécharger",
+    "home.support.sectionTitle": "Soutien",
     "home.support.badge": "Soutenir le projet",
     "home.support.title": "Vous aimez GameDiary ? Offrez-moi un café.",
     "home.support.desc": "Si GameDiary vous a aidé à suivre vos sessions PSP, vous pouvez soutenir le développement via Buy Me a Coffee. Chaque contribution aide à faire vivre le projet, améliorer les outils web et préparer de nouvelles versions.",

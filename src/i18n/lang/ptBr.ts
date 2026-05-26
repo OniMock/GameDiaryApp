@@ -14,6 +14,7 @@ export const ptBr: LanguageFile = {
     "nav.tools": "Ferramentas",
     "home.getStarted": "Começar",
     "home.download": "Download",
+    "home.support.sectionTitle": "Suporte",
     "home.support.badge": "Apoie o projeto",
     "home.support.title": "Curtiu o GameDiary? Me pague um café.",
     "home.support.desc": "Se o GameDiary te ajudou a acompanhar suas jogatinas no PSP, você pode apoiar o desenvolvimento pelo Buy Me a Coffee. Qualquer contribuição ajuda a manter o projeto vivo, melhorar ferramentas e preparar novas versões.",
