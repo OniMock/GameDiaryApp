@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://game-diary-app.vercel.app/sitemap.xml
+Sitemap: https://gamediary.onimock.com/sitemap.xml
