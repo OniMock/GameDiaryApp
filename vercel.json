@@ -22,6 +22,16 @@
       ],
       "destination": "https://gamediary.onimock.com/:path*",
       "permanent": true
+    },
+    {
+      "source": "/tools",
+      "destination": "/#tools",
+      "permanent": true
+    },
+    {
+      "source": "/download",
+      "destination": "/#download",
+      "permanent": true
     }
   ]
 }
