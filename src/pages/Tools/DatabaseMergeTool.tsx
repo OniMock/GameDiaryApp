@@ -1,5 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
+import { useAppRouter } from '../../shared/hooks/use-router';
+import { buildLocalizedPath } from '../../i18n/utils/routing';
 import { Plus, Trash2, Download, AlertCircle, GitMerge, UploadCloud } from 'lucide-react';
 import { parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
 import type { GameEntry, SessionEntry } from '../../features/GameSessions/model/domain/types';
@@ -12,12 +14,14 @@ interface Dataset {
 }
 
 export const DatabaseMergeTool: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+  const { navigate } = useAppRouter();
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toolsPath = buildLocalizedPath('/tools', currentLanguage);
   
   const handleAddDataset = async () => {
     setError(null);
@@ -172,7 +176,14 @@ export const DatabaseMergeTool: React.FC = () => {
             {t('tools.dbMerge.subtitle') || 'Combine multiple game datasets easily'}
           </p>
         </div>
-        <a href="#tools" className="inline-flex py-2 px-4 rounded-xl bg-card border border-border text-sm font-medium hover:bg-muted transition-colors">
+        <a
+          href={toolsPath}
+          onClick={(e) => {
+            e.preventDefault();
+            navigate(toolsPath);
+          }}
+          className="inline-flex py-2 px-4 rounded-xl bg-card border border-border text-sm font-medium hover:bg-muted transition-colors"
+        >
           &larr; {t('dbMerge.backToTools') || 'Back to Tools'}
         </a>
       </header>

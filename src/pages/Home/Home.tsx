@@ -1,12 +1,18 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
+import { useAppRouter } from '../../shared/hooks/use-router';
+import { buildLocalizedPath } from '../../i18n/utils/routing';
 import { Cpu, Gamepad2, Globe, ArrowRight, Download, ChevronDown, Activity, Zap, Coffee, ExternalLink, HeartHandshake } from 'lucide-react';
 import './Home.css';
 
 const SUPPORT_URL = 'https://buymeacoffee.com/onimock';
 
 export const Home: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+  const { navigate } = useAppRouter();
+
+  const toolsPath = buildLocalizedPath('/tools', currentLanguage);
+  const downloadPath = buildLocalizedPath('/download', currentLanguage);
 
   React.useEffect(() => {
     if (window.location.hash !== '#support') {
@@ -55,14 +61,22 @@ export const Home: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
             <a
-              href="#tools"
+              href={toolsPath}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(toolsPath);
+              }}
               className="home-btn home-btn-primary group"
             >
               <span>{t('home.getStarted')}</span>
               <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
             </a>
             <a
-              href="#download"
+              href={downloadPath}
+              onClick={(e) => {
+                e.preventDefault();
+                navigate(downloadPath);
+              }}
               className="home-btn home-btn-secondary group"
             >
               <Download size={18} className="group-hover:-translate-y-0.5 transition-transform" />

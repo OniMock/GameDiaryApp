@@ -1,33 +1,50 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
-import { useHashRouter } from '../../shared/hooks/use-router';
+import { useAppRouter } from '../../shared/hooks/use-router';
+import { buildLocalizedPath } from '../../i18n/utils/routing';
 import { Home, Hammer, Download, Coffee } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
-  const { t } = useLanguage();
-  const hash = useHashRouter();
+  const { t, currentLanguage } = useLanguage();
+  const { route, hash, navigate } = useAppRouter();
 
-  const isHome = hash === '#home' || hash === '' || hash === '#';
-  const isTools = hash.startsWith('#tools');
-  const isDownload = hash === '#download';
+  const isHome = route === 'home' && hash !== '#support';
+  const isTools = route.startsWith('tools');
+  const isDownload = route === 'download';
   const isSupport = hash === '#support';
+
+  const homePath = buildLocalizedPath('/', currentLanguage);
+  const toolsPath = buildLocalizedPath('/tools', currentLanguage);
+  const downloadPath = buildLocalizedPath('/download', currentLanguage);
+  const supportPath = `${homePath}#support`;
+
+  const handleNavClick = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    navigate(path);
+  };
 
   const handleHomeClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-
-    if (window.location.hash !== '#home') {
-      window.location.hash = 'home';
-    }
-
+    navigate(homePath);
     window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   };
 
+  const handleSupportClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (route === 'home') {
+      window.history.pushState(null, '', supportPath);
+      document.getElementById('support')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate(supportPath);
+    }
+  };
+
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 h-16 bg-background/80 backdrop-blur-lg border-t border-border flex items-center justify-around px-2 pb-safe">
       <a 
-        href="#home" 
+        href={homePath} 
         onClick={handleHomeClick}
         className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${isHome ? 'text-primary' : 'text-muted-foreground'}`}
       >
@@ -37,7 +54,8 @@ export const MobileNav: React.FC = () => {
       </a>
 
       <a 
-        href="#tools" 
+        href={toolsPath} 
+        onClick={handleNavClick(toolsPath)}
         className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${isTools ? 'text-primary' : 'text-muted-foreground'}`}
       >
         <Hammer size={20} className={isTools ? 'scale-110' : ''} />
@@ -46,7 +64,8 @@ export const MobileNav: React.FC = () => {
       </a>
 
       <a 
-        href="#download" 
+        href={downloadPath} 
+        onClick={handleNavClick(downloadPath)}
         className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${isDownload ? 'text-primary' : 'text-muted-foreground'}`}
       >
         <Download size={20} className={isDownload ? 'scale-110' : ''} />
@@ -55,7 +74,8 @@ export const MobileNav: React.FC = () => {
       </a>
 
       <a
-        href="#support"
+        href={supportPath}
+        onClick={handleSupportClick}
         className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${isSupport ? 'text-primary' : 'text-muted-foreground'}`}
       >
         <Coffee size={20} className={isSupport ? 'scale-110' : ''} />

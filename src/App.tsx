@@ -4,41 +4,41 @@ import { GameSessionsTool } from './pages/Tools/GameSessionsTool';
 import { ToolsIndex } from './pages/Tools/ToolsIndex';
 import { DatabaseMergeTool } from './pages/Tools/DatabaseMergeTool';
 import { Download } from './pages/Download/Download';
-import { useHashRouter } from './shared/hooks/use-router';
+import { useAppRouter } from './shared/hooks/use-router';
+import { useLanguage } from './i18n/hooks/use-language';
+import { syncDocumentMetadata } from './i18n/utils/routing';
 import { useEffect } from 'react';
 
 function App() {
-  const hash = useHashRouter();
+  const { route, cleanPath, hash } = useAppRouter();
+  const { currentLanguage } = useLanguage();
 
-  // Scroll to top only for full-page route changes (download, tools, etc.).
-  // For intra‑page anchors (e.g., #support) we let the browser handle scrolling.
+  // Sync document metadata on route or language changes
   useEffect(() => {
-    const topHashes = ['#download', '#tools', '#tools/game_sessions', '#tools/db_merge'];
-    if (topHashes.includes(hash)) {
-      const timer = setTimeout(() => {
-        window.scrollTo(0, 0);
-      }, 0);
-      return () => clearTimeout(timer);
+    syncDocumentMetadata(currentLanguage, cleanPath);
+  }, [currentLanguage, cleanPath]);
+
+  // Scroll to top on full-page route changes (unless jumping to an anchor)
+  useEffect(() => {
+    if (hash !== '#support') {
+      window.scrollTo(0, 0);
     }
-  }, [hash]);
+  }, [route, hash]);
 
   const renderPage = () => {
-    if (hash === '#download') {
-      // When the user clicks the Download tab we keep the hash so the router
-      // shows the Download component. The scroll position will be handled by the
-      // browser after the hash changes, which is the expected behavior.
-      return <Download />;
+    switch (route) {
+      case 'download':
+        return <Download />;
+      case 'tools/game_sessions':
+        return <GameSessionsTool />;
+      case 'tools/db_merge':
+        return <DatabaseMergeTool />;
+      case 'tools':
+        return <ToolsIndex />;
+      case 'home':
+      default:
+        return <Home />;
     }
-    if (hash === '#tools/game_sessions') {
-      return <GameSessionsTool />;
-    }
-    if (hash === '#tools/db_merge') {
-      return <DatabaseMergeTool />;
-    }
-    if (hash === '#tools') {
-      return <ToolsIndex />;
-    }
-    return <Home />;
   };
 
   return (

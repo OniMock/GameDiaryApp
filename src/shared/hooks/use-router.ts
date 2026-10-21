@@ -1,22 +1,95 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { getCleanPathname } from '../../i18n/utils/routing';
 
-export function useHashRouter() {
-  const [hash, setHash] = useState(() => window.location.hash || '#home');
+export type AppRoute = 'home' | 'download' | 'tools' | 'tools/game_sessions' | 'tools/db_merge';
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      setHash(window.location.hash || '#home');
-    };
-    
-    // Set initial if empty
-    if (!window.location.hash) {
-      window.history.replaceState(null, '', '#home');
-      setHash('#home');
-    }
+function getRouteFromLocation(): AppRoute {
+  if (typeof window === 'undefined') return 'home';
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+  const cleanPath = getCleanPathname(window.location.pathname);
+  const hash = window.location.hash;
+
+  if (cleanPath === '/download' || hash === '#download') {
+    return 'download';
+  }
+  if (
+    cleanPath === '/tools/game_sessions' || 
+    cleanPath === '/tools/game-sessions' || 
+    hash === '#tools/game_sessions'
+  ) {
+    return 'tools/game_sessions';
+  }
+  if (
+    cleanPath === '/tools/db_merge' || 
+    cleanPath === '/tools/db-merge' || 
+    hash === '#tools/db_merge'
+  ) {
+    return 'tools/db_merge';
+  }
+  if (cleanPath === '/tools' || hash === '#tools') {
+    return 'tools';
+  }
+
+  return 'home';
+}
+
+const NAVIGATION_EVENT = 'gamediary_navigate';
+
+export function navigateTo(to: string) {
+  if (typeof window === 'undefined') return;
+
+  if (window.location.pathname + window.location.hash !== to) {
+    window.history.pushState(null, '', to);
+    window.dispatchEvent(new Event(NAVIGATION_EVENT));
+  }
+}
+
+export function useAppRouter() {
+  const [route, setRoute] = useState<AppRoute>(() => getRouteFromLocation());
+  const [pathname, setPathname] = useState<string>(() => 
+    typeof window !== 'undefined' ? window.location.pathname : '/'
+  );
+  const [hash, setHash] = useState<string>(() => 
+    typeof window !== 'undefined' ? window.location.hash : ''
+  );
+
+  const syncState = useCallback(() => {
+    setRoute(getRouteFromLocation());
+    setPathname(window.location.pathname);
+    setHash(window.location.hash);
   }, []);
 
-  return hash;
+  useEffect(() => {
+    window.addEventListener('popstate', syncState);
+    window.addEventListener('hashchange', syncState);
+    window.addEventListener(NAVIGATION_EVENT, syncState);
+
+    return () => {
+      window.removeEventListener('popstate', syncState);
+      window.removeEventListener('hashchange', syncState);
+      window.removeEventListener(NAVIGATION_EVENT, syncState);
+    };
+  }, [syncState]);
+
+  return {
+    route,
+    pathname,
+    hash,
+    cleanPath: getCleanPathname(pathname),
+    navigate: navigateTo,
+  };
+}
+
+/**
+ * Backward compatibility hook for existing components using useHashRouter
+ */
+export function useHashRouter(): string {
+  const { route, hash } = useAppRouter();
+
+  if (route === 'download') return '#download';
+  if (route === 'tools/game_sessions') return '#tools/game_sessions';
+  if (route === 'tools/db_merge') return '#tools/db_merge';
+  if (route === 'tools') return '#tools';
+  if (hash === '#support') return '#support';
+  return '#home';
 }

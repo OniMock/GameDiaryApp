@@ -1,5 +1,7 @@
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
+import { useAppRouter } from '../../shared/hooks/use-router';
+import { buildLocalizedPath } from '../../i18n/utils/routing';
 import { useGameSessionsStore } from '../../features/GameSessions/model/store';
 import { GamesManager } from '../../features/GameSessions/ui/GamesManager';
 import { TimelineView } from '../../features/GameSessions/ui/Timeline/TimelineView';
@@ -60,8 +62,10 @@ const resizeImageBlob = async (blob: Blob, platform: string): Promise<Blob> => {
 };
 
 export const GameSessionsTool: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+  const { navigate } = useAppRouter();
   const store = useGameSessionsStore();
+  const toolsPath = buildLocalizedPath('/tools', currentLanguage);
   const { mapping } = useGameCovers();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -210,6 +214,16 @@ export const GameSessionsTool: React.FC = () => {
             {t('tools.gameSessions.subtitle') || 'Visual editor for backup.json'}
           </p>
         </div>
+        <a
+          href={toolsPath}
+          onClick={(e) => {
+            e.preventDefault();
+            navigate(toolsPath);
+          }}
+          className="inline-flex py-2 px-4 rounded-xl bg-card border border-border text-sm font-medium hover:bg-muted transition-colors self-start md:self-auto"
+        >
+          &larr; {t('dbMerge.backToTools') || 'Back to Tools'}
+        </a>
       </header>
       
       <div className="mb-4">

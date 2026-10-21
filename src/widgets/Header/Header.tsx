@@ -2,27 +2,44 @@ import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
 import { LanguageSelector } from '../../features/LanguageSelector/LanguageSelector';
 import { ThemeSelector } from '../../features/ThemeSelector/ThemeSelector';
-import { useHashRouter } from '../../shared/hooks/use-router';
+import { useAppRouter } from '../../shared/hooks/use-router';
+import { buildLocalizedPath } from '../../i18n/utils/routing';
 
 export const Header: React.FC = () => {
-  const { t } = useLanguage();
-  const hash = useHashRouter();
+  const { t, currentLanguage } = useLanguage();
+  const { route, hash, navigate } = useAppRouter();
 
-  const isHome = hash === '#home' || hash === '' || hash === '#';
-  const isTools = hash.startsWith('#tools');
-  const isDownload = hash === '#download';
+  const isHome = route === 'home' && hash !== '#support';
+  const isTools = route.startsWith('tools');
+  const isDownload = route === 'download';
   const isSupport = hash === '#support';
+
+  const homePath = buildLocalizedPath('/', currentLanguage);
+  const toolsPath = buildLocalizedPath('/tools', currentLanguage);
+  const downloadPath = buildLocalizedPath('/download', currentLanguage);
+  const supportPath = `${homePath}#support`;
+
+  const handleNavClick = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    navigate(path);
+  };
 
   const handleHomeClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     event.preventDefault();
-
-    if (window.location.hash !== '#home') {
-      window.location.hash = 'home';
-    }
-
+    navigate(homePath);
     window.requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+  };
+
+  const handleSupportClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    event.preventDefault();
+    if (route === 'home') {
+      window.history.pushState(null, '', supportPath);
+      document.getElementById('support')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate(supportPath);
+    }
   };
 
   return (
@@ -31,7 +48,7 @@ export const Header: React.FC = () => {
         
         {/* Left Side: Logo & Nav */}
         <div className="flex items-center gap-8">
-          <a href="#home" onClick={handleHomeClick} className="select-none group transition-transform active:scale-95">
+          <a href={homePath} onClick={handleHomeClick} className="select-none group transition-transform active:scale-95">
             <h1 className="text-xl font-bold tracking-tight">
               <span className="text-foreground">Game</span>
               <span className="text-primary">Diary</span>
@@ -40,7 +57,7 @@ export const Header: React.FC = () => {
 
           <nav className="hidden md:flex items-center gap-6">
             <a 
-              href="#home" 
+              href={homePath} 
               onClick={handleHomeClick}
               className={`text-sm font-medium relative group transition-colors ${isHome ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
@@ -49,7 +66,8 @@ export const Header: React.FC = () => {
             </a>
             
             <a 
-              href="#tools" 
+              href={toolsPath} 
+              onClick={handleNavClick(toolsPath)}
               className={`text-sm font-medium relative group transition-colors ${isTools ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.tools')}
@@ -57,7 +75,8 @@ export const Header: React.FC = () => {
             </a>
 
             <a 
-              href="#download" 
+              href={downloadPath} 
+              onClick={handleNavClick(downloadPath)}
               className={`text-sm font-medium relative group transition-colors ${isDownload ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.download')}
@@ -65,7 +84,8 @@ export const Header: React.FC = () => {
             </a>
 
             <a
-              href="#support"
+              href={supportPath}
+              onClick={handleSupportClick}
               className={`text-sm font-medium relative group transition-colors ${isSupport ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             >
               {t('nav.support')}

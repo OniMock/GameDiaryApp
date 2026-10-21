@@ -1,9 +1,16 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
+import { useAppRouter } from '../../shared/hooks/use-router';
+import { buildLocalizedPath } from '../../i18n/utils/routing';
 import { Database, LayoutGrid, GitMerge } from 'lucide-react';
 
 export const ToolsIndex: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
+  const { navigate } = useAppRouter();
+
+  const gameSessionsPath = buildLocalizedPath('/tools/game_sessions', currentLanguage);
+  const dbMergePath = buildLocalizedPath('/tools/db_merge', currentLanguage);
+  const toolsPath = buildLocalizedPath('/tools', currentLanguage);
 
   const tools = [
     {
@@ -11,7 +18,7 @@ export const ToolsIndex: React.FC = () => {
       title: t('tools.gameSessions.title') || 'Game Sessions',
       subtitle: t('tools.gameSessions.subtitle') || 'Visual editor for backup.json',
       icon: <Database className="w-8 h-8 text-blue-500" />,
-      href: '#tools/game_sessions',
+      href: gameSessionsPath,
       color: 'bg-blue-500/10'
     },
     {
@@ -19,7 +26,7 @@ export const ToolsIndex: React.FC = () => {
       title: t('tools.dbMerge.title') || 'Database Merge',
       subtitle: t('tools.dbMerge.subtitle') || 'Combine datasets',
       icon: <GitMerge className="w-8 h-8 text-emerald-500" />,
-      href: '#tools/db_merge',
+      href: dbMergePath,
       color: 'bg-emerald-500/10'
     },
     {
@@ -27,7 +34,7 @@ export const ToolsIndex: React.FC = () => {
       title: 'Advanced Settings',
       subtitle: 'In construction.',
       icon: <LayoutGrid className="w-8 h-8 text-purple-500" />,
-      href: '#tools',
+      href: toolsPath,
       color: 'bg-purple-500/10'
     }
   ];
@@ -48,6 +55,10 @@ export const ToolsIndex: React.FC = () => {
           <a
             key={tool.id}
             href={tool.href}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(tool.href);
+            }}
             className="group block p-6 bg-card border border-border rounded-2xl shadow-sm hover:shadow-xl hover:border-primary/50 transition-all duration-300"
           >
             <div className={`w-14 h-14 rounded-xl ${tool.color} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
