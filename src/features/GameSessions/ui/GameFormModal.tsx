@@ -106,7 +106,7 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
           {coverUrl && (
             <div className="w-full flex justify-center pb-2 animate-fade-in">
               <div className="h-40 max-w-full rounded-xl overflow-hidden border-2 border-primary/20 shadow-lg bg-black/20 flex items-center justify-center">
-                <img src={coverUrl} alt="Cover Preview" className="max-w-full h-full object-contain drop-shadow-md" />
+                <img src={coverUrl} alt={t('game.coverPreview') || 'Cover Preview'} className="max-w-full h-full object-contain drop-shadow-md" />
               </div>
             </div>
           )}
@@ -120,7 +120,7 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
               className="form-input"
               maxLength={16}
               required
-              placeholder="e.g. ULUS10566"
+              placeholder={t('game.idPlaceholder') || 'e.g. ULUS10566'}
             />
           </div>
 
@@ -144,11 +144,11 @@ export const GameFormModal: React.FC<GameFormModalProps> = ({ isOpen, onClose, o
                 onChange={handleCategoryChange}
                 className="form-select appearance-none w-full pr-10"
               >
-                <option value={0} className="form-select-option">PSP (0)</option>
-                <option value={1} className="form-select-option">PS1 (1)</option>
-                <option value={2} className="form-select-option">Homebrew (2)</option>
-                <option value={3} className="form-select-option">VSH (3)</option>
-                <option value={4} className="form-select-option">Unknown (4)</option>
+                <option value={0} className="form-select-option">{t('game.categoryPsp') || 'PSP (0)'}</option>
+                <option value={1} className="form-select-option">{t('game.categoryPs1') || 'PS1 (1)'}</option>
+                <option value={2} className="form-select-option">{t('game.categoryHomebrew') || 'Homebrew (2)'}</option>
+                <option value={3} className="form-select-option">{t('game.categoryVsh') || 'VSH (3)'}</option>
+                <option value={4} className="form-select-option">{t('game.categoryUnknown') || 'Unknown (4)'}</option>
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-muted-foreground">
                 <ChevronDown size={18} />

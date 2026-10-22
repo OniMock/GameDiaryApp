@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
+import { getIntlLocale } from '../../i18n/utils/routing';
 import { 
   Download as DownloadIcon, 
   Cpu, 
@@ -16,13 +17,13 @@ import { GithubIcon } from '../../shared/ui/icons/GithubIcon';
 
 interface ReleaseData {
   version: string;
-  date: string;
+  publishedAt: string;
   codename: string;
   zipUrl: string;
 }
 
 export const Download: React.FC = () => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
   const [release, setRelease] = useState<ReleaseData | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -40,11 +41,7 @@ export const Download: React.FC = () => {
 
         setRelease({
           version: data.tag_name,
-          date: new Date(data.published_at).toLocaleDateString(undefined, {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-          }),
+          publishedAt: data.published_at,
           codename,
           zipUrl
         });
@@ -55,6 +52,24 @@ export const Download: React.FC = () => {
         setLoading(false);
       });
   }, []);
+
+  const formattedDate = useMemo(() => {
+    if (!release?.publishedAt) return '';
+    try {
+      const locale = getIntlLocale(currentLanguage);
+      return new Date(release.publishedAt).toLocaleDateString(locale, {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return new Date(release.publishedAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+  }, [release?.publishedAt, currentLanguage]);
 
   if (loading) {
     return (
@@ -96,7 +111,7 @@ export const Download: React.FC = () => {
             </div>
             <div>
               <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t('download.releaseDate')}</p>
-              <p className="text-2xl font-black">{release?.date}</p>
+              <p className="text-2xl font-black">{formattedDate}</p>
             </div>
           </div>
 

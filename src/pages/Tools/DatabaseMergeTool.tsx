@@ -19,6 +19,7 @@ export const DatabaseMergeTool: React.FC = () => {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [selectedFileName, setSelectedFileName] = useState<string>('');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toolsPath = buildLocalizedPath('/tools', currentLanguage);
@@ -38,6 +39,7 @@ export const DatabaseMergeTool: React.FC = () => {
             sessions
         }]);
         if (fileInputRef.current) fileInputRef.current.value = '';
+        setSelectedFileName('');
         return;
       } catch (e) {
         setError(t('dbMerge.errorParsing') || 'Error parsing backup file');
@@ -159,7 +161,7 @@ export const DatabaseMergeTool: React.FC = () => {
       
     } catch (e) {
       console.error(e);
-      setError("An error occurred during merge.");
+      setError(t('dbMerge.errorMerging') || 'An error occurred during merge.');
     }
   };
   
@@ -217,8 +219,24 @@ export const DatabaseMergeTool: React.FC = () => {
                   type="file" 
                   accept=".json" 
                   ref={fileInputRef}
-                  className="block w-full text-sm text-foreground file:cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:transition-colors"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    setSelectedFileName(file ? file.name : '');
+                  }}
+                  className="hidden"
                 />
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="py-2 px-4 rounded-xl bg-primary/10 text-primary font-semibold text-sm hover:bg-primary/20 transition-colors shrink-0"
+                  >
+                    {t('actions.chooseFile') || 'Choose File'}
+                  </button>
+                  <span className="text-sm text-muted-foreground truncate">
+                    {selectedFileName || (t('actions.noFileChosen') || 'No file chosen')}
+                  </span>
+                </div>
               </div>
               <button 
                 onClick={handleAddDataset}
@@ -296,7 +314,7 @@ export const DatabaseMergeTool: React.FC = () => {
                     <button 
                       onClick={() => removeDataset(dataset.id)}
                       className="p-3 text-muted-foreground hover:text-destructive-foreground hover:bg-destructive rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-destructive"
-                      title="Remove dataset"
+                      title={t('dbMerge.removeDataset') || 'Remove dataset'}
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>

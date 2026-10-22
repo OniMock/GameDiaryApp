@@ -111,7 +111,7 @@ export const GameSessionsTool: React.FC = () => {
         alert(t('actions.invalidFileBackup') || 'Invalid file format. Please upload backup.json');
       }
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Error parsing file');
+      alert(err instanceof Error ? err.message : (t('dbMerge.errorParsing') || 'Error parsing file'));
     }
   };
 
@@ -196,7 +196,7 @@ export const GameSessionsTool: React.FC = () => {
         URL.revokeObjectURL(url);
       }
     } catch (err) {
-      alert('Error during export: ' + (err instanceof Error ? err.message : String(err)));
+      alert((t('actions.errorExporting') || 'Error during export: ') + (err instanceof Error ? err.message : String(err)));
     } finally {
       setIsExporting(false);
     }

@@ -150,14 +150,14 @@ export const GamesManager: React.FC<GamesManagerProps> = ({
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleOpenEdit(game); }}
                     className="p-1.5 text-foreground/60 hover:text-foreground hover:bg-black/10 dark:hover:bg-white/10 rounded-md transition-colors"
-                    title="Edit"
+                    title={t('common.edit') || 'Edit'}
                   >
                     <Edit2 size={16} />
                   </button>
                   <button 
                     onClick={(e) => { e.stopPropagation(); handleDelete(game.uid); }}
                     className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/20 rounded-md transition-colors"
-                    title="Delete"
+                    title={t('common.delete') || 'Delete'}
                   >
                     <Trash2 size={16} />
                   </button>

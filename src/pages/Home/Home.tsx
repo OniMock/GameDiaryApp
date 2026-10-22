@@ -43,7 +43,7 @@ export const Home: React.FC = () => {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
             </span>
-            PSP Homebrew & Plugin
+            {t('home.hero.badge') || 'PSP Homebrew & Plugin'}
           </div>
 
           <h1 className="home-hero-title mb-2 overflow-visible">
@@ -92,7 +92,7 @@ export const Home: React.FC = () => {
             {/* Row 1: Image Left, Text Right */}
             <div className="showcase-row">
               <div className="showcase-image-wrapper">
-                <img src="/psp-carousel.png" alt="GameDiary Carousel" className="showcase-img" />
+                <img src="/psp-carousel.png" alt={t('home.showcase.carousel.imgAlt') || 'GameDiary Carousel'} className="showcase-img" />
               </div>
               <div className="showcase-text">
                 <div className="showcase-badge">
@@ -111,7 +111,7 @@ export const Home: React.FC = () => {
             {/* Row 2: Text Left, Image Right */}
             <div className="showcase-row showcase-reverse">
               <div className="showcase-image-wrapper">
-                <img src="/psp-details.png" alt="GameDiary Details" className="showcase-img" />
+                <img src="/psp-details.png" alt={t('home.showcase.details.imgAlt') || 'GameDiary Details'} className="showcase-img" />
               </div>
               <div className="showcase-text">
                 <div className="showcase-badge">

@@ -236,6 +236,34 @@ export const LANG_CODE_TO_SLUG: Record<string, string> = {
 const KNOWN_SLUGS = new Set(['pt', 'pt-br', 'pt-BR', 'es', 'de', 'fr', 'it', 'ru', 'cn', 'zh', 'jp', 'ja', 'en']);
 
 /**
+ * Maps project language codes to valid BCP 47 locales recognized by Intl / toLocaleDateString.
+ */
+export function getIntlLocale(langCode: string): string {
+  switch (langCode) {
+    case 'jp':
+      return 'ja-JP';
+    case 'cn':
+      return 'zh-CN';
+    case 'pt-BR':
+    case 'pt':
+      return 'pt-BR';
+    case 'es':
+      return 'es-ES';
+    case 'de':
+      return 'de-DE';
+    case 'fr':
+      return 'fr-FR';
+    case 'it':
+      return 'it-IT';
+    case 'ru':
+      return 'ru-RU';
+    case 'en':
+    default:
+      return 'en-US';
+  }
+}
+
+/**
  * Extracts language code from URL pathname (e.g. /pt/tools -> 'pt-BR').
  */
 export function getLanguageFromPath(pathname: string): string | null {

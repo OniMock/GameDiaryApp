@@ -4,6 +4,7 @@ import { getDayBounds, checkOverlap, formatTime } from '../../lib/timelineUtils'
 import { SessionEditModal } from './SessionEditModal';
 import { ChevronLeft, ChevronRight, ZoomIn, Calendar } from 'lucide-react';
 import { useLanguage } from '../../../../i18n/hooks/use-language';
+import { getIntlLocale } from '../../../../i18n/utils/routing';
 
 interface TimelineViewProps {
   sessions: SessionEntry[];
@@ -22,6 +23,15 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   sessions, games, searchQuery = '', selectedGameUid, onToggleSelect, getGameColor, onAddSession, onUpdateSession, onDeleteSession, onHoverGame
 }) => {
   const { t, currentLanguage } = useLanguage();
+  const activeLocale = useMemo(() => getIntlLocale(currentLanguage), [currentLanguage]);
+
+  const weekdayLetters = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      // 2021-08-01 was a Sunday
+      const d = new Date(2021, 7, 1 + i);
+      return d.toLocaleDateString(activeLocale, { weekday: 'narrow' });
+    });
+  }, [activeLocale]);
   const [currentDate, setCurrentDate] = useState(() => new Date());
   const [editingSession, setEditingSession] = useState<SessionEntry | null>(null);
 
@@ -515,7 +525,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
           <button onClick={prevDay} className="p-1 hover:bg-black/10 dark:hover:bg-white/10 text-foreground rounded transition-colors"><ChevronLeft size={18} /></button>
           <div className="flex items-center gap-1.5 px-2 py-1 hover:bg-black/5 dark:hover:bg-white/5 rounded cursor-pointer transition-colors" onClick={() => setShowPicker(!showPicker)}>
             <Calendar size={14} className="text-blue-500" />
-            <span className="timeline-date-text">{currentDate.toLocaleDateString(currentLanguage, { month: 'short', year: 'numeric' })}</span>
+            <span className="timeline-date-text">{currentDate.toLocaleDateString(activeLocale, { month: 'short', year: 'numeric' })}</span>
           </div>
 
 
@@ -541,7 +551,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                     onClick={() => setPickerView('months')}
                     className="text-sm font-bold hover:text-blue-500 transition-colors"
                   >
-                    {new Date(pickerYear, pickerMonth).toLocaleDateString(currentLanguage, { month: 'long' })}
+                    {new Date(pickerYear, pickerMonth).toLocaleDateString(activeLocale, { month: 'long' })}
                   </button>
                   <button 
                     onClick={() => setPickerView('years')}
@@ -566,8 +576,8 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
               {pickerView === 'days' && (
                 <div className="grid grid-cols-7 gap-1 text-center mb-1">
-                  {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-                    <span key={d} className="text-[10px] font-bold text-muted-foreground">{d}</span>
+                  {weekdayLetters.map((d, idx) => (
+                    <span key={`${d}-${idx}`} className="text-[10px] font-bold text-muted-foreground">{d}</span>
                   ))}
                 </div>
               )}
@@ -600,7 +610,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
                 {pickerView === 'months' &&
                   Array.from({ length: 12 }, (_, i) => {
-                    const mName = new Date(2000, i, 1).toLocaleDateString(currentLanguage, { month: 'short' });
+                    const mName = new Date(2000, i, 1).toLocaleDateString(activeLocale, { month: 'short' });
                     const hasActivity = activityMonths?.has(`${pickerYear}-${i}`);
                     return (
                       <div 
@@ -647,7 +657,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                   ${hasMatch ? 'bg-blue-500/10 shadow-[inset_0_-2px_0_0_#3b82f6]' : ''}
                 `}
               >
-                {date.toLocaleDateString(currentLanguage, { weekday: 'short', day: 'numeric' })}
+                {date.toLocaleDateString(activeLocale, { weekday: 'short', day: 'numeric' })}
                 {hasMatch && (
                   <div className="absolute top-1 right-1">
                     <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping" />

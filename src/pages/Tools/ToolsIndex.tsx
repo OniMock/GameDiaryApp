@@ -31,8 +31,8 @@ export const ToolsIndex: React.FC = () => {
     },
     {
       id: 'placeholder_2',
-      title: 'Advanced Settings',
-      subtitle: 'In construction.',
+      title: t('tools.advancedSettings.title') || 'Advanced Settings',
+      subtitle: t('tools.advancedSettings.subtitle') || 'Under construction.',
       icon: <LayoutGrid className="w-8 h-8 text-purple-500" />,
       href: toolsPath,
       color: 'bg-purple-500/10'

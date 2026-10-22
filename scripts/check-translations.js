@@ -15,10 +15,10 @@ const SOURCE_FILE = 'en.ts';
 
 function extractKeys(filePath) {
     const content = fs.readFileSync(filePath, 'utf8');
-    // Simple regex to find keys in the translations object
-    const matches = content.match(/'([^']+)':/g);
+    // Regex to find keys in the translations object (single or double quoted)
+    const matches = [...content.matchAll(/(['"])([a-zA-Z0-9_.-]+)\1\s*:/g)];
     if (!matches) return [];
-    return matches.map(m => m.replace(/'/g, '').replace(':', ''));
+    return matches.map(m => m[2]).filter(k => k !== 'code' && k !== 'name' && k !== 'nativeName' && k !== 'flag');
 }
 
 function checkTranslations() {
