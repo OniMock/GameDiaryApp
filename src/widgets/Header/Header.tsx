@@ -48,7 +48,12 @@ export const Header: React.FC = () => {
         
         {/* Left Side: Logo & Nav */}
         <div className="flex items-center gap-8">
-          <a href={homePath} onClick={handleHomeClick} className="select-none group transition-transform active:scale-95">
+          <a href={homePath} onClick={handleHomeClick} className="select-none group transition-transform active:scale-95 flex items-center gap-2.5">
+            <img 
+              src="/logo.svg" 
+              alt="GameDiary Logo" 
+              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform group-hover:scale-105" 
+            />
             <h1 className="text-xl font-bold tracking-tight">
               <span className="text-foreground">Game</span>
               <span className="text-primary">Diary</span>

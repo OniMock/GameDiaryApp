@@ -46,10 +46,22 @@ export const Home: React.FC = () => {
             {t('home.hero.badge') || 'PSP Homebrew & Plugin'}
           </div>
 
-          <h1 className="home-hero-title mb-2 overflow-visible">
-            <span className="inline-block text-foreground drop-shadow-sm">Game</span>
-            <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400 drop-shadow-sm pb-[0.3em] -mb-[0.3em]">Diary</span>
-          </h1>
+          {/* Hero Branding: Logo Icon + Logo Letter */}
+          <div className="flex flex-col items-center justify-center mb-4">
+            <img 
+              src="/logo.svg" 
+              alt="GameDiary Icon" 
+              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-contain mb-3 filter drop-shadow-[0_10px_25px_rgba(3,190,239,0.3)] hover:scale-105 transition-transform duration-300" 
+            />
+            <div className="flex justify-center px-4">
+              <img 
+                src="/logo_letter.svg" 
+                alt="GameDiary" 
+                className="h-12 sm:h-16 md:h-20 w-auto max-w-[90vw] object-contain select-none drop-shadow-md" 
+              />
+              <h1 className="sr-only">GameDiary</h1>
+            </div>
+          </div>
 
           <div className="text-2xl md:text-3xl font-bold text-foreground/90 mb-6">
             {t('home.hero.title1') || 'Track Every'} <span className="text-primary">{t('home.hero.title2') || 'Session'}</span>
