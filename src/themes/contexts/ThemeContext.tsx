@@ -10,12 +10,30 @@ interface ThemeContextType {
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const getInitialTheme = (): Theme => {
+  if (typeof window === 'undefined') return DEFAULT_THEME;
+  try {
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (savedTheme === 'dark' || savedTheme === 'light') {
+      return savedTheme;
+    }
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    return prefersDark ? 'dark' : 'light';
+  } catch {
+    return DEFAULT_THEME;
+  }
+};
+
 export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>(DEFAULT_THEME);
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
   const applyTheme = useCallback((newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('theme', newTheme);
+    try {
+      localStorage.setItem('theme', newTheme);
+    } catch {
+      // Ignore private browsing storage errors
+    }
     
     // Manage class for Tailwind dark mode
     if (newTheme === 'dark') {
@@ -29,14 +47,25 @@ export const ThemeProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, []);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme;
-    if (savedTheme && (savedTheme === 'dark' || savedTheme === 'light')) {
-      applyTheme(savedTheme);
-    } else {
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      applyTheme(prefersDark ? 'dark' : 'light');
-    }
-  }, [applyTheme]);
+    // Ensure document attributes are synchronized on mount
+    applyTheme(theme);
+
+    // Listen for system theme changes if user has not explicitly set a theme
+    const mediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    if (!mediaQuery) return;
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      try {
+        const savedTheme = localStorage.getItem('theme');
+        if (!savedTheme) {
+          applyTheme(e.matches ? 'dark' : 'light');
+        }
+      } catch {}
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, [applyTheme, theme]);
 
   const toggleTheme = useCallback(() => {
     applyTheme(theme === 'dark' ? 'light' : 'dark');
