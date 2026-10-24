@@ -48,16 +48,31 @@ export const Home: React.FC = () => {
 
           {/* Hero Branding: Logo Icon + Logo Letter */}
           <div className="flex flex-col items-center justify-center mb-4">
+            {/* Dark Theme Logo Icon */}
             <img 
               src="/logo.svg" 
               alt="GameDiary Icon" 
-              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-contain mb-3 filter drop-shadow-[0_10px_25px_rgba(3,190,239,0.3)] hover:scale-105 transition-transform duration-300" 
+              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-contain mb-3 filter drop-shadow-[0_10px_25px_rgba(3,190,239,0.3)] hover:scale-105 transition-transform duration-300 hidden dark:block" 
             />
+            {/* Light Theme Logo Icon */}
+            <img 
+              src="/logo-light.svg" 
+              alt="GameDiary Icon" 
+              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-contain mb-3 filter drop-shadow-[0_10px_20px_rgba(15,23,42,0.15)] hover:scale-105 transition-transform duration-300 block dark:hidden" 
+            />
+
             <div className="flex justify-center px-4">
+              {/* Dark Theme Logo Letter */}
               <img 
                 src="/logo_letter.svg" 
                 alt="GameDiary" 
-                className="h-12 sm:h-16 md:h-20 w-auto max-w-[90vw] object-contain select-none drop-shadow-md" 
+                className="h-12 sm:h-16 md:h-20 w-auto max-w-[90vw] object-contain select-none drop-shadow-md hidden dark:block" 
+              />
+              {/* Light Theme Logo Letter */}
+              <img 
+                src="/logo_letter-light.svg" 
+                alt="GameDiary" 
+                className="h-12 sm:h-16 md:h-20 w-auto max-w-[90vw] object-contain select-none drop-shadow-sm block dark:hidden" 
               />
               <h1 className="sr-only">GameDiary</h1>
             </div>

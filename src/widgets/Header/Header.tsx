@@ -52,7 +52,12 @@ export const Header: React.FC = () => {
             <img 
               src="/logo.svg" 
               alt="GameDiary Logo" 
-              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform group-hover:scale-105" 
+              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform group-hover:scale-105 hidden dark:block" 
+            />
+            <img 
+              src="/logo-light.svg" 
+              alt="GameDiary Logo" 
+              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform group-hover:scale-105 block dark:hidden" 
             />
             <h1 className="text-xl font-bold tracking-tight">
               <span className="text-foreground">Game</span>
