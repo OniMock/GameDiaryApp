@@ -269,6 +269,7 @@ ${alternateOgLocales}
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "GameDiary",
+        "alternateName": ["GameDiary PSP", "Game Diary", "gamediary.onimock.com"],
         "url": "https://gamediary.onimock.com/"
       }
     </script>
