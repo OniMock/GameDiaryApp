@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
+import { useTheme } from '../../themes/hooks/useTheme';
 import { LanguageSelector } from '../../features/LanguageSelector/LanguageSelector';
 import { ThemeSelector } from '../../features/ThemeSelector/ThemeSelector';
 import { useAppRouter } from '../../shared/hooks/use-router';
@@ -7,6 +8,7 @@ import { buildLocalizedPath } from '../../i18n/utils/routing';
 
 export const Header: React.FC = () => {
   const { t, currentLanguage } = useLanguage();
+  const { theme } = useTheme();
   const { route, hash, navigate } = useAppRouter();
 
   const isHome = route === 'home' && hash !== '#support';
@@ -50,14 +52,9 @@ export const Header: React.FC = () => {
         <div className="flex items-center gap-8">
           <a href={homePath} onClick={handleHomeClick} className="select-none group transition-transform active:scale-95 flex items-center gap-2.5">
             <img 
-              src="/logo.svg" 
+              src={theme === 'dark' ? "/logo.svg" : "/logo-light.svg"} 
               alt="GameDiary Logo" 
-              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform group-hover:scale-105 hidden dark:block" 
-            />
-            <img 
-              src="/logo-light.svg" 
-              alt="GameDiary Logo" 
-              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform group-hover:scale-105 block dark:hidden" 
+              className="w-7 h-7 sm:w-8 sm:h-8 object-contain transition-transform group-hover:scale-105" 
             />
             <h1 className="text-xl font-bold tracking-tight">
               <span className="text-foreground">Game</span>

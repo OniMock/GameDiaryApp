@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
+import { useTheme } from '../../themes/hooks/useTheme';
 import { useAppRouter } from '../../shared/hooks/use-router';
 import { buildLocalizedPath } from '../../i18n/utils/routing';
 import { Cpu, Gamepad2, Globe, ArrowRight, Download, ChevronDown, Activity, Zap, Coffee, ExternalLink, HeartHandshake } from 'lucide-react';
@@ -9,6 +10,7 @@ const SUPPORT_URL = 'https://buymeacoffee.com/onimock';
 
 export const Home: React.FC = () => {
   const { t, currentLanguage } = useLanguage();
+  const { theme } = useTheme();
   const { navigate } = useAppRouter();
 
   const toolsPath = buildLocalizedPath('/tools', currentLanguage);
@@ -48,31 +50,23 @@ export const Home: React.FC = () => {
 
           {/* Hero Branding: Logo Icon + Logo Letter */}
           <div className="flex flex-col items-center justify-center mb-4">
-            {/* Dark Theme Logo Icon */}
             <img 
-              src="/logo.svg" 
+              src={theme === 'dark' ? "/logo.svg" : "/logo-light.svg"} 
               alt="GameDiary Icon" 
-              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-contain mb-3 filter drop-shadow-[0_10px_25px_rgba(3,190,239,0.3)] hover:scale-105 transition-transform duration-300 hidden dark:block" 
-            />
-            {/* Light Theme Logo Icon */}
-            <img 
-              src="/logo-light.svg" 
-              alt="GameDiary Icon" 
-              className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-contain mb-3 filter drop-shadow-[0_10px_20px_rgba(15,23,42,0.15)] hover:scale-105 transition-transform duration-300 block dark:hidden" 
+              className={`w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 object-contain mb-3 filter transition-transform duration-300 hover:scale-105 ${
+                theme === 'dark' 
+                  ? 'drop-shadow-[0_10px_25px_rgba(3,190,239,0.3)]' 
+                  : 'drop-shadow-[0_10px_20px_rgba(15,23,42,0.15)]'
+              }`} 
             />
 
             <div className="flex justify-center px-4">
-              {/* Dark Theme Logo Letter */}
               <img 
-                src="/logo_letter.svg" 
+                src={theme === 'dark' ? "/logo_letter.svg" : "/logo_letter-light.svg"} 
                 alt="GameDiary" 
-                className="h-12 sm:h-16 md:h-20 w-auto max-w-[90vw] object-contain select-none drop-shadow-md hidden dark:block" 
-              />
-              {/* Light Theme Logo Letter */}
-              <img 
-                src="/logo_letter-light.svg" 
-                alt="GameDiary" 
-                className="h-12 sm:h-16 md:h-20 w-auto max-w-[90vw] object-contain select-none drop-shadow-sm block dark:hidden" 
+                className={`h-12 sm:h-16 md:h-20 w-auto max-w-[90vw] object-contain select-none ${
+                  theme === 'dark' ? 'drop-shadow-md' : 'drop-shadow-sm'
+                }`} 
               />
               <h1 className="sr-only">GameDiary</h1>
             </div>
