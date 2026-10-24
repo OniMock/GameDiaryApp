@@ -97,6 +97,7 @@ export const en: LanguageFile = {
     "download.latestVersion": "Latest Version",
     "download.releaseDate": "Release Date",
     "download.codename": "Codename",
+    "download.totalDownloads": "Total Downloads",
     "download.app.title": "GameDiary App",
     "download.app.desc":
       "The main application to view your stats and manage your diary.",

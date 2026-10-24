@@ -92,6 +92,7 @@ export const es: LanguageFile = {
     "download.latestVersion": "Última Versión",
     "download.releaseDate": "Fecha de Lanzamiento",
     "download.codename": "Codinome",
+    "download.totalDownloads": "Descargas Totales",
     "download.app.title": "App GameDiary",
     "download.app.desc":
       "La aplicación principal para ver tus estadísticas y diario.",

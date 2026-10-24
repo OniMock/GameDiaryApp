@@ -95,6 +95,7 @@ export const cn: LanguageFile = {
     "download.latestVersion": "最新版本",
     "download.releaseDate": "发布日期",
     "download.codename": "代号",
+    "download.totalDownloads": "总下载量",
     "download.app.title": "GameDiary 应用",
     "download.app.desc": "查看统计数据和管理日记的主程序。",
     "download.plugin.title": "GameDiary 插件",

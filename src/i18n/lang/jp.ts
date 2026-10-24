@@ -91,6 +91,7 @@ export const jp: LanguageFile = {
     "download.latestVersion": "最新バージョン",
     "download.releaseDate": "リリース日",
     "download.codename": "コードネーム",
+    "download.totalDownloads": "総ダウンロード数",
     "download.app.title": "GameDiary アプリ",
     "download.app.desc": "統計の表示や日記の管理を行うメインアプリ。",
     "download.plugin.title": "GameDiary プラグイン",

@@ -98,6 +98,7 @@ export const ptBr: LanguageFile = {
     "download.latestVersion": "Última Versão",
     "download.releaseDate": "Data de Lançamento",
     "download.codename": "Codinome",
+    "download.totalDownloads": "Total de Downloads",
     "download.app.title": "App GameDiary",
     "download.app.desc":
       "O aplicativo principal para ver suas estatísticas e gerenciar seu diário.",

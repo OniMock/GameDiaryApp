@@ -3,6 +3,7 @@ import { useLanguage } from '../../i18n/hooks/use-language';
 import { useAppRouter } from '../../shared/hooks/use-router';
 import { buildLocalizedPath } from '../../i18n/utils/routing';
 import { Cpu, Gamepad2, Globe, ArrowRight, Download, ChevronDown, Activity, Zap, Coffee, ExternalLink, HeartHandshake } from 'lucide-react';
+import { GithubIcon } from '../../shared/ui/icons/GithubIcon';
 import './Home.css';
 
 const SUPPORT_URL = 'https://buymeacoffee.com/onimock';
@@ -10,9 +11,27 @@ const SUPPORT_URL = 'https://buymeacoffee.com/onimock';
 export const Home: React.FC = () => {
   const { t, currentLanguage } = useLanguage();
   const { navigate } = useAppRouter();
+  const [downloadCount, setDownloadCount] = React.useState<string>('2.5k+');
 
   const toolsPath = buildLocalizedPath('/tools', currentLanguage);
   const downloadPath = buildLocalizedPath('/download', currentLanguage);
+
+  React.useEffect(() => {
+    fetch('https://api.github.com/repos/OniMock/GameDiary/releases')
+      .then(r => r.ok ? r.json() : null)
+      .then((data: any[]) => {
+        if (Array.isArray(data)) {
+          const total = data.reduce(
+            (acc: number, rel: any) => acc + (rel.assets || []).reduce((sum: number, a: any) => sum + (a.download_count || 0), 0),
+            0
+          );
+          if (total > 0) {
+            setDownloadCount(total >= 1000 ? `${(total / 1000).toFixed(1)}k+` : `${total}`);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   React.useEffect(() => {
     if (window.location.hash !== '#support') {
@@ -108,6 +127,27 @@ export const Home: React.FC = () => {
             >
               <Download size={18} className="group-hover:-translate-y-0.5 transition-transform" />
               <span>{t('home.download')}</span>
+            </a>
+          </div>
+
+          {/* Sleek Native GitHub Downloads Pill Badge */}
+          <div className="flex items-center justify-center mt-7">
+            <a
+              href="https://github.com/OniMock/GameDiary/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-card/60 hover:bg-card/90 backdrop-blur-md border border-border hover:border-primary/40 shadow-xs hover:shadow-md transition-all duration-300 group select-none text-xs"
+              title="GitHub Releases"
+            >
+              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-foreground/10 group-hover:bg-primary/20 group-hover:text-primary transition-colors text-foreground">
+                <GithubIcon size={12} />
+              </div>
+              <span className="text-muted-foreground group-hover:text-foreground transition-colors font-medium">
+                GitHub Releases:
+              </span>
+              <span className="font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 text-[11px] tracking-tight">
+                {downloadCount} downloads
+              </span>
             </a>
           </div>
         </section>

@@ -92,6 +92,7 @@ export const ru: LanguageFile = {
     "download.latestVersion": "Последняя версия",
     "download.releaseDate": "Дата выпуска",
     "download.codename": "Кодовое имя",
+    "download.totalDownloads": "Всего загрузок",
     "download.app.title": "Приложение GameDiary",
     "download.app.desc":
       "Основное приложение для просмотра статистики и дневника.",
