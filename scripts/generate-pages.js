@@ -16,9 +16,9 @@ const LANGUAGES = [
     ogLocale: 'en_US',
     htmlLang: 'en',
     name: 'English',
-    titleSuffix: 'GameDiary | Your Personal PSP Gaming Journal',
+    titleSuffix: 'GameDiary PSP | Your Personal PSP Gaming Journal',
     pageTitles: {
-      home: 'GameDiary | Your Personal PSP Gaming Journal',
+      home: 'GameDiary PSP | Your Personal PSP Gaming Journal',
       tools: 'System Tools | GameDiary PSP',
       download: 'Download GameDiary | PSP Plugin & App'
     },
@@ -37,7 +37,7 @@ const LANGUAGES = [
     htmlLang: 'pt-BR',
     name: 'Português',
     pageTitles: {
-      home: 'GameDiary | Seu Diário Gamer Pessoal para PSP',
+      home: 'GameDiary PSP | Seu Diário Gamer Pessoal para PSP',
       tools: 'Ferramentas do Sistema | GameDiary PSP',
       download: 'Baixar GameDiary | Plugin & Aplicativo para PSP'
     },
@@ -56,7 +56,7 @@ const LANGUAGES = [
     htmlLang: 'es',
     name: 'Español',
     pageTitles: {
-      home: 'GameDiary | Tu Diario de Juegos Personal para PSP',
+      home: 'GameDiary PSP | Tu Diario de Juegos Personal para PSP',
       tools: 'Herramientas del Sistema | GameDiary PSP',
       download: 'Descargar GameDiary | Plugin y Aplicación para PSP'
     },
@@ -75,7 +75,7 @@ const LANGUAGES = [
     htmlLang: 'de',
     name: 'Deutsch',
     pageTitles: {
-      home: 'GameDiary | Dein persönliches PSP-Gaming-Tagebuch',
+      home: 'GameDiary PSP | Dein persönliches PSP-Gaming-Tagebuch',
       tools: 'System-Tools | GameDiary PSP',
       download: 'GameDiary herunterladen | PSP-Plugin und App'
     },
@@ -94,7 +94,7 @@ const LANGUAGES = [
     htmlLang: 'fr',
     name: 'Français',
     pageTitles: {
-      home: 'GameDiary | Votre Journal de Jeu Personnel pour PSP',
+      home: 'GameDiary PSP | Votre Journal de Jeu Personnel pour PSP',
       tools: 'Outils Système | GameDiary PSP',
       download: 'Télécharger GameDiary | Plugin et Application PSP'
     },
@@ -113,7 +113,7 @@ const LANGUAGES = [
     htmlLang: 'it',
     name: 'Italiano',
     pageTitles: {
-      home: 'GameDiary | Il Tuo Diario di Gioco Personale per PSP',
+      home: 'GameDiary PSP | Il Tuo Diario di Gioco Personale per PSP',
       tools: 'Strumenti di Sistema | GameDiary PSP',
       download: 'Scarica GameDiary | Plugin e Applicazione per PSP'
     },
@@ -132,7 +132,7 @@ const LANGUAGES = [
     htmlLang: 'ru',
     name: 'Русский',
     pageTitles: {
-      home: 'GameDiary | Ваш личный игровой дневник для PSP',
+      home: 'GameDiary PSP | Ваш личный игровой дневник для PSP',
       tools: 'Системные инструменты | GameDiary PSP',
       download: 'Скачать GameDiary | Плагин и приложение для PSP'
     },
@@ -151,7 +151,7 @@ const LANGUAGES = [
     htmlLang: 'zh-CN',
     name: '简体中文',
     pageTitles: {
-      home: 'GameDiary | 您的专属 PSP 游戏日志',
+      home: 'GameDiary PSP | 您的专属 PSP 游戏日志',
       tools: '系统工具 | GameDiary PSP',
       download: '下载 GameDiary | PSP 插件与应用程序'
     },
@@ -170,7 +170,7 @@ const LANGUAGES = [
     htmlLang: 'ja',
     name: '日本語',
     pageTitles: {
-      home: 'GameDiary | あなたの個人用 PSP ゲームジャーナル',
+      home: 'GameDiary PSP | あなたの個人用 PSP ゲームジャーナル',
       tools: 'システムツール | GameDiary PSP',
       download: 'GameDiary のダウンロード | PSP プラグイン＆アプリ'
     },
@@ -267,7 +267,7 @@ ${hreflangLinks}
     <meta property="og:title" content="${title}" />
     <meta property="og:description" content="${description}" />
     <meta property="og:image" content="https://gamediary.onimock.com/og-image.png" />
-    <meta property="og:site_name" content="GameDiary" />
+    <meta property="og:site_name" content="GameDiary PSP" />
     <meta property="og:locale" content="${lang.ogLocale}" />
 ${alternateOgLocales}
 
@@ -283,8 +283,8 @@ ${alternateOgLocales}
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": "GameDiary",
-        "alternateName": ["GameDiary PSP", "Game Diary", "gamediary.onimock.com"],
+        "name": "GameDiary PSP",
+        "alternateName": ["GameDiary", "Game Diary", "gamediary.onimock.com"],
         "url": "https://gamediary.onimock.com/"
       }
     </script>

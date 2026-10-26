@@ -93,7 +93,7 @@ export const Home: React.FC = () => {
                 alt="GameDiary" 
                 className="h-12 sm:h-16 md:h-20 w-auto max-w-[90vw] object-contain select-none drop-shadow-sm block dark:hidden" 
               />
-              <h1 className="sr-only">GameDiary</h1>
+              <h1 className="sr-only">GameDiary PSP</h1>
             </div>
           </div>
 

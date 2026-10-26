@@ -1,6 +1,16 @@
-# GameDiary (PSP Project)
+# GameDiary PSP - Web Portal & Companion App
 
-This is the web interface for the **GameDiary** project, a playtime tracking and game statistics system originally developed for the PlayStation Portable (PSP).
+[![Official Website](https://img.shields.io/badge/Official_Website-GameDiary_PSP-111111?style=flat&logo=firefoxbrowser&logoColor=white)](https://gamediary.onimock.com/)
+[![PSP Repository](https://img.shields.io/badge/GitHub-GameDiary_PSP-181717?style=flat&logo=github&logoColor=white)](https://github.com/OniMock/GameDiary)
+
+🌐 **Official Website**: [https://gamediary.onimock.com](https://gamediary.onimock.com)  
+📥 **Downloads**: [https://gamediary.onimock.com/download](https://gamediary.onimock.com/download)  
+🛠️ **Web Tools**: [https://gamediary.onimock.com/tools](https://gamediary.onimock.com/tools)  
+🎮 **Main PSP/C Repository**: [OniMock/GameDiary](https://github.com/OniMock/GameDiary)
+
+---
+
+This is the official web portal and companion dashboard for the **GameDiary PSP** project, a playtime tracking and game statistics system originally developed for the PlayStation Portable (PSP).
 
 The web version acts as a modern extension of the original PSP project, used for testing, data visualization, and continued development of new features.
 
