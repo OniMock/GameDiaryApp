@@ -227,6 +227,7 @@ function renderHtml(lang, page) {
 <html lang="${lang.htmlLang}">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
     <link rel="icon" type="image/png" sizes="any" href="/favicon.png" />
