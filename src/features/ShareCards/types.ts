@@ -1,5 +1,6 @@
 import type { GameEntry, SessionEntry } from '../GameSessions/model/domain/types';
-import type { OverallStats } from '../Stats/lib/statsCalculator';
+import type { OverallStats, PlatformFilter } from '../Stats/lib/statsCalculator';
+import type { BrandAssets } from './lib/imageLoader';
 
 export type CardModel = 'top5' | 'topGame' | 'library' | 'retrospective' | 'individual';
 
@@ -21,6 +22,8 @@ export interface CardRenderOptions {
   format: CardFormat;
   selectedGameUid?: number;
   selectedYear?: number | 'all';
+  selectedCategory?: PlatformFilter;
+  brandAssets?: BrandAssets;
   locale?: string;
   t: (key: string, params?: Record<string, any>) => string;
   games: GameEntry[];

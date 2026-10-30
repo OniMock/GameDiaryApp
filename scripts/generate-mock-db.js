@@ -3,28 +3,30 @@
  * GameDiary Mock Database Generator
  *
  * Gera um banco de dados realista em formato JSON (compatível com backup.json do GameDiary)
- * contendo jogos reais (PSP e PS1) e sessões distribuídas do primeiro dia do mês até a data desejada.
+ * contendo jogos reais (PSP e PS1) do projeto de capas e sessões distribuídas ao longo de
+ * vários meses até o momento atual de hoje.
  *
  * Uso via Terminal:
- *   npm run generate:mock                              # Mês atual até a data de hoje
- *   npm run generate:mock -- -i                        # Modo interativo com perguntas no terminal
- *   npm run generate:mock -- 9 30 18                   # Shorthand: Mês 9, 30 dias, 18 jogos
- *   npm run generate:mock -- -m 9 -d 20 -g 15          # Flags nomeadas
+ *   npm run generate:mock                              # Padrão: 3 meses até hoje com 20 jogos
+ *   npm run generate:mock -- -i                        # Modo interativo (pergunta meses, jogos, etc.)
+ *   npm run generate:mock -- 3 25                      # Shorthand: 3 meses até hoje, 25 jogos
+ *   npm run generate:mock -- 6 30 psp                  # Shorthand: 6 meses até hoje, 30 jogos PSP
+ *   npm run generate:mock -- -m 6 -g 30 -p all         # Flags nomeadas
  *   node scripts/generate-mock-db.js [opções]
  *
  * Opções:
- *   -m, --month <1-12>     Mês desejado (padrão: mês atual)
- *   -d, --days <número>    Dias a gerar (padrão: dia atual de hoje)
- *   -g, --games <número>   Quantidade de jogos no catálogo ativo (padrão: 14)
- *   -y, --year <ano>       Ano desejado (padrão: ano atual)
- *   -o, --out <arquivo>    Caminho do arquivo de saída (padrão: backup.json)
- *   -i, --interactive      Modo interativo: pergunta mês, dias e jogos no terminal
- *   -h, --help             Exibe esta mensagem de ajuda
+ *   -m, --months <número>    Quantidade de meses até a data de hoje (padrão: 3)
+ *   -d, --days <número>      Quantidade de dias exatos até a data de hoje
+ *   -g, --games <número>     Quantidade de jogos no catálogo ativo (padrão: 20)
+ *   -p, --platform <p>       Plataforma: 'all' (PSP + PS1), 'psp', ou 'psx' (padrão: all)
+ *   -o, --out <arquivo>      Caminho do arquivo de saída (padrão: backup.json)
+ *   -i, --interactive        Modo interativo no terminal
+ *   -h, --help               Exibe esta mensagem de ajuda
  */
 
 import fs from 'fs';
 import path from 'path';
-import readline from 'readline';
+import readline from 'readline/promises';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -32,322 +34,174 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 
 // ============================================================================
-// Catálogo de Jogos Reais (com seriais e capas 100% verificados no repositório)
-// Category: 0 = PSP (apitype 0x120), 1 = PS1 (apitype 0x144)
-// Type: 'rpg' | 'action' | 'racing' | 'fighting' | 'platformer' | 'casual'
+// 1. Carregamento do Catálogo Real (13.236 Jogos com capas oficiais)
 // ============================================================================
-const REAL_GAMES_CATALOG = [
-  // --- PSP ---
-  {
-    game_id: 'ULES01523',
-    name: 'Shin Megami Tensei - Persona 3 Portable',
-    apitype: '0x120',
-    category: 0,
-    type: 'rpg'
-  },
-  {
-    game_id: 'NPEG00023',
-    name: 'God of War - Chains of Olympus',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'UCES01401',
-    name: 'God of War - Ghost of Sparta',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'ULES00151',
-    name: 'Grand Theft Auto - Liberty City Stories',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'ULES00502',
-    name: 'Grand Theft Auto - Vice City Stories',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'UCAS40167',
-    name: 'Crisis Core - Final Fantasy VII',
-    apitype: '0x120',
-    category: 0,
-    type: 'rpg'
-  },
-  {
-    game_id: 'UCKS45036',
-    name: 'Monster Hunter Freedom',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'ULES01213',
-    name: 'Monster Hunter Freedom Unite',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'NPJH50045',
-    name: 'Metal Gear Solid - Peace Walker',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'NPJH50184',
-    name: 'Tekken 6',
-    apitype: '0x120',
-    category: 0,
-    type: 'fighting'
-  },
-  {
-    game_id: 'NPJH50148',
-    name: 'Silent Hill - Shattered Memories',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'UCES01177',
-    name: 'Patapon 2',
-    apitype: '0x120',
-    category: 0,
-    type: 'casual'
-  },
-  {
-    game_id: 'UCES01421',
-    name: 'Patapon 3',
-    apitype: '0x120',
-    category: 0,
-    type: 'casual'
-  },
-  {
-    game_id: 'NPJH50140',
-    name: 'Ridge Racer',
-    apitype: '0x120',
-    category: 0,
-    type: 'racing'
-  },
-  {
-    game_id: 'NPJH50305',
-    name: 'Burnout Legends',
-    apitype: '0x120',
-    category: 0,
-    type: 'racing'
-  },
-  {
-    game_id: 'ULES00229',
-    name: 'Stealth + WipEout Pure',
-    apitype: '0x120',
-    category: 0,
-    type: 'racing'
-  },
-  {
-    game_id: 'NPHG00015',
-    name: 'LocoRoco 2',
-    apitype: '0x120',
-    category: 0,
-    type: 'casual'
-  },
-  {
-    game_id: 'ULES01392',
-    name: 'Disgaea 2 - Dark Hero Days',
-    apitype: '0x120',
-    category: 0,
-    type: 'rpg'
-  },
-  {
-    game_id: 'NPEG00025',
-    name: 'Daxter',
-    apitype: '0x120',
-    category: 0,
-    type: 'platformer'
-  },
-  {
-    game_id: 'UCES01245',
-    name: 'Gran Turismo',
-    apitype: '0x120',
-    category: 0,
-    type: 'racing'
-  },
-  {
-    game_id: 'ULUS10297',
-    name: 'Final Fantasy Tactics - The War of the Lions',
-    apitype: '0x120',
-    category: 0,
-    type: 'rpg'
-  },
-  {
-    game_id: 'ULES00344',
-    name: 'Valkyrie Profile - Lenneth',
-    apitype: '0x120',
-    category: 0,
-    type: 'rpg'
-  },
-  {
-    game_id: 'ULES00841',
-    name: 'Castlevania - The Dracula X Chronicles',
-    apitype: '0x120',
-    category: 0,
-    type: 'action'
-  },
-  {
-    game_id: 'ULJM05036',
-    name: 'Crash Bandicoot - Gacchanko World',
-    apitype: '0x120',
-    category: 0,
-    type: 'racing'
-  },
-  {
-    game_id: 'NPJG00038',
-    name: 'Jak and Daxter - Elf to Itachi no Daibouken',
-    apitype: '0x120',
-    category: 0,
-    type: 'platformer'
-  },
 
-  // --- PS1 Classics ---
-  {
-    game_id: 'SCPS45196',
-    name: 'Castlevania - Symphony of the Night',
-    apitype: '0x144',
-    category: 1,
-    type: 'action'
-  },
-  {
-    game_id: 'SCUS94163',
-    name: 'Final Fantasy VII',
-    apitype: '0x144',
-    category: 1,
-    type: 'rpg'
-  },
-  {
-    game_id: 'SLUS00892',
-    name: 'Final Fantasy VIII',
-    apitype: '0x144',
-    category: 1,
-    type: 'rpg'
-  },
-  {
-    game_id: 'SLUS01251',
-    name: 'Final Fantasy IX',
-    apitype: '0x144',
-    category: 1,
-    type: 'rpg'
-  },
-  {
-    game_id: 'SLUS00594',
-    name: 'Metal Gear Solid',
-    apitype: '0x144',
-    category: 1,
-    type: 'action'
-  },
-  {
-    game_id: 'SLUS00957',
-    name: 'Metal Gear Solid - VR Missions',
-    apitype: '0x144',
-    category: 1,
-    type: 'action'
-  },
-  {
-    game_id: 'SCUS94244',
-    name: 'Crash Bandicoot - Warped',
-    apitype: '0x144',
-    category: 1,
-    type: 'platformer'
-  },
-  {
-    game_id: 'SCUS94900',
-    name: 'Crash Team Racing',
-    apitype: '0x144',
-    category: 1,
-    type: 'racing'
-  },
-  {
-    game_id: 'PAPX90077',
-    name: 'Spyro the Dragon',
-    apitype: '0x144',
-    category: 1,
-    type: 'platformer'
-  },
-  {
-    game_id: 'SCES00005',
-    name: 'Tekken',
-    apitype: '0x144',
-    category: 1,
-    type: 'fighting'
-  },
-  {
-    game_id: 'SCES01237',
-    name: 'Tekken 3',
-    apitype: '0x144',
-    category: 1,
-    type: 'fighting'
-  },
-  {
-    game_id: 'SCPS45380',
-    name: 'Silent Hill',
-    apitype: '0x144',
-    category: 1,
-    type: 'action'
-  },
-  {
-    game_id: 'SLUS00421',
-    name: 'Resident Evil 2',
-    apitype: '0x144',
-    category: 1,
-    type: 'action'
-  },
-  {
-    game_id: 'SLUS00747',
-    name: 'Resident Evil 3 - Nemesis',
-    apitype: '0x144',
-    category: 1,
-    type: 'action'
-  },
-  {
-    game_id: 'SLUS00664',
-    name: 'Xenogears',
-    apitype: '0x144',
-    category: 1,
-    type: 'rpg'
-  },
-  {
-    game_id: 'SLUS00404',
-    name: 'Chrono Cross',
-    apitype: '0x144',
-    category: 1,
-    type: 'rpg'
-  },
-  {
-    game_id: 'SLUS90049',
-    name: 'Ridge Racer Bonus Turbo Mode Disc',
-    apitype: '0x144',
-    category: 1,
-    type: 'racing'
-  }
+const POSSIBLE_MAP_PATHS = [
+  'd:/Biblioteca/Github Projects/Capas/full_game_map.json',
+  path.resolve(rootDir, '../Capas/full_game_map.json'),
+  path.resolve(rootDir, 'scripts/.cache_game_map.json'),
+  path.resolve(rootDir, '.cache_game_map.json')
 ];
 
+function loadFullGameMap() {
+  for (const p of POSSIBLE_MAP_PATHS) {
+    try {
+      if (fs.existsSync(p)) {
+        const raw = fs.readFileSync(p, 'utf8');
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object' && Object.keys(parsed).length > 0) {
+          return { map: parsed, source: p };
+        }
+      }
+    } catch {
+      // Tenta próximo caminho
+    }
+  }
+  return { map: {}, source: null };
+}
+
 // ============================================================================
-// Utilitários de Argumentos e Interface
+// 2. Limpeza de Nomes e Classificação de Gêneros
+// ============================================================================
+
+function cleanGameName(rawPath) {
+  let name = rawPath.split('/').pop().replace(/\.png$/i, '');
+  // Remove sufixos de discos, versões e regiões comuns preservando o nome do jogo
+  name = name.replace(/\s*\((Disc|Disk|Rev|v\d+|Beta|Demo|Sample|En|Ja|Fr|De|Es|It|Ko|Zh|USA|Europe|Japan|Asia|Germany|France|Spain|Italy|Korea|Australia|Brazil|World)[^)]*\)/gi, '');
+  name = name.replace(/\s*\([^)]*\)$/g, '').trim();
+  name = name.replace(/\s*\([^)]*\)$/g, '').trim();
+  // Limita tamanho para caber no limite de interface
+  if (name.length > 60) {
+    name = name.substring(0, 57).trim() + '...';
+  }
+  return name;
+}
+
+const POPULAR_KEYWORDS = [
+  'God of War', 'Persona', 'Grand Theft Auto', 'Monster Hunter', 'Crisis Core',
+  'Castlevania', 'Final Fantasy', 'Metal Gear', 'Silent Hill', 'Tekken',
+  'Resident Evil', 'Crash Bandicoot', 'Spyro', 'Gran Turismo', 'Ridge Racer',
+  'Burnout', 'Need for Speed', 'Kingdom Hearts', 'Patapon', 'LocoRoco',
+  'Daxter', 'Tomb Raider', 'Chrono Cross', 'Xenogears', 'Valkyrie Profile',
+  'Dissidia', 'Midnight Club', 'Star Wars', 'Twisted Metal', 'Parasite Eve',
+  'Syphon Filter', 'Medal of Honor', 'Tony Hawk', 'Dragon Ball', 'Naruto',
+  'Disgaea', 'Ys', 'Ape Escape', 'MediEvil', 'Ratchet', 'Jak and Daxter'
+];
+
+function detectGenre(title) {
+  const t = title.toLowerCase();
+  if (/fantasy|persona|shin megami|chrono|xenogears|valkyrie|kingdom hearts|disgaea|tactics|ys|rpg|quest|dragon quest|suikoden|star ocean|monster hunter/.test(t)) {
+    return 'rpg';
+  }
+  if (/tekken|street fighter|mortal kombat|guilty gear|fight|brawler|wrestling|smackdown|ufc|versus|vs/.test(t)) {
+    return 'fighting';
+  }
+  if (/gran turismo|ridge racer|burnout|need for speed|wipeout|racing|race|rally|moto|gp|f1|formula|nascar|kart|driver|midnight club/.test(t)) {
+    return 'racing';
+  }
+  if (/god of war|metal gear|silent hill|resident evil|grand theft auto|gta|tomb raider|syphon filter|medal of honor|call of duty|dino crisis|parasite eve|action/.test(t)) {
+    return 'action';
+  }
+  if (/crash|spyro|patapon|locoroco|daxter|jak|ratchet|sonic|mario|pac-man|rayman|ape escape|medievil|klonoa|bomberman|tetris|lumines|pinball/.test(t)) {
+    return 'casual';
+  }
+  return 'general';
+}
+
+function scoreGameForSelection(relPath) {
+  let score = 0;
+  const pLower = relPath.toLowerCase();
+  if (POPULAR_KEYWORDS.some(kw => pLower.includes(kw.toLowerCase()))) score += 100;
+  if (relPath.includes('(USA)')) score += 40;
+  else if (relPath.includes('(Europe)')) score += 30;
+  else if (relPath.includes('(En')) score += 20;
+  return score;
+}
+
+function selectGamesFromCatalog(map, count = 20, platformChoice = 'all') {
+  const pspList = [];
+  const psxList = [];
+
+  for (const [id, relPath] of Object.entries(map)) {
+    const isPsp = relPath.startsWith('psp/');
+    const isPsx = relPath.startsWith('psx/');
+    if (!isPsp && !isPsx) continue;
+
+    const item = {
+      id: id.replace(/-/g, '').toUpperCase(),
+      relPath,
+      score: scoreGameForSelection(relPath)
+    };
+
+    if (isPsp) pspList.push(item);
+    else if (isPsx) psxList.push(item);
+  }
+
+  // Ordena com variação aleatória para diversificar entre execuções
+  const sorter = (a, b) => (b.score + Math.random() * 50) - (a.score + Math.random() * 50);
+  pspList.sort(sorter);
+  psxList.sort(sorter);
+
+  let targetPsp = Math.floor(count / 2);
+  let targetPsx = count - targetPsp;
+
+  if (platformChoice === 'psp') {
+    targetPsp = count;
+    targetPsx = 0;
+  } else if (platformChoice === 'psx') {
+    targetPsp = 0;
+    targetPsx = count;
+  }
+
+  const selected = [];
+  const usedTitles = new Set();
+
+  function addCandidates(list, targetQuota) {
+    let added = 0;
+    for (const item of list) {
+      if (added >= targetQuota) break;
+      const clean = cleanGameName(item.relPath);
+      if (!clean || usedTitles.has(clean.toLowerCase())) continue;
+      usedTitles.add(clean.toLowerCase());
+
+      const isPsx = item.relPath.startsWith('psx/');
+      selected.push({
+        game_id: item.id,
+        name: clean,
+        category: isPsx ? 1 : 0,
+        apitype: isPsx ? '0x144' : '0x120',
+        platform: isPsx ? 'PS1' : 'PSP',
+        genre: detectGenre(clean)
+      });
+      added++;
+    }
+  }
+
+  addCandidates(pspList, targetPsp);
+  addCandidates(psxList, targetPsx);
+
+  // Se ainda faltar para o count desejado, preenche de qualquer lista disponível
+  if (selected.length < count) {
+    const remaining = [...pspList, ...psxList].sort(() => Math.random() - 0.5);
+    addCandidates(remaining, count - selected.length);
+  }
+
+  return selected;
+}
+
+// ============================================================================
+// 3. Utilitários de Argumentos e Interface
 // ============================================================================
 
 function parseArgs() {
   const args = process.argv.slice(2);
   const options = {
-    out: path.join(rootDir, 'backup.json'),
-    gamesCount: 14,
+    months: 3,
     days: null,
-    month: null,
-    year: null,
+    gamesCount: 20,
+    platform: 'all',
+    out: path.join(rootDir, 'backup.json'),
     interactive: false,
     help: false
   };
@@ -360,41 +214,49 @@ function parseArgs() {
       options.help = true;
     } else if (arg === '--interactive' || arg === '-i') {
       options.interactive = true;
-    } else if (arg === '--out' || arg === '-o') {
+    } else if (arg === '--months' || arg === '-m') {
       const val = args[++i];
-      if (val && val.trim()) options.out = path.resolve(rootDir, val.trim());
-    } else if (arg === '--games' || arg === '-g') {
-      const val = args[++i];
-      if (val && val.trim() && !isNaN(val)) options.gamesCount = parseInt(val.trim(), 10);
+      if (val && !isNaN(val)) options.months = Math.max(1, parseInt(val, 10));
     } else if (arg === '--days' || arg === '-d') {
       const val = args[++i];
-      if (val && val.trim() && !isNaN(val)) options.days = parseInt(val.trim(), 10);
-    } else if (arg === '--month' || arg === '-m') {
+      if (val && !isNaN(val)) options.days = Math.max(1, parseInt(val, 10));
+    } else if (arg === '--games' || arg === '-g') {
       const val = args[++i];
-      if (val && val.trim() && !isNaN(val)) options.month = parseInt(val.trim(), 10);
-    } else if (arg === '--year' || arg === '-y') {
+      if (val && !isNaN(val)) options.gamesCount = Math.max(3, parseInt(val, 10));
+    } else if (arg === '--platform' || arg === '-p') {
+      const val = (args[++i] || '').toLowerCase();
+      if (['all', 'psp', 'psx', 'ps1'].includes(val)) {
+        options.platform = val === 'ps1' ? 'psx' : val;
+      }
+    } else if (arg === '--out' || arg === '-o') {
       const val = args[++i];
-      if (val && val.trim() && !isNaN(val)) options.year = parseInt(val.trim(), 10);
+      if (val) options.out = path.resolve(rootDir, val);
     } else if (!arg.startsWith('-')) {
       if (arg.trim()) positional.push(arg.trim());
     }
   }
 
-  // Suporte a argumentos posicionais: [mês] [dias] [jogos] [arquivo_saida]
-  // Exemplo: node scripts/generate-mock-db.js 9 30 18
+  // Suporte a argumentos posicionais curtos: [meses] [jogos] [plataforma] [arquivo]
+  // Ex: node scripts/generate-mock-db.js 3 25
+  // Ex: node scripts/generate-mock-db.js 6 30 psp
   if (positional.length > 0) {
     if (positional[0].endsWith('.json')) {
       options.out = path.resolve(rootDir, positional[0]);
     } else if (!isNaN(positional[0])) {
-      options.month = parseInt(positional[0], 10);
+      options.months = Math.max(1, parseInt(positional[0], 10));
     }
 
     if (positional.length > 1 && !isNaN(positional[1])) {
-      options.days = parseInt(positional[1], 10);
+      options.gamesCount = Math.max(3, parseInt(positional[1], 10));
     }
 
-    if (positional.length > 2 && !isNaN(positional[2])) {
-      options.gamesCount = parseInt(positional[2], 10);
+    if (positional.length > 2) {
+      const p = positional[2].toLowerCase();
+      if (['all', 'psp', 'psx', 'ps1'].includes(p)) {
+        options.platform = p === 'ps1' ? 'psx' : p;
+      } else if (positional[2].endsWith('.json')) {
+        options.out = path.resolve(rootDir, positional[2]);
+      }
     }
 
     if (positional.length > 3 && positional[3].endsWith('.json')) {
@@ -406,54 +268,40 @@ function parseArgs() {
 }
 
 async function promptInteractive(options) {
-  const now = new Date();
-  const currentYear = now.getFullYear();
-  const currentMonth = now.getMonth() + 1;
-  const currentDay = now.getDate();
-
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
 
-  const ask = (query) => new Promise((resolve) => rl.question(query, resolve));
-
   try {
     console.log('\n\x1b[1;36m🎮 Modo Interativo - Gerador de Banco de Dados Mock\x1b[0m');
     console.log('\x1b[90m(Pressione Enter para confirmar o valor padrão entre colchetes)\x1b[0m\n');
 
-    // 1. Mês
-    const monthDefault = options.month || currentMonth;
-    const mAns = await ask(`  📅 Mês [1-12] (Padrão: ${monthDefault}): `);
+    // 1. Quantidade de Meses
+    const mAns = await rl.question(`  📅 Quantos meses deseja gerar até hoje? [1 a 24] (Padrão: ${options.months}): `);
     if (mAns.trim() && !isNaN(mAns)) {
-      options.month = Math.min(12, Math.max(1, parseInt(mAns.trim(), 10)));
-    } else if (!options.month) {
-      options.month = monthDefault;
+      options.months = Math.max(1, parseInt(mAns.trim(), 10));
     }
 
-    // 2. Dias
-    const targetMonth = options.month;
-    const isCurrentMonth = (targetMonth === currentMonth);
-    const maxDay = new Date(currentYear, targetMonth, 0).getDate();
-    const daysDefault = options.days || (isCurrentMonth ? currentDay : maxDay);
-
-    const dAns = await ask(`  📆 Dias a gerar [1-${maxDay}] (Padrão: ${daysDefault}): `);
-    if (dAns.trim() && !isNaN(dAns)) {
-      options.days = Math.min(maxDay, Math.max(1, parseInt(dAns.trim(), 10)));
-    } else if (!options.days) {
-      options.days = daysDefault;
-    }
-
-    // 3. Quantidade de Jogos
-    const gamesDefault = options.gamesCount || 14;
-    const gAns = await ask(`  🕹️  Quantidade de jogos no catálogo [3-${REAL_GAMES_CATALOG.length}] (Padrão: ${gamesDefault}): `);
+    // 2. Quantidade de Jogos
+    const gAns = await rl.question(`  🕹️  Quantidade de jogos no catálogo? [3 a 200] (Padrão: ${options.gamesCount}): `);
     if (gAns.trim() && !isNaN(gAns)) {
-      options.gamesCount = Math.min(REAL_GAMES_CATALOG.length, Math.max(3, parseInt(gAns.trim(), 10)));
+      options.gamesCount = Math.max(3, parseInt(gAns.trim(), 10));
     }
+
+    // 3. Plataforma
+    console.log('  🎯 Plataforma desejada:');
+    console.log('     [1] Todas (PSP + PS1)');
+    console.log('     [2] Apenas PSP');
+    console.log('     [3] Apenas PS1');
+    const pAns = await rl.question('     Escolha [1, 2 ou 3] (Padrão: 1): ');
+    if (pAns.trim() === '2') options.platform = 'psp';
+    else if (pAns.trim() === '3') options.platform = 'psx';
+    else options.platform = 'all';
 
     // 4. Arquivo de Saída
     const defaultOutRel = path.relative(rootDir, options.out) || 'backup.json';
-    const oAns = await ask(`  💾 Arquivo de saída (Padrão: ${defaultOutRel}): `);
+    const oAns = await rl.question(`  💾 Arquivo de saída (Padrão: ${defaultOutRel}): `);
     if (oAns.trim()) {
       options.out = path.resolve(rootDir, oAns.trim());
     }
@@ -468,39 +316,35 @@ function printHelp() {
   console.log(`
 \x1b[1mGameDiary Mock Database Generator\x1b[0m
 Gera um banco de dados realista em formato JSON para testar o site GameDiary.
+Utiliza os mais de 13.000 jogos reais da biblioteca de capas do PlayStation Portable / PS1.
 
 \x1b[36mUso via Terminal:\x1b[0m
-  npm run generate:mock                               # Mês atual até hoje (padrão)
-  npm run generate:mock -- -i                         # Modo interativo (pergunta no terminal)
-  npm run generate:mock -- 9 30 18                    # Shorthand: Mês 9, 30 dias, 18 jogos
-  npm run generate:mock -- -m 9 -d 20 -g 15           # Flags nomeadas
+  npm run generate:mock                               # 3 meses até hoje com 20 jogos (padrão)
+  npm run generate:mock -- -i                         # Modo interativo (perguntas guiadas)
+  npm run generate:mock -- 3 25                       # Shorthand: 3 meses até hoje, 25 jogos
+  npm run generate:mock -- 6 30 psp                   # Shorthand: 6 meses até hoje, 30 jogos PSP
+  npm run generate:mock -- -m 6 -g 35 -p all          # Flags nomeadas
   node scripts/generate-mock-db.js [opções]
 
 \x1b[36mOpções:\x1b[0m
-  -m, --month <1-12>     Mês desejado (padrão: mês atual)
-  -d, --days <número>    Quantidade de dias (padrão: até o dia atual de hoje)
-  -g, --games <número>   Quantidade de jogos no catálogo ativo (padrão: 14)
-  -y, --year <ano>       Ano desejado (padrão: ano atual)
-  -o, --out <arquivo>    Arquivo de saída (padrão: backup.json na raiz)
-  -i, --interactive      Modo interativo no terminal
-  -h, --help             Exibe esta mensagem de ajuda
+  -m, --months <número>    Quantidade de meses até hoje (ex: 1, 3, 6, 12. Padrão: 3)
+  -d, --days <número>      Quantidade exata de dias até hoje
+  -g, --games <número>     Quantidade de jogos no catálogo ativo (padrão: 20)
+  -p, --platform <p>       Filtrar plataforma: 'all' (PSP + PS1), 'psp', ou 'psx' (padrão: all)
+  -o, --out <arquivo>      Arquivo de saída (padrão: backup.json na raiz)
+  -i, --interactive        Modo interativo no terminal
+  -h, --help               Exibe esta mensagem de ajuda
 
 \x1b[36mExemplos:\x1b[0m
-  # Setembro completo com 20 jogos:
-  npm run generate:mock -- -m 9 -d 30 -g 20
+  # Gerar últimos 6 meses com 40 jogos mistos:
+  npm run generate:mock -- 6 40
 
-  # Ou de forma compacta (mês dias jogos):
-  node scripts/generate-mock-db.js 8 31 16
+  # Gerar apenas o mês atual até a data de hoje com 15 jogos:
+  npm run generate:mock -- 1 15
+
+  # Gerar 1 ano inteiro até hoje focado em jogos de PSP:
+  npm run generate:mock -- 12 50 psp
 `);
-}
-
-function shuffleArray(arr) {
-  const result = [...arr];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
 }
 
 function randomInt(min, max) {
@@ -517,59 +361,48 @@ function formatDuration(totalSeconds) {
 }
 
 // ============================================================================
-// Gerador Principal
+// 4. Motor de Simulação de Múltiplos Meses até Hoje
 // ============================================================================
 
-function generateMockData(options) {
+function generateMockData(options, gameCatalog) {
   const now = new Date();
-  const year = options.year || now.getFullYear();
-  // month: 0-indexed no JS (se options.month for 10, usamos 9)
-  const month = options.month !== null ? options.month - 1 : now.getMonth();
+  const currentNowTs = Math.floor(now.getTime() / 1000);
 
-  const isCurrentMonth = (year === now.getFullYear() && month === now.getMonth());
-  const maxDayPossible = new Date(year, month + 1, 0).getDate();
-  const todayDay = isCurrentMonth ? now.getDate() : maxDayPossible;
-  const daysToGenerate = options.days ? Math.min(options.days, maxDayPossible) : todayDay;
+  // Determina a data de início da simulação:
+  // Se options.days foi informado, volta N dias a partir de agora.
+  // Caso contrário, volta (options.months - 1) meses até o 1º dia daquele mês.
+  let startDate;
+  if (options.days) {
+    startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - options.days + 1, 0, 0, 0, 0);
+  } else {
+    startDate = new Date(now.getFullYear(), now.getMonth() - (options.months - 1), 1, 0, 0, 0, 0);
+  }
 
-  // 1. Seleciona os jogos ativos para o mês
-  const shuffledCatalog = shuffleArray(REAL_GAMES_CATALOG);
-  const selectedGames = shuffledCatalog.slice(0, Math.min(options.gamesCount, REAL_GAMES_CATALOG.length));
+  // 1. Seleciona os jogos ativos para a biblioteca
+  const selectedGames = selectGamesFromCatalog(gameCatalog, options.gamesCount, options.platform);
 
-  // Tiers de preferência do jogador:
-  // Tier 1 (1-2 jogos): Jogo principal zerando (~50% do tempo)
-  // Tier 2 (3-4 jogos): Jogos secundários habituais (~35% do tempo)
-  // Tier 3 (resto): Jogos casuais ou experimentais (~15% do tempo)
-  const tier1 = selectedGames.slice(0, Math.min(2, selectedGames.length));
-  const tier2 = selectedGames.slice(2, Math.min(6, selectedGames.length));
-  const tier3 = selectedGames.slice(6);
+  // 2. Organiza o comportamento do jogador:
+  // - Focus Games: 2 a 3 jogos em foco por mês/fase (ex: RPGs e Campanhas)
+  // - Evergreen Games: Jogos rápidos jogados ao longo de todo o período (Tekken, GT, Burnout, CTR)
+  // - Backlog Games: Jogos experimentados ocasionalmente
+  const evergreenGames = selectedGames.filter(g => g.genre === 'fighting' || g.genre === 'racing' || g.genre === 'casual');
+  const campaignGames = selectedGames.filter(g => g.genre === 'rpg' || g.genre === 'action' || g.genre === 'general');
 
-  const pickGame = () => {
-    const roll = Math.random();
-    if (roll < 0.50 && tier1.length > 0) {
-      return tier1[Math.floor(Math.random() * tier1.length)];
-    } else if (roll < 0.85 && tier2.length > 0) {
-      return tier2[Math.floor(Math.random() * tier2.length)];
-    } else if (tier3.length > 0) {
-      return tier3[Math.floor(Math.random() * tier3.length)];
-    }
-    return selectedGames[Math.floor(Math.random() * selectedGames.length)];
-  };
-
-  // Duração realista com base no estilo de jogo
+  // Duração orgânica por gênero
   const pickDuration = (game) => {
     let minMinutes = 25;
     let maxMinutes = 75;
 
-    if (game.type === 'rpg') {
+    if (game.genre === 'rpg') {
       minMinutes = 45;
       maxMinutes = 150; // Até 2h30m
-    } else if (game.type === 'action') {
+    } else if (game.genre === 'action') {
       minMinutes = 35;
       maxMinutes = 110;
-    } else if (game.type === 'fighting' || game.type === 'racing') {
+    } else if (game.genre === 'fighting' || game.genre === 'racing') {
       minMinutes = 15;
       maxMinutes = 55;
-    } else if (game.type === 'casual' || game.type === 'platformer') {
+    } else if (game.genre === 'casual') {
       minMinutes = 20;
       maxMinutes = 65;
     }
@@ -579,36 +412,69 @@ function generateMockData(options) {
     return minutes * 60 + extraSeconds;
   };
 
+  // 3. Itera dia por dia do início até HOJE
   const sessions = [];
   const gamesPlayedSet = new Set();
+  const monthlyStats = {};
 
-  // 2. Itera pelos dias do mês: do dia 1 até o limite de dias
-  for (let day = 1; day <= daysToGenerate; day++) {
-    const dayDate = new Date(year, month, day);
-    const dayOfWeek = dayDate.getDay(); // 0 = Domingo, 6 = Sábado
+  const currentDateCursor = new Date(startDate);
+  // Garante que o cursor comece à meia-noite
+  currentDateCursor.setHours(0, 0, 0, 0);
+
+  const todayYear = now.getFullYear();
+  const todayMonth = now.getMonth();
+  const todayDay = now.getDate();
+
+  // Para alternar jogos de foco conforme os meses avançam
+  let dayCounter = 0;
+
+  while (currentDateCursor <= now) {
+    const year = currentDateCursor.getFullYear();
+    const month = currentDateCursor.getMonth(); // 0-indexed
+    const day = currentDateCursor.getDate();
+    const dayOfWeek = currentDateCursor.getDay(); // 0 = Domingo, 6 = Sábado
     const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
-    const isToday = isCurrentMonth && (day === now.getDate());
+    const isToday = (year === todayYear && month === todayMonth && day === todayDay);
 
-    // Probabilidade de jogar neste dia:
-    // Fins de semana: ~90% de chance. Dias de semana: ~75% de chance.
-    const playChance = isWeekend ? 0.90 : 0.75;
+    const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+    if (!monthlyStats[monthKey]) {
+      monthlyStats[monthKey] = { sessions: 0, duration: 0 };
+    }
+
+    // Janela de jogos de foco para este momento da linha do tempo
+    const phaseIndex = Math.floor(dayCounter / 21); // Muda o foco a cada ~3 semanas
+    const activeCampaignGames = campaignGames.slice(
+      (phaseIndex * 2) % Math.max(1, campaignGames.length),
+      ((phaseIndex * 2) % Math.max(1, campaignGames.length)) + 3
+    );
+    if (activeCampaignGames.length === 0 && campaignGames.length > 0) {
+      activeCampaignGames.push(campaignGames[0]);
+    }
+
+    // Probabilidade de jogar hoje:
+    // Fins de semana: ~88% de chance. Dias de semana: ~75% de chance.
+    // O dia de hoje sempre tem jogatina garantida (se horário permitir).
+    const playChance = isWeekend ? 0.88 : 0.75;
     if (Math.random() > playChance && !isToday) {
-      // Dia de descanso/folga sem jogatina
+      currentDateCursor.setDate(currentDateCursor.getDate() + 1);
+      dayCounter++;
       continue;
     }
 
     // Janelas de horário habituais
     const availableSlots = [
-      { startHour: 12, startMin: randomInt(0, 30), maxDurationMin: 50 },
-      { startHour: 16, startMin: randomInt(30, 50), maxDurationMin: 70 },
-      { startHour: 19, startMin: randomInt(15, 45), maxDurationMin: 90 },
-      { startHour: 21, startMin: randomInt(45, 55), maxDurationMin: 120 }
+      { startHour: 12, startMin: randomInt(0, 30) },
+      { startHour: 16, startMin: randomInt(30, 50) },
+      { startHour: 19, startMin: randomInt(15, 45) },
+      { startHour: 21, startMin: randomInt(45, 55) }
     ];
 
-    // Quantas sessões no dia?
-    const maxSessions = isWeekend ? randomInt(2, 4) : randomInt(1, 3);
-    const chosenSlots = shuffleArray(availableSlots).slice(0, maxSessions);
-    chosenSlots.sort((a, b) => (a.startHour * 60 + a.startMin) - (b.startHour * 60 + b.startMin));
+    // Quantas sessões no dia:
+    const numSessions = isWeekend ? randomInt(2, 4) : randomInt(1, 3);
+    const chosenSlots = availableSlots
+      .sort(() => Math.random() - 0.5)
+      .slice(0, numSessions)
+      .sort((a, b) => (a.startHour * 60 + a.startMin) - (b.startHour * 60 + b.startMin));
 
     let lastSessionEndTs = 0;
 
@@ -616,26 +482,39 @@ function generateMockData(options) {
       const sessionDate = new Date(year, month, day, slot.startHour, slot.startMin, randomInt(0, 59));
       let startTs = Math.floor(sessionDate.getTime() / 1000);
 
-      // Garante buffer mínimo de 15 minutos entre sessões no mesmo dia
+      // Garante buffer mínimo de 15 minutos entre sessões no mesmo dia (sem colisão)
       if (startTs < lastSessionEndTs + 900) {
         startTs = lastSessionEndTs + randomInt(900, 2400);
       }
 
-      const game = pickGame();
+      // Escolhe o jogo para esta sessão
+      let game;
+      const roll = Math.random();
+      if (roll < 0.65 && activeCampaignGames.length > 0) {
+        game = activeCampaignGames[Math.floor(Math.random() * activeCampaignGames.length)];
+      } else if (roll < 0.90 && evergreenGames.length > 0) {
+        game = evergreenGames[Math.floor(Math.random() * evergreenGames.length)];
+      } else {
+        game = selectedGames[Math.floor(Math.random() * selectedGames.length)];
+      }
+
       let duration = pickDuration(game);
 
-      // Se for hoje no mês atual, não gera sessões no futuro
+      // SE FOR O DIA DE HOJE: NUNCA GERAR NO FUTURO!
       if (isToday) {
-        const currentNowTs = Math.floor(now.getTime() / 1000);
+        // A sessão deve terminar antes de agora (com pelo menos 5 min de margem)
         const maxAllowedEndTs = currentNowTs - 300;
 
         if (startTs >= maxAllowedEndTs) {
+          // O horário do slot ainda não aconteceu hoje, ignoramos
           continue;
         }
 
         if (startTs + duration > maxAllowedEndTs) {
+          // Reduz a duração da sessão para terminar antes do horário atual
           duration = maxAllowedEndTs - startTs;
           if (duration < 600) {
+            // Se restarem menos de 10 minutos, descarta a sessão
             continue;
           }
         }
@@ -649,7 +528,13 @@ function generateMockData(options) {
 
       lastSessionEndTs = startTs + duration;
       gamesPlayedSet.add(game.game_id);
+
+      monthlyStats[monthKey].sessions += 1;
+      monthlyStats[monthKey].duration += duration;
     }
+
+    currentDateCursor.setDate(currentDateCursor.getDate() + 1);
+    dayCounter++;
   }
 
   // Ordena por timestamp crescente
@@ -670,13 +555,13 @@ function generateMockData(options) {
   return {
     database,
     stats: {
-      year,
-      month: month + 1,
-      daysGenerated: daysToGenerate,
+      startDate,
+      endDate: now,
       totalSessions: sessions.length,
       totalGames: finalGamesList.length,
       activeGamesCount: gamesPlayedSet.size,
       totalPlaytimeSec: sessions.reduce((acc, s) => acc + s.duration, 0),
+      monthlyStats,
       sessionsPerGame: sessions.reduce((acc, s) => {
         acc[s.game_id] = (acc[s.game_id] || 0) + 1;
         return acc;
@@ -690,7 +575,7 @@ function generateMockData(options) {
 }
 
 // ============================================================================
-// Execução
+// 5. Execução Principal
 // ============================================================================
 
 async function main() {
@@ -706,30 +591,50 @@ async function main() {
     await promptInteractive(options);
   }
 
-  console.log('\n\x1b[1;34m=========================================\x1b[0m');
-  console.log('\x1b[1;34m   GameDiary Mock Database Generator     \x1b[0m');
-  console.log('\x1b[1;34m=========================================\x1b[0m\n');
+  console.log('\n\x1b[1;34m====================================================\x1b[0m');
+  console.log('\x1b[1;34m        GameDiary Mock Database Generator           \x1b[0m');
+  console.log('\x1b[1;34m====================================================\x1b[0m\n');
 
-  const { database, stats } = generateMockData(options);
+  // Carrega catálogo de jogos com capas
+  const { map: gameCatalog, source: mapSource } = loadFullGameMap();
+  const catalogSize = Object.keys(gameCatalog).length;
+
+  if (catalogSize > 0) {
+    console.log(`\x1b[32m✔ Catálogo Carregado:\x1b[0m ${catalogSize.toLocaleString()} jogos reais (${mapSource ? path.basename(mapSource) : 'local'})\n`);
+  } else {
+    console.log(`\x1b[33m⚠ Catálogo completo não encontrado, utilizando base padrão.\x1b[0m\n`);
+  }
+
+  const { database, stats } = generateMockData(options, gameCatalog);
 
   // Salva no arquivo de saída
   const jsonContent = JSON.stringify(database, null, 2);
   fs.writeFileSync(options.out, jsonContent, 'utf-8');
 
-  const monthNamesPt = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-  const monthName = monthNamesPt[stats.month - 1] || `Mês ${stats.month}`;
+  const startFormatted = stats.startDate.toLocaleDateString('pt-BR');
+  const endFormatted = stats.endDate.toLocaleDateString('pt-BR');
+  const nowTime = stats.endDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
   console.log(`\x1b[32m✔ Banco de dados gerado com sucesso!\x1b[0m`);
-  console.log(`\x1b[1mArquivo:\x1b[0m ${path.relative(rootDir, options.out) || options.out}`);
-  console.log(`\x1b[1mPeríodo:\x1b[0m 01 a ${String(stats.daysGenerated).padStart(2, '0')} de ${monthName} de ${stats.year}`);
-  console.log(`\x1b[1mJogos no Catálogo:\x1b[0m ${stats.totalGames} (${stats.activeGamesCount} com sessões gravadas)`);
-  console.log(`\x1b[1mTotal de Sessões:\x1b[0m ${stats.totalSessions}`);
-  console.log(`\x1b[1mTempo Total Jogado:\x1b[0m ${formatDuration(stats.totalPlaytimeSec)}\n`);
+  console.log(`\x1b[1mArquivo:\x1b[0m             ${path.relative(rootDir, options.out) || options.out}`);
+  console.log(`\x1b[1mPeríodo Simulado:\x1b[0m    ${startFormatted} até hoje (${endFormatted} às ${nowTime})`);
+  console.log(`\x1b[1mJogos no Catálogo:\x1b[0m   ${stats.totalGames} (${stats.activeGamesCount} com sessões gravadas)`);
+  console.log(`\x1b[1mTotal de Sessões:\x1b[0m    ${stats.totalSessions}`);
+  console.log(`\x1b[1mTempo Total Jogado:\x1b[0m  ${formatDuration(stats.totalPlaytimeSec)}\n`);
 
-  // Ranking dos jogos mais jogados no mês
+  // Distribuição por Mês
+  console.log('\x1b[1mEvolução Mensal:\x1b[0m');
+  console.log('------------------------------------------------------------');
+  for (const [mKey, data] of Object.entries(stats.monthlyStats)) {
+    const [y, m] = mKey.split('-');
+    const mNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const label = `${mNames[parseInt(m, 10) - 1]} / ${y}`;
+    const durStr = formatDuration(data.duration);
+    console.log(` • \x1b[36m${label.padEnd(12)}\x1b[0m: ${durStr.padEnd(10)} em ${data.sessions} sessões`);
+  }
+  console.log('------------------------------------------------------------\n');
+
+  // Ranking dos jogos mais jogados
   console.log('\x1b[1mTop Jogos Mais Jogados:\x1b[0m');
   console.log('------------------------------------------------------------');
   const gameMap = new Map(database.games.map(g => [g.game_id, g.name]));
@@ -747,11 +652,11 @@ async function main() {
   console.log('------------------------------------------------------------\n');
 
   console.log('\x1b[1;35mComo testar no site:\x1b[0m');
-  console.log(' 1. Abra o site GameDiary no navegador (npm run dev)');
+  console.log(' 1. Inicie o site localmente (npm run dev)');
   console.log(' 2. Vá em \x1b[1mFerramentas -> Gerenciamento de Dados\x1b[0m');
-  console.log(' 3. Clique em \x1b[1m"Importar Backup"\x1b[0m e selecione o arquivo:');
+  console.log(' 3. Clique em \x1b[1m"Importar Backup"\x1b[0m e escolha o arquivo:');
   console.log(`    \x1b[36m${options.out}\x1b[0m`);
-  console.log(' 4. Visualize a Timeline e o Dashboard com dados reais!\n');
+  console.log(' 4. Acesse a aba \x1b[1m"Estatísticas"\x1b[0m ou a \x1b[1m"Linha do Tempo"\x1b[0m para ver os dados!\n');
 }
 
 main().catch(err => {

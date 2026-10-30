@@ -6,6 +6,7 @@ import {
   drawCoverArt,
   drawPlatformBadge,
   drawBrandFooter,
+  drawPlaytimeHeroBlock,
   wrapText,
 } from '../canvasUtils';
 import { loadCoverImage } from '../imageLoader';
@@ -16,7 +17,7 @@ export async function renderIndividualGameCard(
   ctx: CanvasRenderingContext2D,
   options: CardRenderOptions
 ): Promise<void> {
-  const { format, games, sessions, selectedGameUid, overallStats, mapping, t } = options;
+  const { format, games, sessions, selectedGameUid, overallStats, mapping, t, locale, brandAssets } = options;
   const { width, height } = FORMAT_DIMENSIONS[format];
 
   // 1. Draw Collector Background
@@ -26,13 +27,13 @@ export async function renderIndividualGameCard(
   const targetUid = selectedGameUid || (overallStats.topGame ? overallStats.topGame.game.uid : (games[0]?.uid ?? 1));
   const details = getGameDetailedStats(targetUid, games, sessions, overallStats);
 
-  if (!details) {
+  if (!details || details.totalDuration < 60) {
     drawGlassCard(ctx, 80, height * 0.4, width - 160, 200, 20);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '800 28px Inter, system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(t('stats.rankings.noData'), width * 0.5, height * 0.48);
-    drawBrandFooter(ctx, width, height);
+    drawBrandFooter(ctx, width, height, brandAssets);
     return;
   }
 
@@ -47,7 +48,6 @@ export async function renderIndividualGameCard(
   // 2. Render Formats
   if (format === 'vertical') {
     // VERTICAL COLLECTOR CARD (1080 x 1920)
-    // Outer Trading Card Frame
     const frameX = marginX;
     const frameY = 80;
     const frameW = width - marginX * 2;
@@ -103,29 +103,29 @@ export async function renderIndividualGameCard(
     ctx.font = '600 18px monospace';
     ctx.fillText(`${t('stats.modal.serial')}: ${game.game_id}  •  UID: ${game.uid}`, frameX + 36, linesBottom + 12);
 
-    // Playtime Hero Box
+    // Playtime Hero Box (Strict 3-zone architecture preventing collision)
     const boxY = linesBottom + 48;
     const boxW = frameW - 72;
-    const boxH = 145;
-    drawGlassCard(ctx, frameX + 36, boxY, boxW, boxH, 22, 'rgba(30, 41, 59, 0.65)', 'rgba(59, 130, 246, 0.3)');
+    const boxH = 180;
+    const durStr = formatDurationSeconds(details.totalDuration, locale);
+    const subtext = `${details.percentageOfTotal}% ${t('stats.overview.ofTotalTime')} • ${details.sessionCount} ${t('stats.modal.totalSessions').toLowerCase()}`;
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '800 13px Inter, system-ui, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(t('stats.modal.totalPlaytime').toUpperCase(), frameX + 64, boxY + 38);
-
-    ctx.fillStyle = '#3B82F6';
-    ctx.font = '900 52px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(details.totalDuration), frameX + 64, boxY + 98);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-    ctx.font = '800 20px Inter, system-ui, sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(`${details.percentageOfTotal}%`, frameX + 36 + boxW - 32, boxY + 76);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.font = '600 12px Inter, system-ui, sans-serif';
-    ctx.fillText(t('stats.overview.ofTotalTime').toUpperCase(), frameX + 36 + boxW - 32, boxY + 100);
+    drawPlaytimeHeroBlock(ctx, {
+      x: frameX + 36,
+      y: boxY,
+      w: boxW,
+      h: boxH,
+      label: t('stats.modal.totalPlaytime'),
+      value: durStr,
+      subtext,
+      valueColor: '#3B82F6',
+      cardRadius: 22,
+      cardBg: 'rgba(30, 41, 59, 0.65)',
+      cardBorder: 'rgba(59, 130, 246, 0.3)',
+      maxHeroFontSize: 52,
+      paddingX: 28,
+      paddingY: 20,
+    });
 
     // 4 Stats Capsules
     const gridY = boxY + boxH + 18;
@@ -149,7 +149,7 @@ export async function renderIndividualGameCard(
     ctx.fillText(t('stats.modal.avgSession').toUpperCase(), frameX + 54 + capW + 16, gridY + 30);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '900 24px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(details.avgSessionDuration), frameX + 54 + capW + 16, gridY + 68);
+    ctx.fillText(formatDurationSeconds(details.avgSessionDuration, locale), frameX + 54 + capW + 16, gridY + 68);
 
     // First Played
     drawGlassCard(ctx, frameX + 36, gridY + capH + 14, capW, capH, 18);
@@ -158,7 +158,7 @@ export async function renderIndividualGameCard(
     ctx.fillText(t('stats.modal.firstPlayed').toUpperCase(), frameX + 54, gridY + capH + 44);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '700 16px Inter, system-ui, sans-serif';
-    ctx.fillText(details.firstPlayed ? formatUnixDate(details.firstPlayed) : '-', frameX + 54, gridY + capH + 78);
+    ctx.fillText(details.firstPlayed ? formatUnixDate(details.firstPlayed, locale) : '-', frameX + 54, gridY + capH + 78);
 
     // Longest Session
     drawGlassCard(ctx, frameX + 36 + capW + 16, gridY + capH + 14, capW, capH, 18);
@@ -167,7 +167,7 @@ export async function renderIndividualGameCard(
     ctx.fillText(t('stats.modal.longestSession').toUpperCase(), frameX + 54 + capW + 16, gridY + capH + 44);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '900 24px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(details.longestSessionDuration), frameX + 54 + capW + 16, gridY + capH + 78);
+    ctx.fillText(formatDurationSeconds(details.longestSessionDuration, locale), frameX + 54 + capW + 16, gridY + capH + 78);
 
     ctx.restore();
   } else if (format === 'square') {
@@ -205,22 +205,25 @@ export async function renderIndividualGameCard(
     const rightX = margin + coverW + 36;
     const rightW = width - rightX - margin;
 
-    // Big Playtime Box
-    drawGlassCard(ctx, rightX, coverY, rightW, 200, 24, 'rgba(17, 24, 39, 0.85)', 'rgba(59, 130, 246, 0.35)');
-    ctx.save();
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '800 13px Inter, system-ui, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText(t('stats.modal.totalPlaytime').toUpperCase(), rightX + 28, coverY + 40);
-
-    ctx.fillStyle = '#3B82F6';
-    ctx.font = '900 48px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(details.totalDuration), rightX + 28, coverY + 102);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.font = '600 15px Inter, system-ui, sans-serif';
-    ctx.fillText(`${details.percentageOfTotal}% ${t('stats.overview.ofTotalTime')}`, rightX + 28, coverY + 146);
-    ctx.restore();
+    // Big Playtime Box (Strict 3-zone architecture)
+    const durStr = formatDurationSeconds(details.totalDuration, locale);
+    const subtext = `${details.percentageOfTotal}% ${t('stats.overview.ofTotalTime')}`;
+    drawPlaytimeHeroBlock(ctx, {
+      x: rightX,
+      y: coverY,
+      w: rightW,
+      h: 200,
+      label: t('stats.modal.totalPlaytime'),
+      value: durStr,
+      subtext,
+      valueColor: '#3B82F6',
+      cardRadius: 24,
+      cardBg: 'rgba(17, 24, 39, 0.85)',
+      cardBorder: 'rgba(59, 130, 246, 0.35)',
+      maxHeroFontSize: 48,
+      paddingX: 28,
+      paddingY: 20,
+    });
 
     // Stats Grid on Right
     drawGlassCard(ctx, rightX, coverY + 225, rightW, 215, 24);
@@ -240,7 +243,7 @@ export async function renderIndividualGameCard(
     ctx.fillText(t('stats.modal.totalSessions').toUpperCase(), rightX + 28, coverY + 382);
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '900 24px Inter, system-ui, sans-serif';
-    ctx.fillText(`${details.sessionCount} (${formatDurationSeconds(details.avgSessionDuration)})`, rightX + 28, coverY + 412);
+    ctx.fillText(`${details.sessionCount} (${formatDurationSeconds(details.avgSessionDuration, locale)})`, rightX + 28, coverY + 412);
     ctx.restore();
 
     // Bottom dates strip
@@ -252,13 +255,13 @@ export async function renderIndividualGameCard(
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
     ctx.font = '700 18px Inter, system-ui, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`${t('stats.modal.firstPlayed')}: ${details.firstPlayed ? formatUnixDate(details.firstPlayed) : '-'}`, margin + 32, stripY + 54);
-    ctx.fillText(`${t('stats.modal.lastPlayed')}: ${details.lastPlayed ? formatUnixDate(details.lastPlayed) : '-'}`, margin + 32, stripY + 94);
+    ctx.fillText(`${t('stats.modal.firstPlayed')}: ${details.firstPlayed ? formatUnixDate(details.firstPlayed, locale) : '-'}`, margin + 32, stripY + 54);
+    ctx.fillText(`${t('stats.modal.lastPlayed')}: ${details.lastPlayed ? formatUnixDate(details.lastPlayed, locale) : '-'}`, margin + 32, stripY + 94);
 
     ctx.fillStyle = '#3B82F6';
     ctx.font = '900 22px Inter, system-ui, sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(`${t('stats.modal.longestSession')}: ${formatDurationSeconds(details.longestSessionDuration)}`, margin + stripW - 32, stripY + 74);
+    ctx.fillText(`${t('stats.modal.longestSession')}: ${formatDurationSeconds(details.longestSessionDuration, locale)}`, margin + stripW - 32, stripY + 74);
     ctx.restore();
   } else {
     // HORIZONTAL (1200 x 630)
@@ -288,30 +291,35 @@ export async function renderIndividualGameCard(
 
     drawPlatformBadge(ctx, game.category, rightX, 195, 26);
 
-    // Playtime Box
+    // Playtime Box (Strict 3-zone architecture)
     const boxY = 240;
-    drawGlassCard(ctx, rightX, boxY, rightW, 160, 22, 'rgba(17, 24, 39, 0.85)', 'rgba(59, 130, 246, 0.35)');
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '800 12px Inter, system-ui, sans-serif';
-    ctx.fillText(t('stats.modal.totalPlaytime').toUpperCase(), rightX + 28, boxY + 36);
-
-    ctx.fillStyle = '#3B82F6';
-    ctx.font = '900 44px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(details.totalDuration), rightX + 28, boxY + 92);
-
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.font = '600 14px Inter, system-ui, sans-serif';
-    ctx.fillText(`${details.percentageOfTotal}% ${t('stats.overview.ofTotalTime')} • ${details.sessionCount} ${t('stats.modal.totalSessions').toLowerCase()}`, rightX + 28, boxY + 130);
+    const durStr = formatDurationSeconds(details.totalDuration, locale);
+    const subtext = `${details.percentageOfTotal}% ${t('stats.overview.ofTotalTime')} • ${details.sessionCount} ${t('stats.modal.totalSessions').toLowerCase()}`;
+    drawPlaytimeHeroBlock(ctx, {
+      x: rightX,
+      y: boxY,
+      w: rightW,
+      h: 160,
+      label: t('stats.modal.totalPlaytime'),
+      value: durStr,
+      subtext,
+      valueColor: '#3B82F6',
+      cardRadius: 22,
+      cardBg: 'rgba(17, 24, 39, 0.85)',
+      cardBorder: 'rgba(59, 130, 246, 0.35)',
+      maxHeroFontSize: 44,
+      paddingX: 28,
+      paddingY: 18,
+    });
 
     // Bottom detail row (stacked cleanly)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
     ctx.font = '600 13px monospace';
     ctx.fillText(`${t('stats.modal.serial')}: ${game.game_id}`, rightX, 430);
-    ctx.fillText(`${t('stats.modal.firstPlayed')}: ${details.firstPlayed ? formatUnixDate(details.firstPlayed) : '-'}`, rightX, 454);
+    ctx.fillText(`${t('stats.modal.firstPlayed')}: ${details.firstPlayed ? formatUnixDate(details.firstPlayed, locale) : '-'}`, rightX, 454);
     ctx.restore();
   }
 
-  // 3. Draw Footer
-  drawBrandFooter(ctx, width, height);
+  // 3. Draw Footer with official brand SVG logos
+  drawBrandFooter(ctx, width, height, brandAssets);
 }

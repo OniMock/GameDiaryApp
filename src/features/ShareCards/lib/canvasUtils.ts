@@ -154,37 +154,42 @@ export function drawCoverArt(
   ctx.clip();
 
   if (img && img.naturalWidth > 0 && img.naturalHeight > 0) {
-    // Fill background behind image
-    ctx.fillStyle = '#0F172A';
+    // Fill container with subtle dark gradient matching card theme
+    const bgGrad = ctx.createLinearGradient(x, y, x, y + h);
+    bgGrad.addColorStop(0, '#0F172A');
+    bgGrad.addColorStop(1, '#020617');
+    ctx.fillStyle = bgGrad;
     ctx.fillRect(x, y, w, h);
 
-    // Aspect ratio calculation (center-crop "cover")
+    // Aspect ratio calculation: object-fit contain (no crop, no distortion)
     const imgRatio = img.naturalWidth / img.naturalHeight;
     const boxRatio = w / h;
 
-    let sx = 0;
-    let sy = 0;
-    let sw = img.naturalWidth;
-    let sh = img.naturalHeight;
+    let destW = w;
+    let destH = h;
+    let destX = x;
+    let destY = y;
 
     if (imgRatio > boxRatio) {
-      // Image is wider than box -> crop horizontal edges
-      sw = img.naturalHeight * boxRatio;
-      sx = (img.naturalWidth - sw) / 2;
+      // Image is wider relative to box -> fit width, center vertically
+      destW = w;
+      destH = w / imgRatio;
+      destY = y + (h - destH) / 2;
     } else {
-      // Image is taller than box -> crop vertical edges
-      sh = img.naturalWidth / boxRatio;
-      sy = (img.naturalHeight - sh) / 2;
+      // Image is taller relative to box -> fit height, center horizontally
+      destH = h;
+      destW = h * imgRatio;
+      destX = x + (w - destW) / 2;
     }
 
-    ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
+    ctx.drawImage(img, 0, 0, img.naturalWidth, img.naturalHeight, destX, destY, destW, destH);
 
     // Subtle dark gradient at bottom of cover for depth
-    const grad = ctx.createLinearGradient(x, y + h * 0.5, x, y + h);
+    const grad = ctx.createLinearGradient(x, y + h * 0.7, x, y + h);
     grad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0.35)');
     ctx.fillStyle = grad;
-    ctx.fillRect(x, y + h * 0.5, w, h * 0.5);
+    ctx.fillRect(x, y + h * 0.7, w, h * 0.3);
   } else {
     // Procedural Fallback Cover
     const fallbackGrad = ctx.createLinearGradient(x, y, x + w, y + h);
@@ -405,10 +410,48 @@ export function drawRankMedal(
 export function drawBrandFooter(
   ctx: CanvasRenderingContext2D,
   width: number,
-  height: number
+  height: number,
+  brandAssets?: { logo: HTMLImageElement | null; logoLetter: HTMLImageElement | null } | null
 ): void {
   ctx.save();
   const y = height - 56;
+
+  if (brandAssets && (brandAssets.logo || brandAssets.logoLetter)) {
+    const emblem = brandAssets.logo;
+    const wordmark = brandAssets.logoLetter;
+
+    const emblemH = 28;
+    const emblemW = emblem ? Math.round(emblemH * (23.03 / 26.15)) : 0;
+
+    const wordmarkH = 20;
+    const wordmarkW = wordmark ? Math.round(wordmarkH * (47.62 / 12.21)) : 0;
+
+    ctx.font = '600 13px Inter, monospace';
+    const domainText = 'gamediary.onimock.com';
+    const domainWidth = ctx.measureText(domainText).width;
+
+    const spacing = 12;
+    const totalW = (emblem ? emblemW + spacing : 0) + (wordmark ? wordmarkW + spacing : 0) + domainWidth;
+    let currentX = Math.round((width - totalW) / 2);
+
+    if (emblem) {
+      ctx.drawImage(emblem, currentX, y - emblemH * 0.5, emblemW, emblemH);
+      currentX += emblemW + spacing;
+    }
+
+    if (wordmark) {
+      ctx.drawImage(wordmark, currentX, y - wordmarkH * 0.5, wordmarkW, wordmarkH);
+      currentX += wordmarkW + spacing;
+    }
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(domainText, currentX, y);
+
+    ctx.restore();
+    return;
+  }
 
   // Mini logo icon
   const logoSize = 28;
@@ -440,6 +483,121 @@ export function drawBrandFooter(
   ctx.font = '600 13px Inter, monospace';
   ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
   ctx.fillText('gamediary.onimock.com', logoX + logoSize + 10 + gameWidth + 58, y);
+
+  ctx.restore();
+}
+
+/**
+ * Options for rendering the 3-zone Playtime Hero Block
+ */
+export interface PlaytimeHeroBlockOptions {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  value: string;
+  subtext?: string;
+  labelColor?: string;
+  valueColor?: string;
+  subtextColor?: string;
+  maxHeroFontSize?: number;
+  minHeroFontSize?: number;
+  align?: 'left' | 'center' | 'right';
+  paddingX?: number;
+  paddingY?: number;
+  cardRadius?: number;
+  cardBg?: string;
+  cardBorder?: string;
+  drawCard?: boolean;
+}
+
+/**
+ * Renders a strictly segmented 3-zone playtime block preventing any visual collisions:
+ * - Zone 1 (Top): Supporting label in uppercase
+ * - Zone 2 (Middle): Headline hero value vertically centered in dedicated middle slot
+ * - Zone 3 (Bottom): Complementary info auto-scaled to prevent truncation or overlap
+ */
+export function drawPlaytimeHeroBlock(
+  ctx: CanvasRenderingContext2D,
+  options: PlaytimeHeroBlockOptions
+): void {
+  const {
+    x,
+    y,
+    w,
+    h,
+    label,
+    value,
+    subtext,
+    labelColor = 'rgba(255, 255, 255, 0.55)',
+    valueColor = '#3B82F6',
+    subtextColor = 'rgba(255, 255, 255, 0.65)',
+    maxHeroFontSize = 54,
+    minHeroFontSize = 24,
+    align = 'left',
+    paddingX = 28,
+    paddingY = 20,
+    cardRadius = 24,
+    cardBg = 'rgba(17, 24, 39, 0.85)',
+    cardBorder = 'rgba(59, 130, 246, 0.35)',
+    drawCard = true,
+  } = options;
+
+  ctx.save();
+
+  // 1. Optional background card
+  if (drawCard) {
+    drawGlassCard(ctx, x, y, w, h, cardRadius, cardBg, cardBorder);
+  }
+
+  const innerX = align === 'left' ? x + paddingX : align === 'right' ? x + w - paddingX : x + w * 0.5;
+  const maxContentW = w - paddingX * 2;
+
+  // --- ZONE 1: TOP SUPPORTING LABEL ---
+  const labelFontSize = 13;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'top';
+  ctx.fillStyle = labelColor;
+  ctx.font = `800 ${labelFontSize}px Inter, system-ui, sans-serif`;
+  ctx.fillText(label.toUpperCase(), innerX, y + paddingY);
+
+  const zone1Bottom = y + paddingY + labelFontSize;
+
+  // --- ZONE 3: BOTTOM COMPLEMENTARY SUBTEXT ---
+  let zone3Top = y + h - paddingY;
+  if (subtext) {
+    let subFontSize = 15;
+    ctx.font = `600 ${subFontSize}px Inter, system-ui, sans-serif`;
+    while (ctx.measureText(subtext).width > maxContentW && subFontSize > 11) {
+      subFontSize -= 1;
+      ctx.font = `600 ${subFontSize}px Inter, system-ui, sans-serif`;
+    }
+    const subY = y + h - paddingY - subFontSize;
+    zone3Top = subY;
+
+    ctx.fillStyle = subtextColor;
+    ctx.textBaseline = 'top';
+    ctx.fillText(subtext, innerX, subY);
+  }
+
+  // --- ZONE 2: MIDDLE HERO VALUE ---
+  const verticalGap = 8;
+  const heroSlotTop = zone1Bottom + verticalGap;
+  const heroSlotBottom = zone3Top - verticalGap;
+  const heroSlotH = Math.max(heroSlotBottom - heroSlotTop, 24);
+  const heroCenterY = heroSlotTop + heroSlotH * 0.5;
+
+  let heroFontSize = Math.min(maxHeroFontSize, Math.floor(heroSlotH * 0.82));
+  ctx.font = `900 ${heroFontSize}px Inter, system-ui, sans-serif`;
+  while ((ctx.measureText(value).width > maxContentW || heroFontSize > heroSlotH) && heroFontSize > minHeroFontSize) {
+    heroFontSize -= 2;
+    ctx.font = `900 ${heroFontSize}px Inter, system-ui, sans-serif`;
+  }
+
+  ctx.fillStyle = valueColor;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(value, innerX, Math.round(heroCenterY));
 
   ctx.restore();
 }

@@ -4,6 +4,7 @@ import { useLanguage } from '../../../i18n/hooks/use-language';
 import { getCoverData } from '../../../shared/lib/game-covers';
 import {
   formatDurationSeconds,
+  formatHours,
   formatUnixDateTime,
   getGameDetailedStats,
   type OverallStats,
@@ -29,7 +30,7 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
   mapping,
   onOpenShare,
 }) => {
-  const { t } = useLanguage();
+  const { t, currentLanguage } = useLanguage();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -143,10 +144,10 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
                 <span>{t('stats.modal.totalPlaytime')}</span>
               </div>
               <div className="text-lg font-black text-foreground">
-                {formatDurationSeconds(details.totalDuration)}
+                {formatDurationSeconds(details.totalDuration, currentLanguage)}
               </div>
               <div className="text-[11px] text-muted-foreground mt-0.5">
-                {details.totalHours} hrs ({details.percentageOfTotal}%)
+                {formatHours(details.totalHours, currentLanguage)} ({details.percentageOfTotal}%)
               </div>
             </div>
 
@@ -169,7 +170,7 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
                 <span>{t('stats.modal.avgSession')}</span>
               </div>
               <div className="text-lg font-black text-foreground">
-                {formatDurationSeconds(details.avgSessionDuration)}
+                {formatDurationSeconds(details.avgSessionDuration, currentLanguage)}
               </div>
               <div className="text-[11px] text-muted-foreground mt-0.5">
                 {t('stats.overview.avgSession')}
@@ -182,7 +183,7 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
                 <span>{t('stats.modal.longestSession')}</span>
               </div>
               <div className="text-lg font-black text-foreground">
-                {formatDurationSeconds(details.longestSessionDuration)}
+                {formatDurationSeconds(details.longestSessionDuration, currentLanguage)}
               </div>
               <div className="text-[11px] text-muted-foreground mt-0.5">
                 {t('stats.modal.longestSession')}
@@ -198,7 +199,7 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
                 {t('stats.modal.firstPlayed')}
               </span>
               <span className="font-semibold text-foreground">
-                {details.firstPlayed ? formatUnixDateTime(details.firstPlayed) : '-'}
+                {details.firstPlayed ? formatUnixDateTime(details.firstPlayed, currentLanguage) : '-'}
               </span>
             </div>
 
@@ -208,7 +209,7 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
                 {t('stats.modal.lastPlayed')}
               </span>
               <span className="font-semibold text-foreground">
-                {details.lastPlayed ? formatUnixDateTime(details.lastPlayed) : '-'}
+                {details.lastPlayed ? formatUnixDateTime(details.lastPlayed, currentLanguage) : '-'}
               </span>
             </div>
           </div>
@@ -219,13 +220,13 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
               <h3 className="text-sm font-bold text-foreground uppercase tracking-wider">
                 {t('stats.modal.historyTitle')}
               </h3>
-              <span className="text-xs text-muted-foreground font-mono">
-                {details.sessions.length} {t('stats.platforms.sessionsCount', { count: details.sessions.length })}
+              <span className="text-xs text-muted-foreground">
+                {details.sessions.length} {t('stats.rankings.sessions')}
               </span>
             </div>
 
             {details.sessions.length === 0 ? (
-              <div className="text-center py-8 text-sm text-muted-foreground bg-muted/30 rounded-xl border border-dashed border-border">
+              <div className="text-center py-6 text-xs text-muted-foreground">
                 {t('stats.modal.noSessions')}
               </div>
             ) : (
@@ -233,17 +234,19 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
                 {details.sessions.map((s, idx) => (
                   <div
                     key={`${s.timestamp}-${idx}`}
-                    className="flex items-center justify-between p-3 rounded-xl bg-card border border-border hover:border-primary/40 transition-colors text-xs"
+                    className="flex items-center justify-between p-2.5 rounded-lg bg-muted/40 border border-border text-xs"
                   >
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-2 h-2 rounded-full bg-primary" />
-                      <span className="font-mono text-muted-foreground">
-                        {formatUnixDateTime(s.timestamp)}
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground font-mono">
+                        #{details.sessions.length - idx}
+                      </span>
+                      <span className="text-foreground">
+                        {formatUnixDateTime(s.timestamp, currentLanguage)}
                       </span>
                     </div>
-                    <div className="font-bold text-foreground bg-muted/60 px-2 py-0.5 rounded-md font-mono">
-                      {formatDurationSeconds(s.duration)}
-                    </div>
+                    <span className="font-bold font-mono text-primary">
+                      {formatDurationSeconds(s.duration, currentLanguage)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -252,22 +255,23 @@ export const GameDetailsModal: React.FC<GameDetailsModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 border-t border-border bg-card/60 flex items-center justify-between">
-          {onOpenShare ? (
+        <div className="p-4 border-t border-border bg-card flex items-center justify-between gap-3">
+          {onOpenShare && (
             <button
               onClick={() => {
                 onClose();
                 onOpenShare(game.uid);
               }}
-              className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-black text-xs transition-colors flex items-center gap-1.5 shadow"
+              className="px-4 py-2 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold transition-all flex items-center gap-2 shadow"
             >
               <Share2 size={15} />
               <span>{t('share.button')}</span>
             </button>
-          ) : <div />}
+          )}
+
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-secondary text-secondary-foreground font-bold text-xs hover:bg-secondary/80 transition-colors"
+            className="ml-auto px-4 py-2 rounded-xl border border-border text-xs font-semibold hover:bg-muted text-foreground transition-colors"
           >
             {t('stats.modal.close')}
           </button>

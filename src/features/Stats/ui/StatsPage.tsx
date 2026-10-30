@@ -27,6 +27,9 @@ import {
   calculateOverallStats,
   filterData,
   formatDurationSeconds,
+  formatHours,
+  formatMonthYear,
+  formatMonthShort,
   formatUnixDateTime,
   type PlatformFilter,
   type PeriodFilter,
@@ -55,7 +58,7 @@ export const StatsPage: React.FC = () => {
     return filterData(games, sessions, platformFilter, periodFilter);
   }, [games, sessions, platformFilter, periodFilter]);
 
-  // Compute calculated statistics
+  // Compute calculated statistics (enforces 60s minimum rule)
   const stats = useMemo(() => {
     return calculateOverallStats(filteredGames, filteredSessions);
   }, [filteredGames, filteredSessions]);
@@ -82,6 +85,16 @@ export const StatsPage: React.FC = () => {
     homebrew: { labelKey: 'stats.filter.homebrew', color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/30', barColor: 'bg-emerald-500' },
     other: { labelKey: 'stats.filter.other', color: 'text-zinc-400 bg-zinc-500/10 border-zinc-500/30', barColor: 'bg-zinc-500' },
   };
+
+  // Filtered platforms to display based on active filter
+  const displayedPlatforms = useMemo(() => {
+    if (platformFilter === 'all') {
+      return stats.platforms.filter((p) => p.totalDuration > 0 || p.gameCount > 0);
+    }
+    return stats.platforms.filter(
+      (p) => p.key === platformFilter && (p.totalDuration > 0 || p.gameCount > 0)
+    );
+  }, [stats.platforms, platformFilter]);
 
   if (!isInitialized) {
     return (
@@ -163,10 +176,10 @@ export const StatsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Controls Bar */}
+      {/* Filter Controls Bar - Clean wrap without horizontal scrollbar */}
       <div className="p-4 rounded-2xl bg-card border border-border flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 shadow-sm">
         {/* Platform Filter */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-1.5 shrink-0 mr-1">
             <Filter size={14} />
             {t('stats.filter.platform')}:
@@ -201,7 +214,7 @@ export const StatsPage: React.FC = () => {
         </div>
 
         {/* Period Filter */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
           <span className="text-xs font-bold text-muted-foreground uppercase flex items-center gap-1.5 shrink-0 mr-1">
             <Calendar size={14} />
             {t('stats.filter.period')}:
@@ -246,15 +259,15 @@ export const StatsPage: React.FC = () => {
           </div>
           <div>
             <div className="text-2xl sm:text-3xl font-black text-foreground">
-              {formatDurationSeconds(stats.totalDuration)}
+              {formatDurationSeconds(stats.totalDuration, currentLanguage)}
             </div>
             <div className="text-xs text-muted-foreground font-mono mt-0.5">
-              {stats.totalHours} hrs
+              {formatHours(stats.totalHours, currentLanguage)}
             </div>
           </div>
         </div>
 
-        {/* Tracked Games */}
+        {/* Tracked Games (Eligible played games >= 60s) */}
         <div className="p-5 rounded-2xl bg-card border border-border shadow-sm flex flex-col justify-between">
           <div className="flex items-center justify-between text-muted-foreground mb-2">
             <span className="text-xs font-bold uppercase tracking-wider">
@@ -266,11 +279,13 @@ export const StatsPage: React.FC = () => {
           </div>
           <div>
             <div className="text-2xl sm:text-3xl font-black text-foreground">
-              {stats.rankings.filter((r) => r.totalDuration > 0).length}
+              {stats.totalGames}
             </div>
-            <div className="text-xs text-muted-foreground mt-0.5">
-              {t('stats.overview.unplayedCount', { count: stats.rankings.filter((r) => r.totalDuration === 0).length })}
-            </div>
+            {stats.unplayedGames > 0 && (
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {t('stats.overview.unplayedCount', { count: stats.unplayedGames })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -290,7 +305,7 @@ export const StatsPage: React.FC = () => {
             </div>
             <div className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
               <Timer size={12} />
-              <span>{t('stats.overview.avgSession')}: {formatDurationSeconds(stats.avgSessionDuration)}</span>
+              <span>{t('stats.overview.avgSession')}: {formatDurationSeconds(stats.avgSessionDuration, currentLanguage)}</span>
             </div>
           </div>
         </div>
@@ -321,7 +336,7 @@ export const StatsPage: React.FC = () => {
       </div>
 
       {/* Spotlight: Most Played Game Banner */}
-      {stats.topGame && stats.topGame.totalDuration > 0 && (
+      {stats.topGame && stats.topGame.totalDuration >= 60 && (
         <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-card via-card to-amber-500/10 border border-amber-500/30 p-6 sm:p-8 shadow-xl">
           <div className="absolute top-0 right-0 w-96 h-96 bg-amber-500/10 blur-3xl pointer-events-none rounded-full" />
           <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 sm:gap-8">
@@ -375,7 +390,7 @@ export const StatsPage: React.FC = () => {
                     {t('stats.modal.totalPlaytime')}
                   </div>
                   <div className="text-lg font-black text-amber-500">
-                    {formatDurationSeconds(stats.topGame.totalDuration)}
+                    {formatDurationSeconds(stats.topGame.totalDuration, currentLanguage)}
                   </div>
                 </div>
 
@@ -404,7 +419,7 @@ export const StatsPage: React.FC = () => {
         </div>
       )}
 
-      {/* Top 10 Rankings & Podium Section */}
+      {/* Top Rankings & Podium Section */}
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-black text-foreground tracking-tight flex items-center gap-2">
@@ -417,7 +432,7 @@ export const StatsPage: React.FC = () => {
         </div>
 
         {/* Podium for Top 3 */}
-        {stats.rankings.length >= 2 && stats.rankings[0].totalDuration > 0 && (
+        {stats.rankings.length >= 2 && (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
             {/* 2nd Place (Silver) */}
             {stats.rankings[1] && (
@@ -425,84 +440,96 @@ export const StatsPage: React.FC = () => {
                 onClick={() => setSelectedGameUid(stats.rankings[1].game.uid)}
                 className="order-2 sm:order-1 p-5 rounded-2xl bg-card border border-slate-400/40 hover:border-slate-400 transition-all cursor-pointer group shadow-md flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-2.5 py-1 rounded-lg bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-black uppercase flex items-center gap-1">
-                    <Medal size={14} />
-                    #2 {t('stats.rankings.silver')}
-                  </span>
-                  <span className="text-xs font-bold text-muted-foreground">
-                    {stats.rankings[1].percentageOfTotal}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-2.5 py-1 rounded-lg bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-black uppercase flex items-center gap-1">
+                      <Medal size={14} />
+                      #2 {t('stats.rankings.silver')}
+                    </span>
+                    <span className="text-xs font-bold text-muted-foreground">
+                      {stats.rankings[1].percentageOfTotal}%
+                    </span>
+                  </div>
+
                   {(() => {
                     const cover = getCoverData(stats.rankings[1].game.game_id, mapping);
                     return (
-                      <div className="w-14 h-14 rounded-xl bg-muted overflow-hidden shrink-0 border border-border flex items-center justify-center">
+                      <div className="w-full h-32 sm:h-36 rounded-xl bg-muted/60 p-2 overflow-hidden border border-border flex items-center justify-center my-3 group-hover:border-primary/40 transition-colors">
                         {cover.url ? (
-                          <img src={cover.url} alt="" className="w-full h-full object-contain" />
+                          <img src={cover.url} alt="" className="max-h-full max-w-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform" />
                         ) : (
-                          <Gamepad2 size={24} className="text-muted-foreground/30" />
+                          <Gamepad2 size={32} className="text-muted-foreground/30" />
                         )}
                       </div>
                     );
                   })()}
-                  <div className="min-w-0">
-                    <div className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+
+                  <div className="mt-2 min-w-0">
+                    <div
+                      className="font-bold text-sm text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors"
+                      title={stats.rankings[1].game.game_name}
+                    >
                       {stats.rankings[1].game.game_name}
                     </div>
-                    <div className="text-xs text-muted-foreground font-mono">
+                    <div className="text-xs text-muted-foreground font-mono mt-1">
                       {stats.rankings[1].game.game_id}
                     </div>
                   </div>
                 </div>
+
                 <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-bold">
                   <span className="text-muted-foreground">{stats.rankings[1].sessionCount} {t('stats.rankings.sessions')}</span>
-                  <span className="text-foreground">{formatDurationSeconds(stats.rankings[1].totalDuration)}</span>
+                  <span className="text-foreground">{formatDurationSeconds(stats.rankings[1].totalDuration, currentLanguage)}</span>
                 </div>
               </div>
             )}
 
-            {/* 1st Place (Gold) */}
+            {/* 1st Place (Gold / Center) */}
             {stats.rankings[0] && (
               <div
                 onClick={() => setSelectedGameUid(stats.rankings[0].game.uid)}
-                className="order-1 sm:order-2 p-6 rounded-2xl bg-card border-2 border-amber-400 hover:border-amber-300 transition-all cursor-pointer group shadow-xl sm:-translate-y-2 flex flex-col justify-between"
+                className="order-1 sm:order-2 p-6 rounded-2xl bg-gradient-to-b from-card via-card to-amber-500/5 border-2 border-amber-400/80 hover:border-amber-400 transition-all cursor-pointer group shadow-xl relative sm:-translate-y-2 flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-3 py-1 rounded-lg bg-amber-400 text-black text-xs font-black uppercase flex items-center gap-1.5 shadow">
-                    <Crown size={15} />
-                    #1 {t('stats.rankings.gold')}
-                  </span>
-                  <span className="text-xs font-black text-amber-500">
-                    {stats.rankings[0].percentageOfTotal}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-4">
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="px-3 py-1 rounded-xl bg-amber-400 text-black text-xs font-black uppercase flex items-center gap-1.5 shadow">
+                      <Crown size={15} />
+                      #1 {t('stats.rankings.gold')}
+                    </span>
+                    <span className="text-xs font-black text-amber-500">
+                      {stats.rankings[0].percentageOfTotal}%
+                    </span>
+                  </div>
+
                   {(() => {
                     const cover = getCoverData(stats.rankings[0].game.game_id, mapping);
                     return (
-                      <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0 border border-border flex items-center justify-center">
+                      <div className="w-full h-36 sm:h-40 rounded-xl bg-muted/60 p-2 overflow-hidden border border-amber-400/30 flex items-center justify-center my-3 group-hover:border-amber-400 transition-colors">
                         {cover.url ? (
-                          <img src={cover.url} alt="" className="w-full h-full object-contain" />
+                          <img src={cover.url} alt="" className="max-h-full max-w-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform" />
                         ) : (
-                          <Gamepad2 size={28} className="text-muted-foreground/30" />
+                          <Gamepad2 size={36} className="text-muted-foreground/30" />
                         )}
                       </div>
                     );
                   })()}
-                  <div className="min-w-0">
-                    <div className="font-black text-base text-foreground truncate group-hover:text-primary transition-colors">
+
+                  <div className="mt-2 min-w-0">
+                    <div
+                      className="font-black text-base text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors"
+                      title={stats.rankings[0].game.game_name}
+                    >
                       {stats.rankings[0].game.game_name}
                     </div>
-                    <div className="text-xs text-muted-foreground font-mono">
+                    <div className="text-xs text-muted-foreground font-mono mt-1">
                       {stats.rankings[0].game.game_id}
                     </div>
                   </div>
                 </div>
+
                 <div className="mt-5 pt-3 border-t border-border flex items-center justify-between text-xs font-black">
                   <span className="text-muted-foreground">{stats.rankings[0].sessionCount} {t('stats.rankings.sessions')}</span>
-                  <span className="text-amber-500 text-sm">{formatDurationSeconds(stats.rankings[0].totalDuration)}</span>
+                  <span className="text-amber-500 text-sm">{formatDurationSeconds(stats.rankings[0].totalDuration, currentLanguage)}</span>
                 </div>
               </div>
             )}
@@ -513,40 +540,46 @@ export const StatsPage: React.FC = () => {
                 onClick={() => setSelectedGameUid(stats.rankings[2].game.uid)}
                 className="order-3 p-5 rounded-2xl bg-card border border-amber-700/40 hover:border-amber-700 transition-all cursor-pointer group shadow-md flex flex-col justify-between"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <span className="px-2.5 py-1 rounded-lg bg-amber-700/30 text-amber-700 dark:text-amber-400 text-xs font-black uppercase flex items-center gap-1">
-                    <Medal size={14} />
-                    #3 {t('stats.rankings.bronze')}
-                  </span>
-                  <span className="text-xs font-bold text-muted-foreground">
-                    {stats.rankings[2].percentageOfTotal}%
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-2.5 py-1 rounded-lg bg-amber-700/30 text-amber-700 dark:text-amber-400 text-xs font-black uppercase flex items-center gap-1">
+                      <Medal size={14} />
+                      #3 {t('stats.rankings.bronze')}
+                    </span>
+                    <span className="text-xs font-bold text-muted-foreground">
+                      {stats.rankings[2].percentageOfTotal}%
+                    </span>
+                  </div>
+
                   {(() => {
                     const cover = getCoverData(stats.rankings[2].game.game_id, mapping);
                     return (
-                      <div className="w-14 h-14 rounded-xl bg-muted overflow-hidden shrink-0 border border-border flex items-center justify-center">
+                      <div className="w-full h-32 sm:h-36 rounded-xl bg-muted/60 p-2 overflow-hidden border border-border flex items-center justify-center my-3 group-hover:border-primary/40 transition-colors">
                         {cover.url ? (
-                          <img src={cover.url} alt="" className="w-full h-full object-contain" />
+                          <img src={cover.url} alt="" className="max-h-full max-w-full object-contain filter drop-shadow-md group-hover:scale-105 transition-transform" />
                         ) : (
-                          <Gamepad2 size={24} className="text-muted-foreground/30" />
+                          <Gamepad2 size={32} className="text-muted-foreground/30" />
                         )}
                       </div>
                     );
                   })()}
-                  <div className="min-w-0">
-                    <div className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+
+                  <div className="mt-2 min-w-0">
+                    <div
+                      className="font-bold text-sm text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors"
+                      title={stats.rankings[2].game.game_name}
+                    >
                       {stats.rankings[2].game.game_name}
                     </div>
-                    <div className="text-xs text-muted-foreground font-mono">
+                    <div className="text-xs text-muted-foreground font-mono mt-1">
                       {stats.rankings[2].game.game_id}
                     </div>
                   </div>
                 </div>
+
                 <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-xs font-bold">
                   <span className="text-muted-foreground">{stats.rankings[2].sessionCount} {t('stats.rankings.sessions')}</span>
-                  <span className="text-foreground">{formatDurationSeconds(stats.rankings[2].totalDuration)}</span>
+                  <span className="text-foreground">{formatDurationSeconds(stats.rankings[2].totalDuration, currentLanguage)}</span>
                 </div>
               </div>
             )}
@@ -554,105 +587,134 @@ export const StatsPage: React.FC = () => {
         )}
 
         {/* Top 4 to 10 Table/Cards List */}
-        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-          <div className="divide-y divide-border">
-            {stats.rankings.slice(0, 10).map((item) => {
-              const cover = getCoverData(item.game.game_id, mapping);
-              const barPercent = Math.round((item.totalDuration / top1Duration) * 100);
-
-              return (
-                <div
-                  key={item.game.uid}
-                  onClick={() => setSelectedGameUid(item.game.uid)}
-                  className="p-4 sm:px-6 hover:bg-muted/50 transition-colors cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
-                >
-                  <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                    <div className="w-7 text-center font-black text-sm text-muted-foreground group-hover:text-primary shrink-0">
-                      #{item.rank}
-                    </div>
-
-                    <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden shrink-0 border border-border flex items-center justify-center">
-                      {cover.url ? (
-                        <img src={cover.url} alt="" className="w-full h-full object-contain" />
-                      ) : (
-                        <Gamepad2 size={20} className="text-muted-foreground/30" />
-                      )}
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <div className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
-                        {item.game.game_name}
-                      </div>
-                      <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                        <span className="font-mono">{item.game.game_id}</span>
-                        <span>•</span>
-                        <span>{item.sessionCount} {t('stats.rankings.sessions')}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0">
-                    <div className="text-sm font-black text-foreground">
-                      {formatDurationSeconds(item.totalDuration)}
-                    </div>
-                    {/* Visual relative bar */}
-                    <div className="w-24 sm:w-32 h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-primary rounded-full transition-all duration-500"
-                        style={{ width: `${barPercent}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+        {stats.rankings.length === 0 ? (
+          <div className="p-8 text-center bg-card border border-border rounded-2xl text-xs text-muted-foreground">
+            {t('stats.rankings.noData')}
           </div>
-        </div>
+        ) : (
+          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+            <div className="divide-y divide-border">
+              {stats.rankings.slice(0, 10).map((item) => {
+                const cover = getCoverData(item.game.game_id, mapping);
+                const barPercent = Math.round((item.totalDuration / top1Duration) * 100);
+
+                return (
+                  <div
+                    key={item.game.uid}
+                    onClick={() => setSelectedGameUid(item.game.uid)}
+                    className="p-4 sm:px-6 hover:bg-muted/50 transition-colors cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                      <div className="w-7 text-center font-black text-sm text-muted-foreground group-hover:text-primary shrink-0">
+                        #{item.rank}
+                      </div>
+
+                      <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0 border border-border flex items-center justify-center">
+                        {cover.url ? (
+                          <img
+                            src={cover.url}
+                            alt=""
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <Gamepad2 size={20} className="text-muted-foreground/30" />
+                        )}
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
+                            {item.game.game_name}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono mt-0.5">
+                          <span>{item.game.game_id}</span>
+                          <span>•</span>
+                          <span>{item.sessionCount} {t('stats.rankings.sessions')}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 pl-10 sm:pl-0">
+                      <div className="font-black text-sm text-foreground font-mono">
+                        {formatDurationSeconds(item.totalDuration, currentLanguage)}
+                      </div>
+                      <div className="flex items-center gap-2 w-32">
+                        <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-primary rounded-full"
+                            style={{ width: `${barPercent}%` }}
+                          />
+                        </div>
+                        <span className="text-[11px] text-muted-foreground font-bold w-10 text-right">
+                          {item.percentageOfTotal}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Grid: Platform Distribution & Monthly Evolution */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Platform Breakdown */}
         <div className="p-6 rounded-2xl bg-card border border-border space-y-5 shadow-sm">
           <div>
             <h2 className="text-xl font-black text-foreground tracking-tight flex items-center gap-2">
               <HardDrive size={20} className="text-primary" />
-              {t('stats.platforms.title')}
+              {platformFilter === 'all'
+                ? t('stats.platforms.title')
+                : t('stats.platforms.singleTitle', {
+                    platform: t(
+                      platformMeta[platformFilter]?.labelKey || 'stats.filter.other'
+                    ),
+                  })}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               {t('stats.platforms.subtitle')}
             </p>
           </div>
 
-          <div className="space-y-4">
-            {stats.platforms.map((p) => {
-              const meta = platformMeta[p.key] || platformMeta.other;
-              return (
-                <div key={p.key} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] border ${meta.color}`}>
-                        {t(meta.labelKey)}
-                      </span>
-                      <span className="text-muted-foreground">
-                        {p.gameCount} {t('stats.platforms.gamesCount', { count: p.gameCount })} • {p.sessionCount} {t('stats.platforms.sessionsCount', { count: p.sessionCount })}
-                      </span>
+          {displayedPlatforms.length === 0 ? (
+            <div className="text-center py-8 text-xs text-muted-foreground">
+              {t('stats.platforms.noData')}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {displayedPlatforms.map((p) => {
+                const meta = platformMeta[p.key] || platformMeta.other;
+                return (
+                  <div key={p.key} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] border ${meta.color}`}>
+                          {t(meta.labelKey)}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {p.gameCount} {t('stats.platforms.gamesCount', { count: p.gameCount })} • {p.sessionCount} {t('stats.platforms.sessionsCount', { count: p.sessionCount })}
+                        </span>
+                      </div>
+                      <div className="font-bold text-foreground">
+                        {formatDurationSeconds(p.totalDuration, currentLanguage)} ({p.percentage}%)
+                      </div>
                     </div>
-                    <div className="font-bold text-foreground">
-                      {formatDurationSeconds(p.totalDuration)} ({p.percentage}%)
+                    {/* Progress bar */}
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${meta.barColor} rounded-full transition-all duration-500`}
+                        style={{ width: `${p.percentage}%` }}
+                      />
                     </div>
                   </div>
-                  {/* Progress bar */}
-                  <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={`h-full ${meta.barColor} rounded-full transition-all duration-500`}
-                      style={{ width: `${p.percentage}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Monthly Playtime Evolution */}
@@ -673,26 +735,30 @@ export const StatsPage: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-3">
-              {/* Responsive Monthly Bar Chart */}
-              <div className="h-44 flex items-end gap-2 pt-6 pb-2 px-1 overflow-x-auto scrollbar-none">
-                {stats.monthlyEvolution.slice(-12).map((m) => {
+              {/* Responsive Monthly Bar Chart with safe tooltip boundaries */}
+              <div className="h-48 flex items-end gap-2 pt-10 pb-2 px-1 relative overflow-visible">
+                {stats.monthlyEvolution.slice(-12).map((m, idx, arr) => {
                   const heightPercent = Math.max(Math.round((m.totalDuration / maxMonthDuration) * 100), 6);
+                  const isFirst = idx === 0;
+                  const isLast = idx === arr.length - 1;
+                  const tooltipAlign = isFirst ? 'left-0' : isLast ? 'right-0' : 'left-1/2 -translate-x-1/2';
+
                   return (
                     <div
                       key={m.key}
                       className="flex-1 min-w-[28px] max-w-[48px] flex flex-col items-center h-full justify-end group relative"
                     >
-                      {/* Tooltip on hover */}
-                      <div className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-[10px] font-bold px-2 py-1 rounded shadow-lg pointer-events-none whitespace-nowrap z-20 border border-border">
-                        {m.key}: {m.totalHours}h ({m.sessionCount} sess)
+                      {/* Tooltip on hover with safe boundary positioning */}
+                      <div className={`absolute -top-8 ${tooltipAlign} opacity-0 group-hover:opacity-100 transition-opacity bg-popover text-popover-foreground text-[10px] font-bold px-2.5 py-1 rounded shadow-lg pointer-events-none whitespace-nowrap z-30 border border-border`}>
+                        {formatMonthYear(m.year, m.month, currentLanguage)}: {formatDurationSeconds(m.totalDuration, currentLanguage)} ({m.sessionCount} {t('stats.rankings.sessions')})
                       </div>
 
                       <div
                         className="w-full bg-primary/20 group-hover:bg-primary rounded-t-md transition-all duration-300"
                         style={{ height: `${heightPercent}%` }}
                       />
-                      <span className="text-[10px] text-muted-foreground mt-1.5 font-mono truncate w-full text-center">
-                        {m.key.substring(2)}
+                      <span className="text-[10px] text-muted-foreground mt-1.5 font-medium truncate w-full text-center capitalize" title={formatMonthYear(m.year, m.month, currentLanguage)}>
+                        {formatMonthShort(m.month, currentLanguage)}
                       </span>
                     </div>
                   );
@@ -745,13 +811,13 @@ export const StatsPage: React.FC = () => {
                         {gameName}
                       </div>
                       <div className="text-[11px] text-muted-foreground font-mono">
-                        {formatUnixDateTime(item.timestamp)}
+                        {formatUnixDateTime(item.timestamp, currentLanguage)}
                       </div>
                     </div>
                   </div>
 
                   <div className="font-black text-xs text-foreground bg-muted/60 px-2.5 py-1 rounded-lg shrink-0 font-mono">
-                    {formatDurationSeconds(item.duration)}
+                    {formatDurationSeconds(item.duration, currentLanguage)}
                   </div>
                 </div>
               );
@@ -781,6 +847,7 @@ export const StatsPage: React.FC = () => {
         onClose={() => setIsShareStudioOpen(false)}
         initialModel={shareStudioModel}
         initialGameUid={shareStudioGameUid}
+        initialCategory={platformFilter}
       />
     </div>
   );

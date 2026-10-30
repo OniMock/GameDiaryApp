@@ -45,6 +45,7 @@ export interface OverallStats {
   totalDuration: number; // in seconds
   totalHours: number;
   totalGames: number;
+  unplayedGames: number;
   totalSessions: number;
   avgSessionDuration: number;
   topGame: GameStatItem | null;
@@ -71,30 +72,156 @@ export interface GameDetailedStats {
 }
 
 /**
- * Pure function to format seconds into readable hours and minutes
+ * Maps internal app language codes to standard BCP-47 locale tags
  */
-export function formatDurationSeconds(seconds: number): string {
-  if (!seconds || seconds <= 0) return '0m';
-  const hrs = Math.floor(seconds / 3600);
-  const mins = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-
-  if (hrs > 0) {
-    return `${hrs}h ${mins}m`;
-  }
-  if (mins > 0) {
-    return `${mins}m ${secs}s`;
-  }
-  return `${secs}s`;
+export function mapLocaleToBcp47(locale?: string): string {
+  if (!locale || locale === 'default') return 'default';
+  const clean = locale.toLowerCase().trim();
+  if (clean === 'pt' || clean === 'ptbr' || clean === 'pt-br') return 'pt-BR';
+  if (clean === 'cn' || clean === 'zh' || clean === 'zh-cn') return 'zh-CN';
+  if (clean === 'jp' || clean === 'ja' || clean === 'ja-jp') return 'ja-JP';
+  if (clean === 'en' || clean === 'en-us') return 'en-US';
+  if (clean === 'es' || clean === 'es-es') return 'es-ES';
+  if (clean === 'de' || clean === 'de-de') return 'de-DE';
+  if (clean === 'fr' || clean === 'fr-fr') return 'fr-FR';
+  if (clean === 'it' || clean === 'it-it') return 'it-IT';
+  if (clean === 'ru' || clean === 'ru-ru') return 'ru-RU';
+  if (clean === 'ko' || clean === 'ko-kr') return 'ko-KR';
+  return locale;
 }
 
 /**
- * Formats a UNIX timestamp (in seconds) to a human readable date string
+ * Cache for unit formatters to optimize repetitive rendering in canvas loops
+ */
+const unitFormatterCache = new Map<string, Intl.NumberFormat>();
+
+function formatIntlUnit(value: number, unit: 'hour' | 'minute' | 'second', bcp47: string): string {
+  const cacheKey = `${bcp47}:${unit}`;
+  let fmt = unitFormatterCache.get(cacheKey);
+  if (!fmt) {
+    try {
+      fmt = new Intl.NumberFormat(bcp47, {
+        style: 'unit',
+        unit,
+        unitDisplay: 'narrow',
+      });
+    } catch {
+      // Fallback for runtime environments with missing locale data
+      fmt = new Intl.NumberFormat('en-US', {
+        style: 'unit',
+        unit,
+        unitDisplay: 'narrow',
+      });
+    }
+    unitFormatterCache.set(cacheKey, fmt);
+  }
+  return fmt.format(value);
+}
+
+/**
+ * Pure function to format seconds into readable hours and minutes according to locale
+ * Extensible implementation strictly based on native Intl.NumberFormat (no manual language registry)
+ */
+export function formatDurationSeconds(seconds: number, locale = 'en'): string {
+  const bcp47 = mapLocaleToBcp47(locale);
+  const safeSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+
+  if (safeSeconds === 0) {
+    return formatIntlUnit(0, 'minute', bcp47);
+  }
+
+  const hrs = Math.floor(safeSeconds / 3600);
+  const mins = Math.floor((safeSeconds % 3600) / 60);
+  const secs = safeSeconds % 60;
+
+  if (hrs > 0) {
+    return `${formatIntlUnit(hrs, 'hour', bcp47)} ${formatIntlUnit(mins, 'minute', bcp47)}`;
+  }
+  if (mins > 0) {
+    return `${formatIntlUnit(mins, 'minute', bcp47)} ${formatIntlUnit(secs, 'second', bcp47)}`;
+  }
+  return formatIntlUnit(secs, 'second', bcp47);
+}
+
+/**
+ * Formats decimal hours using native Intl.NumberFormat according to the active locale
+ */
+export function formatHours(hours: number, locale = 'default'): string {
+  const val = Number(hours) || 0;
+  const bcp47 = mapLocaleToBcp47(locale);
+  try {
+    return new Intl.NumberFormat(bcp47, {
+      style: 'unit',
+      unit: 'hour',
+      unitDisplay: 'short',
+      maximumFractionDigits: 1,
+    }).format(val);
+  } catch {
+    return `${val} h`;
+  }
+}
+
+/**
+ * Formats month and year using native Intl.DateTimeFormat (UTC safe)
+ */
+export function formatMonthYear(year: number, month: number, locale = 'default'): string {
+  const bcp47 = mapLocaleToBcp47(locale);
+  // Using 15th of month at noon UTC to prevent any timezone date boundary roll
+  const date = new Date(Date.UTC(year, Math.max(0, month - 1), 15));
+  return new Intl.DateTimeFormat(bcp47, {
+    year: 'numeric',
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+/**
+ * Formats short month name using native Intl.DateTimeFormat (UTC safe)
+ */
+export function formatMonthShort(month: number, locale = 'default'): string {
+  const bcp47 = mapLocaleToBcp47(locale);
+  const date = new Date(Date.UTC(2024, Math.max(0, month - 1), 15));
+  return new Intl.DateTimeFormat(bcp47, {
+    month: 'short',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+/**
+ * Formats full month name using native Intl.DateTimeFormat (UTC safe)
+ */
+export function formatMonthName(month: number, locale = 'default'): string {
+  const bcp47 = mapLocaleToBcp47(locale);
+  const date = new Date(Date.UTC(2024, Math.max(0, month - 1), 15));
+  return new Intl.DateTimeFormat(bcp47, {
+    month: 'long',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+/**
+ * Formats day of the week using native Intl.DateTimeFormat (0 = Sunday ... 6 = Saturday)
+ */
+export function formatDayOfWeek(dayIndex: number, locale = 'default'): string {
+  const bcp47 = mapLocaleToBcp47(locale);
+  // 2024-01-07 was a Sunday in UTC
+  const date = new Date(Date.UTC(2024, 0, 7 + (dayIndex % 7)));
+  return new Intl.DateTimeFormat(bcp47, {
+    weekday: 'long',
+    timeZone: 'UTC',
+  }).format(date);
+}
+
+/**
+ * Formats a UNIX timestamp (in seconds or ms) to a human readable date string
  */
 export function formatUnixDate(timestamp: number, locale = 'default'): string {
   if (!timestamp) return '-';
-  const date = new Date(timestamp * 1000);
-  return date.toLocaleDateString(locale, {
+  const rawTs = Number(timestamp) || 0;
+  const normalizedTs = rawTs > 1e11 ? Math.floor(rawTs / 1000) : rawTs;
+  const date = new Date(normalizedTs * 1000);
+  const bcp47 = mapLocaleToBcp47(locale);
+  return date.toLocaleDateString(bcp47, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -102,12 +229,15 @@ export function formatUnixDate(timestamp: number, locale = 'default'): string {
 }
 
 /**
- * Formats a UNIX timestamp (in seconds) to date and time
+ * Formats a UNIX timestamp (in seconds or ms) to date and time
  */
 export function formatUnixDateTime(timestamp: number, locale = 'default'): string {
   if (!timestamp) return '-';
-  const date = new Date(timestamp * 1000);
-  return date.toLocaleString(locale, {
+  const rawTs = Number(timestamp) || 0;
+  const normalizedTs = rawTs > 1e11 ? Math.floor(rawTs / 1000) : rawTs;
+  const date = new Date(normalizedTs * 1000);
+  const bcp47 = mapLocaleToBcp47(locale);
+  return date.toLocaleString(bcp47, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -151,14 +281,18 @@ export function filterData(
   let periodFilteredSessions = sessions;
   if (periodFilter === 'past30') {
     const minTimestamp = referenceNowSeconds - 30 * 86400;
-    periodFilteredSessions = sessions.filter(
-      (s) => s.timestamp >= minTimestamp && s.timestamp <= referenceNowSeconds
-    );
+    periodFilteredSessions = sessions.filter((s) => {
+      const rawTs = Number(s.timestamp) || 0;
+      const ts = rawTs > 1e11 ? Math.floor(rawTs / 1000) : rawTs;
+      return ts >= minTimestamp && ts <= referenceNowSeconds;
+    });
   } else if (periodFilter === 'pastYear') {
     const minTimestamp = referenceNowSeconds - 365 * 86400;
-    periodFilteredSessions = sessions.filter(
-      (s) => s.timestamp >= minTimestamp && s.timestamp <= referenceNowSeconds
-    );
+    periodFilteredSessions = sessions.filter((s) => {
+      const rawTs = Number(s.timestamp) || 0;
+      const ts = rawTs > 1e11 ? Math.floor(rawTs / 1000) : rawTs;
+      return ts >= minTimestamp && ts <= referenceNowSeconds;
+    });
   }
 
   // 2. Filter by platform
@@ -188,25 +322,76 @@ export function filterData(
 }
 
 /**
- * Pure function to calculate comprehensive stats from games and sessions
+ * Calculates total accumulated playtime per game UID across all given sessions.
+ */
+export function calculateGameAccumulatedDurations(sessions: SessionEntry[]): Map<number, number> {
+  const map = new Map<number, number>();
+  for (const s of sessions) {
+    const dur = Number(s.duration) || 0;
+    map.set(s.game_uid, (map.get(s.game_uid) || 0) + dur);
+  }
+  return map;
+}
+
+/**
+ * Returns a set of game UIDs that meet the 60-second minimum accumulated playtime rule
+ * across their entire session history.
+ */
+export function getEligibleGameUids(sessions: SessionEntry[]): Set<number> {
+  const durations = calculateGameAccumulatedDurations(sessions);
+  const eligible = new Set<number>();
+  for (const [uid, dur] of durations.entries()) {
+    if (dur >= 60) {
+      eligible.add(uid);
+    }
+  }
+  return eligible;
+}
+
+/**
+ * Returns whether a specific game UID is eligible (total accumulated playtime >= 60s).
+ */
+export function isGameEligible(gameUid: number, sessions: SessionEntry[]): boolean {
+  let total = 0;
+  for (const s of sessions) {
+    if (s.game_uid === gameUid) {
+      total += Number(s.duration) || 0;
+      if (total >= 60) return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Pure function to calculate comprehensive stats from games and sessions.
+ * Enforces the 60-second rule: games with total accumulated playtime < 60s
+ * are excluded from general stats, rankings, podium, platform distribution, and share cards.
  */
 export function calculateOverallStats(
   games: GameEntry[],
   sessions: SessionEntry[]
 ): OverallStats {
-  const totalDuration = sessions.reduce((acc, s) => acc + (s.duration || 0), 0);
-  const totalHours = Number((totalDuration / 3600).toFixed(1));
-  const totalSessions = sessions.length;
-  const avgSessionDuration =
-    totalSessions > 0 ? Math.round(totalDuration / totalSessions) : 0;
-
-  // Build game map
   const gameMap = new Map<number, GameEntry>();
   for (const g of games) {
     gameMap.set(g.uid, g);
   }
 
-  // Aggregate stats per game UID
+  // 1. Calculate total accumulated playtime per game UID across all sessions using centralized logic
+  const gameTotalDurationMap = calculateGameAccumulatedDurations(sessions);
+
+  // 2. Determine eligible game UIDs (accumulated duration >= 60 seconds)
+  const eligibleGameUids = getEligibleGameUids(sessions);
+
+  // 3. Filter sessions to only those belonging to eligible games
+  const eligibleSessions = sessions.filter((s) => eligibleGameUids.has(s.game_uid));
+
+  const totalDuration = eligibleSessions.reduce((acc, s) => acc + (Number(s.duration) || 0), 0);
+  const totalHours = Number((totalDuration / 3600).toFixed(1));
+  const totalSessions = eligibleSessions.length;
+  const avgSessionDuration =
+    totalSessions > 0 ? Math.round(totalDuration / totalSessions) : 0;
+
+  // Aggregate stats per eligible game UID
   interface Accumulator {
     duration: number;
     count: number;
@@ -227,9 +412,10 @@ export function calculateOverallStats(
   // Monthly buckets: "YYYY-MM" -> duration and count
   const monthlyMap = new Map<string, { duration: number; count: number; year: number; month: number }>();
 
-  for (const s of sessions) {
-    const dur = s.duration || 0;
-    const ts = s.timestamp || 0;
+  for (const s of eligibleSessions) {
+    const dur = Number(s.duration) || 0;
+    const rawTs = Number(s.timestamp) || 0;
+    const ts = rawTs > 1e11 ? Math.floor(rawTs / 1000) : rawTs;
 
     // Game stats
     const current = gameStatsMap.get(s.game_uid);
@@ -249,7 +435,7 @@ export function calculateOverallStats(
 
     if (ts > 0) {
       const d = new Date(ts * 1000);
-      
+
       // Day of week (0 to 6)
       const day = d.getDay();
       dayOfWeekDurations[day] += dur;
@@ -280,14 +466,9 @@ export function calculateOverallStats(
     }
   }
 
-  // Create list of all games that have sessions, plus games in library
-  const allGameUids = new Set<number>([
-    ...games.map((g) => g.uid),
-    ...gameStatsMap.keys(),
-  ]);
-
+  // Rankings: only games that meet the 60-second rule
   const rankings: GameStatItem[] = [];
-  for (const uid of allGameUids) {
+  for (const uid of eligibleGameUids) {
     const game = gameMap.get(uid) || {
       uid,
       game_id: `UNKNOWN_${uid}`,
@@ -297,7 +478,7 @@ export function calculateOverallStats(
     };
 
     const stats = gameStatsMap.get(uid);
-    const gameDuration = stats ? stats.duration : 0;
+    const gameDuration = stats ? stats.duration : (gameTotalDurationMap.get(uid) || 0);
     const gameHours = Number((gameDuration / 3600).toFixed(1));
     const sessionCount = stats ? stats.count : 0;
     const firstPlayed = stats ? stats.firstPlayed : null;
@@ -333,9 +514,9 @@ export function calculateOverallStats(
     item.rank = idx + 1;
   });
 
-  const topGame = rankings.length > 0 && rankings[0].totalDuration > 0 ? rankings[0] : null;
+  const topGame = rankings.length > 0 && rankings[0].totalDuration >= 60 ? rankings[0] : null;
 
-  // Platform stats breakdown
+  // Platform stats breakdown (calculated over eligible games and sessions)
   const platformCategories: { key: PlatformFilter; category: number }[] = [
     { key: 'psp', category: 0 },
     { key: 'ps1', category: 1 },
@@ -344,16 +525,18 @@ export function calculateOverallStats(
   ];
 
   const platforms: PlatformStatItem[] = platformCategories.map(({ key, category }) => {
-    const matchingGames = games.filter((g) => matchGamePlatform(g.category) === key);
+    const matchingGames = games.filter(
+      (g) => eligibleGameUids.has(g.uid) && matchGamePlatform(g.category) === key
+    );
 
     let platformDuration = 0;
     let platformSessions = 0;
 
-    for (const s of sessions) {
+    for (const s of eligibleSessions) {
       const g = gameMap.get(s.game_uid);
       const gamePlatform = g ? matchGamePlatform(g.category) : 'other';
       if (gamePlatform === key) {
-        platformDuration += s.duration || 0;
+        platformDuration += Number(s.duration) || 0;
         platformSessions += 1;
       }
     }
@@ -385,15 +568,15 @@ export function calculateOverallStats(
     }))
     .sort((a, b) => a.key.localeCompare(b.key));
 
-  // Recent activity: top 10 most recent sessions
-  const recentSessions: RecentSessionItem[] = [...sessions]
-    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+  // Recent activity: top 10 most recent sessions from eligible games
+  const recentSessions: RecentSessionItem[] = [...eligibleSessions]
+    .sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0))
     .slice(0, 10)
     .map((s) => ({
       session: s,
       game: gameMap.get(s.game_uid),
-      duration: s.duration || 0,
-      timestamp: s.timestamp || 0,
+      duration: Number(s.duration) || 0,
+      timestamp: Number(s.timestamp) || 0,
     }));
 
   // Determine most active day of week
@@ -420,7 +603,8 @@ export function calculateOverallStats(
   return {
     totalDuration,
     totalHours,
-    totalGames: games.length,
+    totalGames: eligibleGameUids.size,
+    unplayedGames: Math.max(0, games.length - eligibleGameUids.size),
     totalSessions,
     avgSessionDuration,
     topGame,
@@ -447,9 +631,9 @@ export function getGameDetailedStats(
 
   const gameSessions = sessions
     .filter((s) => s.game_uid === gameUid)
-    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    .sort((a, b) => (Number(b.timestamp) || 0) - (Number(a.timestamp) || 0));
 
-  const totalDuration = gameSessions.reduce((acc, s) => acc + (s.duration || 0), 0);
+  const totalDuration = gameSessions.reduce((acc, s) => acc + (Number(s.duration) || 0), 0);
   const totalHours = Number((totalDuration / 3600).toFixed(1));
   const sessionCount = gameSessions.length;
   const avgSessionDuration =
@@ -460,10 +644,12 @@ export function getGameDetailedStats(
   let lastPlayed: number | null = null;
 
   for (const s of gameSessions) {
-    if ((s.duration || 0) > longestSessionDuration) {
-      longestSessionDuration = s.duration || 0;
+    const dur = Number(s.duration) || 0;
+    if (dur > longestSessionDuration) {
+      longestSessionDuration = dur;
     }
-    const ts = s.timestamp || 0;
+    const rawTs = Number(s.timestamp) || 0;
+    const ts = rawTs > 1e11 ? Math.floor(rawTs / 1000) : rawTs;
     if (ts > 0) {
       if (firstPlayed === null || ts < firstPlayed) firstPlayed = ts;
       if (lastPlayed === null || ts > lastPlayed) lastPlayed = ts;

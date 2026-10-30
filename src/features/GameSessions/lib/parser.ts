@@ -1,11 +1,5 @@
 import type { GameEntry, SessionEntry } from '../model/domain/types';
-
-
-
-
-
-
-
+import { cleanGameId } from '../../../shared/lib/game-covers';
 
 export function parseBackup(json: string): { games: GameEntry[], sessions: SessionEntry[], nextUid: number } {
   const data = JSON.parse(json);
@@ -17,11 +11,12 @@ export function parseBackup(json: string): { games: GameEntry[], sessions: Sessi
   if (data.games && Array.isArray(data.games)) {
     data.games.forEach((g: any) => {
       const uid = nextUid++;
-      const sanitizedId = (g.game_id || '').replace(/-/g, '');
+      const rawId = g.game_id || '';
+      const sanitizedId = cleanGameId(rawId);
       idMap[sanitizedId] = uid;
       games.push({
         uid,
-        game_id: sanitizedId,
+        game_id: sanitizedId || rawId,
         game_name: g.name || '',
         apitype_str: g.apitype || '0x000',
         category: g.category ?? 4
@@ -31,13 +26,16 @@ export function parseBackup(json: string): { games: GameEntry[], sessions: Sessi
 
   if (data.sessions && Array.isArray(data.sessions)) {
     data.sessions.forEach((s: any) => {
-      const sanitizedId = (s.game_id || '').replace(/-/g, '');
+      const rawId = s.game_id || '';
+      const sanitizedId = cleanGameId(rawId);
       const game_uid = idMap[sanitizedId];
       if (game_uid !== undefined) {
+        const rawTs = Number(s.timestamp) || 0;
+        const normalizedTs = rawTs > 1e11 ? Math.floor(rawTs / 1000) : rawTs;
         sessions.push({
           game_uid,
-          duration: s.duration,
-          timestamp: s.timestamp
+          duration: Number(s.duration) || 0,
+          timestamp: normalizedTs
         });
       }
     });

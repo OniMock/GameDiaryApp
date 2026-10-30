@@ -14,18 +14,23 @@ export async function renderLibraryCard(
   ctx: CanvasRenderingContext2D,
   options: CardRenderOptions
 ): Promise<void> {
-  const { format, games, overallStats, mapping, t } = options;
+  const { format, games, overallStats, mapping, t, locale, brandAssets } = options;
   const { width, height } = FORMAT_DIMENSIONS[format];
 
   // 1. Draw Mosaic Background
   drawBackground(ctx, width, height, 'mosaic');
 
-  // Games to display in mosaic: prefer ranked games with playtime, then remaining games
-  const sortedGames = [...overallStats.rankings.map((r: GameStatItem) => r.game)];
-  for (const g of games) {
-    if (!sortedGames.some((sg) => sg.uid === g.uid)) {
-      sortedGames.push(g);
-    }
+  // Games to display in mosaic: ONLY games meeting the 60-second rule (rankings)
+  const sortedGames = overallStats.rankings.map((r: GameStatItem) => r.game);
+
+  if (sortedGames.length === 0) {
+    drawGlassCard(ctx, 80, height * 0.4, width - 160, 200, 20);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = '800 28px Inter, system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(t('stats.rankings.noData'), width * 0.5, height * 0.48);
+    drawBrandFooter(ctx, width, height, brandAssets);
+    return;
   }
 
   // Determine grid capacity based on format and library size
@@ -68,53 +73,39 @@ export async function renderLibraryCard(
   const displayGames = sortedGames.slice(0, maxCells);
 
   // Pre-load covers in parallel
-  const coverPromises = displayGames.map(async (g) => {
-    const { url } = getCoverData(g.game_id, mapping);
-    const img = await loadCoverImage(url);
-    return { game: g, img };
-  });
+  const loadedCovers = await Promise.all(
+    displayGames.map(async (g) => {
+      const { url } = getCoverData(g.game_id, mapping);
+      const img = await loadCoverImage(url);
+      return { game: g, img };
+    })
+  );
 
-  const loadedCovers = await Promise.all(coverPromises);
-
-  // Layout bounds
   const marginX = format === 'horizontal' ? 56 : 64;
-  const gridStartY = format === 'horizontal' ? 130 : 220;
-  const footerH = 80;
+  const bannerY = format === 'horizontal' ? 36 : 80;
+  const bannerH = format === 'horizontal' ? 70 : 132;
   const gridW = width - marginX * 2;
-  const gridH = height - gridStartY - footerH;
 
+  // Grid dimensions
+  const gridStartY = bannerY + bannerH + (format === 'horizontal' ? 16 : 24);
+  const gridAvailH = height - gridStartY - 84;
   const gap = format === 'horizontal' ? 12 : 16;
   const cellW = (gridW - (cols - 1) * gap) / cols;
-  const cellH = (gridH - (rows - 1) * gap) / rows;
+  const cellH = (gridAvailH - (rows - 1) * gap) / rows;
 
-  // 2. Draw Mosaic Covers
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const idx = r * cols + c;
-      const cellX = marginX + c * (cellW + gap);
-      const cellY = gridStartY + r * (cellH + gap);
+  // 2. Draw Covers Mosaic Grid
+  for (let idx = 0; idx < loadedCovers.length; idx++) {
+    const col = idx % cols;
+    const row = Math.floor(idx / cols);
+    const x = marginX + col * (cellW + gap);
+    const y = gridStartY + row * (cellH + gap);
+    const { game, img } = loadedCovers[idx];
 
-      if (idx < loadedCovers.length) {
-        const { game, img } = loadedCovers[idx];
-        drawCoverArt(ctx, img, cellX, cellY, cellW, cellH, 16, game.game_name, game.game_id, game.category);
-      } else {
-        // Subtle empty placeholder
-        ctx.save();
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.02)';
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.roundRect(cellX, cellY, cellW, cellH, 16);
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
+    drawCoverArt(ctx, img, x, y, cellW, cellH, 14, game.game_name, game.game_id, game.category);
   }
 
-  // 3. Header Glass Banner
-  const bannerY = format === 'horizontal' ? 36 : 60;
-  drawGlassCard(ctx, marginX, bannerY, gridW, format === 'horizontal' ? 76 : 126, 24, 'rgba(11, 17, 32, 0.88)', 'rgba(59, 130, 246, 0.35)');
+  // 3. Draw Header Banner Overlay
+  drawGlassCard(ctx, marginX, bannerY, gridW, bannerH, 24, 'rgba(17, 24, 39, 0.9)', 'rgba(59, 130, 246, 0.4)');
 
   ctx.save();
   if (format === 'horizontal') {
@@ -133,7 +124,7 @@ export async function renderLibraryCard(
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '900 22px Inter, system-ui, sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(`${games.length} ${t('stats.overview.totalGames')} • ${formatDurationSeconds(overallStats.totalDuration)}`, marginX + gridW - 28, bannerY + 26);
+    ctx.fillText(`${games.length} ${t('stats.overview.totalGames')} • ${formatDurationSeconds(overallStats.totalDuration, locale)}`, marginX + gridW - 28, bannerY + 26);
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.font = '600 13px Inter, system-ui, sans-serif';
@@ -159,7 +150,7 @@ export async function renderLibraryCard(
 
     ctx.fillStyle = '#F59E0B';
     ctx.font = '800 20px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(overallStats.totalDuration), marginX + gridW - 32, bannerY + 74);
+    ctx.fillText(formatDurationSeconds(overallStats.totalDuration, locale), marginX + gridW - 32, bannerY + 74);
 
     // Platform breakdown subtitle
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
@@ -170,6 +161,6 @@ export async function renderLibraryCard(
   }
   ctx.restore();
 
-  // 4. Draw Footer
-  drawBrandFooter(ctx, width, height);
+  // 4. Draw Footer with official brand SVG logos
+  drawBrandFooter(ctx, width, height, brandAssets);
 }

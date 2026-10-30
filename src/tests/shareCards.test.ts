@@ -1,8 +1,52 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { getAvailableYears, calculateYearRetrospective } from '../features/ShareCards/lib/retrospectiveUtils';
 import { exportCanvasToBlob, downloadCardImage, shareOrDownloadCard } from '../features/ShareCards/lib/cardGenerator';
+import { drawBrandFooter } from '../features/ShareCards/lib/canvasUtils';
+import { filterData, calculateOverallStats, getEligibleGameUids } from '../features/Stats/lib/statsCalculator';
+import { renderIndividualGameCard } from '../features/ShareCards/lib/cardRenderers/individualGameRenderer';
+import { renderLibraryCard } from '../features/ShareCards/lib/cardRenderers/libraryRenderer';
 import { FORMAT_DIMENSIONS } from '../features/ShareCards/types';
 import type { GameEntry, SessionEntry } from '../features/GameSessions/model/domain/types';
+
+function createMockContext(): CanvasRenderingContext2D {
+  return {
+    save: vi.fn(),
+    restore: vi.fn(),
+    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 1,
+    font: '',
+    textAlign: '',
+    textBaseline: '',
+    shadowColor: '',
+    shadowBlur: 0,
+    shadowOffsetX: 0,
+    shadowOffsetY: 0,
+    fillText: vi.fn(),
+    strokeText: vi.fn(),
+    measureText: vi.fn().mockReturnValue({ width: 100 }),
+    drawImage: vi.fn(),
+    beginPath: vi.fn(),
+    roundRect: vi.fn(),
+    moveTo: vi.fn(),
+    lineTo: vi.fn(),
+    quadraticCurveTo: vi.fn(),
+    arc: vi.fn(),
+    closePath: vi.fn(),
+    fill: vi.fn(),
+    stroke: vi.fn(),
+    fillRect: vi.fn(),
+    strokeRect: vi.fn(),
+    clearRect: vi.fn(),
+    clip: vi.fn(),
+    setLineDash: vi.fn(),
+    createLinearGradient: vi.fn().mockReturnValue({ addColorStop: vi.fn() }),
+    createRadialGradient: vi.fn().mockReturnValue({ addColorStop: vi.fn() }),
+    translate: vi.fn(),
+    rotate: vi.fn(),
+    scale: vi.fn(),
+  } as unknown as CanvasRenderingContext2D;
+}
 
 describe('ShareCards retrospective and data selectors', () => {
   const mockGames: GameEntry[] = [
@@ -129,6 +173,85 @@ describe('ShareCards retrospective and data selectors', () => {
       // Original data must be 100% intact
       expect(mockGames.length).toBe(3);
       expect(mockSessions.length).toBe(5);
+    });
+
+    it('strictly applies the 60-second rule across all years (30s and 59s excluded, 60s included)', () => {
+      const edgeGames: GameEntry[] = [
+        { uid: 10, game_id: 'G30', game_name: 'Short 30s', apitype_str: '0x0', category: 0 },
+        { uid: 20, game_id: 'G59', game_name: 'Short 59s', apitype_str: '0x0', category: 0 },
+        { uid: 30, game_id: 'G60', game_name: 'Exact 60s', apitype_str: '0x0', category: 0 },
+      ];
+
+      const edgeSessions: SessionEntry[] = [
+        // G30 has 30s in 2024
+        { game_uid: 10, duration: 30, timestamp: ts2024 },
+        // G59 has 29s in 2024 and 30s in 2025 (sum = 59s in history)
+        { game_uid: 20, duration: 29, timestamp: ts2024 },
+        { game_uid: 20, duration: 30, timestamp: ts2025 },
+        // G60 has 60s in 2024
+        { game_uid: 30, duration: 60, timestamp: ts2024 },
+      ];
+
+      // In 2024: G30 (30s) and G59 (59s history) are excluded; G60 is included
+      const retro2024 = calculateYearRetrospective(2024, edgeGames, edgeSessions);
+      expect(retro2024.hasData).toBe(true);
+      expect(retro2024.totalDuration).toBe(60);
+      expect(retro2024.uniqueGamesCount).toBe(1);
+      expect(retro2024.topGame?.game.game_id).toBe('G60');
+      expect(retro2024.topGame?.duration).toBe(60);
+
+      // In 2025: G59 only has 30s in 2025 and 59s in total history, so 0 eligible sessions in 2025
+      const retro2025 = calculateYearRetrospective(2025, edgeGames, edgeSessions);
+      expect(retro2025.hasData).toBe(false);
+      expect(retro2025.totalDuration).toBe(0);
+      expect(retro2025.topGame).toBeNull();
+    });
+
+    it('correctly calculates split-year game (50s in 2024, 25s in 2025): eligible in both years with respective durations', () => {
+      const splitGames: GameEntry[] = [
+        { uid: 75, game_id: 'SPLIT75', game_name: 'Cross Year Game', apitype_str: '0x0', category: 0 },
+      ];
+
+      // 50s in 2024 and 25s in 2025 = 75s lifetime accumulated playtime (>= 60s)
+      const splitSessions: SessionEntry[] = [
+        { game_uid: 75, duration: 50, timestamp: ts2024 },
+        { game_uid: 75, duration: 25, timestamp: ts2025 },
+      ];
+
+      // 2024 retrospective
+      const retro2024 = calculateYearRetrospective(2024, splitGames, splitSessions);
+      expect(retro2024.hasData).toBe(true);
+      expect(retro2024.totalDuration).toBe(50); // only 2024 duration!
+      expect(retro2024.uniqueGamesCount).toBe(1);
+      expect(retro2024.topGame?.game.game_id).toBe('SPLIT75');
+      expect(retro2024.topGame?.duration).toBe(50);
+
+      // 2025 retrospective
+      const retro2025 = calculateYearRetrospective(2025, splitGames, splitSessions);
+      expect(retro2025.hasData).toBe(true);
+      expect(retro2025.totalDuration).toBe(25); // only 2025 duration!
+      expect(retro2025.uniqueGamesCount).toBe(1);
+      expect(retro2025.topGame?.game.game_id).toBe('SPLIT75');
+      expect(retro2025.topGame?.duration).toBe(25);
+    });
+
+    it('does not display a historically eligible game as highlight or topGame in a year with 0 sessions', () => {
+      const histGames: GameEntry[] = [
+        { uid: 1, game_id: 'G2024', game_name: 'Played in 2024', apitype_str: '0x0', category: 0 },
+        { uid: 2, game_id: 'G2025', game_name: 'Played in 2025', apitype_str: '0x0', category: 0 },
+      ];
+
+      const histSessions: SessionEntry[] = [
+        { game_uid: 1, duration: 3600, timestamp: ts2024 }, // 1h in 2024, 0 in 2025
+        { game_uid: 2, duration: 120, timestamp: ts2025 },  // 2m in 2025, 0 in 2024
+      ];
+
+      const retro2025 = calculateYearRetrospective(2025, histGames, histSessions);
+      expect(retro2025.hasData).toBe(true);
+      // G2024 has 3600s lifetime, but 0 in 2025, so G2025 must be the top game for 2025
+      expect(retro2025.topGame?.game.game_id).toBe('G2025');
+      expect(retro2025.totalDuration).toBe(120);
+      expect(retro2025.uniqueGamesCount).toBe(1);
     });
   });
 
@@ -266,6 +389,178 @@ describe('ShareCards retrospective and data selectors', () => {
       expect(result.downloaded).toBe(true);
       expect(fakeAnchor.download).toBe('gamediary_top5_horizontal.png');
       expect(clickMock).toHaveBeenCalled();
+    });
+  });
+
+  describe('Card Category Filtering and Brand Assets', () => {
+    it('filters rankings by platform category for Top 5 and Top Game', () => {
+      // Persona 3 (category 0: psp), Castlevania (category 1: ps1), Cave Story (category 2: homebrew)
+      const pspData = filterData(mockGames, mockSessions, 'psp', 'all');
+      const pspStats = calculateOverallStats(pspData.filteredGames, pspData.filteredSessions);
+      expect(pspStats.rankings.length).toBe(1);
+      expect(pspStats.rankings[0].game.game_id).toBe('ULUS10041');
+      expect(pspStats.topGame?.game.game_id).toBe('ULUS10041');
+
+      const ps1Data = filterData(mockGames, mockSessions, 'ps1', 'all');
+      const ps1Stats = calculateOverallStats(ps1Data.filteredGames, ps1Data.filteredSessions);
+      expect(ps1Stats.rankings.length).toBe(1);
+      expect(ps1Stats.rankings[0].game.game_id).toBe('SLPS00068');
+      expect(ps1Stats.topGame?.game.game_id).toBe('SLPS00068');
+    });
+
+    it('renders drawBrandFooter cleanly with or without brand assets', () => {
+      const fakeCtx = {
+        save: vi.fn(),
+        restore: vi.fn(),
+        fillStyle: '',
+        font: '',
+        textAlign: '',
+        textBaseline: '',
+        fillText: vi.fn(),
+        measureText: vi.fn().mockReturnValue({ width: 100 }),
+        drawImage: vi.fn(),
+        beginPath: vi.fn(),
+        roundRect: vi.fn(),
+        fill: vi.fn(),
+        stroke: vi.fn(),
+      } as unknown as CanvasRenderingContext2D;
+
+      // With null brandAssets (fallback)
+      expect(() => drawBrandFooter(fakeCtx, 1080, 1920, null)).not.toThrow();
+      expect(fakeCtx.save).toHaveBeenCalled();
+      expect(fakeCtx.restore).toHaveBeenCalled();
+
+      // With brand assets
+      const fakeAssets = {
+        logo: {} as HTMLImageElement,
+        logoLetter: {} as HTMLImageElement,
+      };
+      expect(() => drawBrandFooter(fakeCtx, 1080, 1920, fakeAssets)).not.toThrow();
+      expect(fakeCtx.drawImage).toHaveBeenCalled();
+    });
+  });
+
+  describe('Card Individual and 60-second rule', () => {
+    const cardGames: GameEntry[] = [
+      { uid: 10, game_id: 'SHORT_45', game_name: 'Short Game', apitype_str: '0x0', category: 0 },
+      { uid: 20, game_id: 'EXACT_60', game_name: 'Exact Game', apitype_str: '0x0', category: 0 },
+      { uid: 30, game_id: 'LONG_3600', game_name: 'Long Game', apitype_str: '0x0', category: 0 },
+    ];
+
+    const cardSessions: SessionEntry[] = [
+      { game_uid: 10, duration: 45, timestamp: ts2024 },
+      { game_uid: 20, duration: 60, timestamp: ts2024 },
+      { game_uid: 30, duration: 3600, timestamp: ts2024 },
+    ];
+
+    it('filters eligible games for individual selector strictly (games < 60s excluded, >= 60s included)', () => {
+      const eligibleUids = getEligibleGameUids(cardSessions);
+      expect(eligibleUids.has(10)).toBe(false); // 45s excluded
+      expect(eligibleUids.has(20)).toBe(true);  // 60s included
+      expect(eligibleUids.has(30)).toBe(true);  // 3600s included
+    });
+
+    it('renders empty state card when target game is ineligible (< 60s)', async () => {
+      const fakeCtx = createMockContext();
+      const overallStats = calculateOverallStats(cardGames, cardSessions);
+      const mockT = vi.fn((key: string) => key);
+
+      await renderIndividualGameCard(fakeCtx, {
+        model: 'individual',
+        format: 'vertical',
+        selectedGameUid: 10, // 45s game (ineligible)
+        games: cardGames,
+        sessions: cardSessions,
+        overallStats,
+        mapping: {},
+        t: mockT,
+        locale: 'en',
+      });
+
+      expect(mockT).toHaveBeenCalledWith('stats.rankings.noData');
+      expect(fakeCtx.fillText).toHaveBeenCalledWith(
+        'stats.rankings.noData',
+        expect.any(Number),
+        expect.any(Number)
+      );
+    });
+  });
+
+  describe('Minha Biblioteca and 60-second rule', () => {
+    const libraryGames: GameEntry[] = [
+      { uid: 1, game_id: 'G_LONG', game_name: 'Long Game 1', apitype_str: '0x0', category: 0 },
+      { uid: 2, game_id: 'G_EXACT', game_name: 'Exact 60s', apitype_str: '0x0', category: 0 },
+      { uid: 3, game_id: 'G_SHORT', game_name: 'Short 20s', apitype_str: '0x0', category: 0 },
+      { uid: 4, game_id: 'G_UNPLAYED', game_name: 'Unplayed', apitype_str: '0x0', category: 0 },
+    ];
+
+    const librarySessions: SessionEntry[] = [
+      { game_uid: 1, duration: 1800, timestamp: ts2024 },
+      { game_uid: 2, duration: 60, timestamp: ts2024 },
+      { game_uid: 3, duration: 20, timestamp: ts2024 },
+    ];
+
+    it('renders library card displaying full collection count but only summing eligible playtime', async () => {
+      const fakeCtx = createMockContext();
+      const overallStats = calculateOverallStats(libraryGames, librarySessions);
+      const mockT = vi.fn((key: string) => key);
+
+      // Verify overallStats calculation first:
+      // Total duration = 1800 + 60 = 1860s (G_SHORT 20s is excluded)
+      expect(overallStats.totalDuration).toBe(1860);
+      // Rankings only contain 2 eligible games
+      expect(overallStats.rankings.length).toBe(2);
+      expect(overallStats.rankings.map(r => r.game.uid)).toEqual([1, 2]);
+
+      await renderLibraryCard(fakeCtx, {
+        model: 'library',
+        format: 'horizontal',
+        games: libraryGames,
+        sessions: librarySessions,
+        overallStats,
+        mapping: {},
+        t: mockT,
+        locale: 'en',
+      });
+
+      // Header should display total collection count (4 games) and eligible duration
+      expect(fakeCtx.fillText).toHaveBeenCalledWith(
+        expect.stringContaining('4 stats.overview.totalGames'),
+        expect.any(Number),
+        expect.any(Number)
+      );
+    });
+
+    it('renders empty state card when no games meet the 60-second rule', async () => {
+      const fakeCtx = createMockContext();
+      const shortGames: GameEntry[] = [
+        { uid: 99, game_id: 'G_SHORT', game_name: 'Short Game', apitype_str: '0x0', category: 0 },
+      ];
+      const shortSessions: SessionEntry[] = [
+        { game_uid: 99, duration: 40, timestamp: ts2024 },
+      ];
+      const overallStats = calculateOverallStats(shortGames, shortSessions);
+      const mockT = vi.fn((key: string) => key);
+
+      expect(overallStats.rankings.length).toBe(0);
+
+      await renderLibraryCard(fakeCtx, {
+        model: 'library',
+        format: 'vertical',
+        games: shortGames,
+        sessions: shortSessions,
+        overallStats,
+        mapping: {},
+        t: mockT,
+        locale: 'en',
+      });
+
+      expect(mockT).toHaveBeenCalledWith('stats.rankings.noData');
+      expect(fakeCtx.fillText).toHaveBeenCalledWith(
+        'stats.rankings.noData',
+        expect.any(Number),
+        expect.any(Number)
+      );
     });
   });
 });

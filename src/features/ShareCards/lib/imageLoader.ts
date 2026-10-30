@@ -4,6 +4,13 @@
 
 const imageCache = new Map<string, HTMLImageElement>();
 
+export interface BrandAssets {
+  logo: HTMLImageElement | null;
+  logoLetter: HTMLImageElement | null;
+}
+
+let brandAssetsPromise: Promise<BrandAssets> | null = null;
+
 /**
  * Loads an image from a URL with crossOrigin anonymous, returning null if it fails or times out.
  */
@@ -56,8 +63,32 @@ export async function loadCoverImage(
 }
 
 /**
+ * Loads official vector SVG brand logos from public directory
+ */
+export async function loadBrandAssets(): Promise<BrandAssets> {
+  if (brandAssetsPromise) {
+    return brandAssetsPromise;
+  }
+
+  brandAssetsPromise = (async () => {
+    try {
+      const [logo, logoLetter] = await Promise.all([
+        loadCoverImage('/logo.svg', 3000),
+        loadCoverImage('/logo_letter.svg', 3000),
+      ]);
+      return { logo, logoLetter };
+    } catch {
+      return { logo: null, logoLetter: null };
+    }
+  })();
+
+  return brandAssetsPromise;
+}
+
+/**
  * Clears the image memory cache
  */
 export function clearImageCache(): void {
   imageCache.clear();
+  brandAssetsPromise = null;
 }

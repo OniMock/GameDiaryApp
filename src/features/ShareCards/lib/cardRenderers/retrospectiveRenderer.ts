@@ -6,18 +6,19 @@ import {
   drawCoverArt,
   drawPlatformBadge,
   drawBrandFooter,
+  drawPlaytimeHeroBlock,
   wrapText,
 } from '../canvasUtils';
 import { loadCoverImage } from '../imageLoader';
 import { getCoverData } from '../../../../shared/lib/game-covers';
 import { calculateYearRetrospective } from '../retrospectiveUtils';
-import { formatDurationSeconds } from '../../../Stats/lib/statsCalculator';
+import { formatDurationSeconds, formatHours } from '../../../Stats/lib/statsCalculator';
 
 export async function renderRetrospectiveCard(
   ctx: CanvasRenderingContext2D,
   options: CardRenderOptions
 ): Promise<void> {
-  const { format, games, sessions, selectedYear, mapping, t } = options;
+  const { format, games, sessions, selectedYear, mapping, t, locale, brandAssets } = options;
   const { width, height } = FORMAT_DIMENSIONS[format];
 
   // 1. Draw Retrospective Purple/Midnight Background
@@ -76,7 +77,7 @@ export async function renderRetrospectiveCard(
     ctx.fillText('', width * 0.5, emptyY + 165);
     ctx.restore();
 
-    drawBrandFooter(ctx, width, height);
+    drawBrandFooter(ctx, width, height, brandAssets);
     return;
   }
 
@@ -87,7 +88,6 @@ export async function renderRetrospectiveCard(
     topCoverImg = await loadCoverImage(url);
   }
 
-
   // 3. Render Formats
   if (format === 'vertical') {
     // VERTICAL RECAP (1080 x 1920)
@@ -96,20 +96,27 @@ export async function renderRetrospectiveCard(
     const kpiW = (width - marginX * 2 - 32) / 3;
     const kpiH = 170;
 
-    // KPI 1: Playtime
-    drawGlassCard(ctx, marginX, kpiY, kpiW, kpiH, 22, 'rgba(17, 24, 39, 0.85)', 'rgba(168, 85, 247, 0.35)');
-    ctx.save();
-    ctx.fillStyle = '#C084FC';
-    ctx.font = '800 13px Inter, system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(t('stats.overview.totalPlaytime').toUpperCase(), marginX + kpiW * 0.5, kpiY + 40);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 38px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(retro.totalDuration), marginX + kpiW * 0.5, kpiY + 98);
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.font = '600 14px Inter, system-ui, sans-serif';
-    ctx.fillText(`${retro.totalHours} hrs`, marginX + kpiW * 0.5, kpiY + 134);
-    ctx.restore();
+    // KPI 1: Playtime (Strict 3-zone architecture)
+    const durStr = formatDurationSeconds(retro.totalDuration, locale);
+    drawPlaytimeHeroBlock(ctx, {
+      x: marginX,
+      y: kpiY,
+      w: kpiW,
+      h: kpiH,
+      label: t('stats.overview.totalPlaytime'),
+      value: durStr,
+      subtext: formatHours(retro.totalHours, locale),
+      align: 'center',
+      labelColor: '#C084FC',
+      valueColor: '#FFFFFF',
+      subtextColor: 'rgba(255, 255, 255, 0.55)',
+      cardRadius: 22,
+      cardBg: 'rgba(17, 24, 39, 0.85)',
+      cardBorder: 'rgba(168, 85, 247, 0.35)',
+      maxHeroFontSize: 38,
+      paddingX: 16,
+      paddingY: 18,
+    });
 
     // KPI 2: Games
     const kpi2X = marginX + kpiW + 16;
@@ -171,9 +178,15 @@ export async function renderRetrospectiveCard(
         ctx.fillText(l, infoX, topY + 128 + idx * 44);
       });
 
+      const topGameDurStr = formatDurationSeconds(retro.topGame.duration, locale);
+      let tgDurSize = 42;
+      ctx.font = `900 ${tgDurSize}px Inter, system-ui, sans-serif`;
+      while (ctx.measureText(topGameDurStr).width > topW - cW - 100 && tgDurSize > 24) {
+        tgDurSize -= 2;
+        ctx.font = `900 ${tgDurSize}px Inter, system-ui, sans-serif`;
+      }
       ctx.fillStyle = '#F59E0B';
-      ctx.font = '900 42px Inter, system-ui, sans-serif';
-      ctx.fillText(formatDurationSeconds(retro.topGame.duration), infoX, topY + 245);
+      ctx.fillText(topGameDurStr, infoX, topY + 245);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.font = '600 17px Inter, system-ui, sans-serif';
@@ -202,7 +215,7 @@ export async function renderRetrospectiveCard(
     ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
     ctx.font = '800 24px Inter, system-ui, sans-serif';
     ctx.textAlign = 'right';
-    const monthDur = retro.mostActiveMonth ? formatDurationSeconds(retro.mostActiveMonth.duration) : '-';
+    const monthDur = retro.mostActiveMonth ? formatDurationSeconds(retro.mostActiveMonth.duration, locale) : '-';
     ctx.fillText(monthDur, marginX + habitW - 36, habitY + 86);
     ctx.restore();
 
@@ -235,17 +248,25 @@ export async function renderRetrospectiveCard(
     const kpiW = (width - margin * 2 - 24) / 3;
     const kpiH = 130;
 
-    // Hours
-    drawGlassCard(ctx, margin, kpiY, kpiW, kpiH, 20, 'rgba(17, 24, 39, 0.85)', 'rgba(168, 85, 247, 0.35)');
-    ctx.save();
-    ctx.fillStyle = '#C084FC';
-    ctx.font = '800 12px Inter, system-ui, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(t('stats.overview.totalPlaytime').toUpperCase(), margin + kpiW * 0.5, kpiY + 36);
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 30px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(retro.totalDuration), margin + kpiW * 0.5, kpiY + 84);
-    ctx.restore();
+    // Hours (Strict 3-zone architecture)
+    const durStr = formatDurationSeconds(retro.totalDuration, locale);
+    drawPlaytimeHeroBlock(ctx, {
+      x: margin,
+      y: kpiY,
+      w: kpiW,
+      h: kpiH,
+      label: t('stats.overview.totalPlaytime'),
+      value: durStr,
+      align: 'center',
+      labelColor: '#C084FC',
+      valueColor: '#FFFFFF',
+      cardRadius: 20,
+      cardBg: 'rgba(17, 24, 39, 0.85)',
+      cardBorder: 'rgba(168, 85, 247, 0.35)',
+      maxHeroFontSize: 30,
+      paddingX: 12,
+      paddingY: 16,
+    });
 
     // Games
     const kpi2X = margin + kpiW + 12;
@@ -301,9 +322,15 @@ export async function renderRetrospectiveCard(
 
       drawPlatformBadge(ctx, retro.topGame.game.category, infoX, topY + 126, 26);
 
+      const tgDur = formatDurationSeconds(retro.topGame.duration, locale);
+      let tgSize = 36;
+      ctx.font = `900 ${tgSize}px Inter, system-ui, sans-serif`;
+      while (ctx.measureText(tgDur).width > topW - cW - 84 && tgSize > 22) {
+        tgSize -= 2;
+        ctx.font = `900 ${tgSize}px Inter, system-ui, sans-serif`;
+      }
       ctx.fillStyle = '#F59E0B';
-      ctx.font = '900 36px Inter, system-ui, sans-serif';
-      ctx.fillText(formatDurationSeconds(retro.topGame.duration), infoX, topY + 172);
+      ctx.fillText(tgDur, infoX, topY + 172);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.font = '600 15px Inter, system-ui, sans-serif';
@@ -367,9 +394,10 @@ export async function renderRetrospectiveCard(
       const lines = wrapText(ctx, retro.topGame.game.game_name, cardW - 48);
       ctx.fillText(lines[0], cX, cardY + 276);
 
+      const tgDur = formatDurationSeconds(retro.topGame.duration, locale);
       ctx.fillStyle = '#F59E0B';
       ctx.font = '900 32px Inter, system-ui, sans-serif';
-      ctx.fillText(formatDurationSeconds(retro.topGame.duration), cX, cardY + 346);
+      ctx.fillText(tgDur, cX, cardY + 346);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.font = '600 13px Inter, system-ui, sans-serif';
@@ -390,9 +418,16 @@ export async function renderRetrospectiveCard(
     ctx.font = '800 12px Inter, system-ui, sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(t('stats.overview.totalPlaytime').toUpperCase(), rightX + 28, rightY + 36);
+
+    const durStr = formatDurationSeconds(retro.totalDuration, locale);
+    let durSize = 32;
+    ctx.font = `900 ${durSize}px Inter, system-ui, sans-serif`;
+    while (ctx.measureText(durStr).width > (rightW * 0.5) - 36 && durSize > 20) {
+      durSize -= 2;
+      ctx.font = `900 ${durSize}px Inter, system-ui, sans-serif`;
+    }
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = '900 32px Inter, system-ui, sans-serif';
-    ctx.fillText(formatDurationSeconds(retro.totalDuration), rightX + 28, rightY + 80);
+    ctx.fillText(durStr, rightX + 28, rightY + 80);
 
     ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.font = '800 12px Inter, system-ui, sans-serif';
@@ -418,7 +453,7 @@ export async function renderRetrospectiveCard(
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.font = '800 18px Inter, system-ui, sans-serif';
     ctx.textAlign = 'right';
-    const mDur = retro.mostActiveMonth ? formatDurationSeconds(retro.mostActiveMonth.duration) : '-';
+    const mDur = retro.mostActiveMonth ? formatDurationSeconds(retro.mostActiveMonth.duration, locale) : '-';
     ctx.fillText(mDur, rightX + rightW - 28, rightY + kpiH + 82);
     ctx.restore();
 
@@ -436,6 +471,6 @@ export async function renderRetrospectiveCard(
     ctx.restore();
   }
 
-  // 4. Draw Footer
-  drawBrandFooter(ctx, width, height);
+  // 4. Draw Footer with official brand SVG logos
+  drawBrandFooter(ctx, width, height, brandAssets);
 }

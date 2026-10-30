@@ -184,7 +184,7 @@ export const DatabaseMergeTool: React.FC = () => {
             e.preventDefault();
             navigate(toolsPath);
           }}
-          className="inline-flex py-2 px-4 rounded-xl bg-card border border-border text-sm font-medium hover:bg-muted transition-colors"
+          className="inline-flex items-center gap-1.5 py-2.5 px-4 rounded-xl bg-card border border-border text-sm font-semibold hover:bg-muted text-foreground transition-colors whitespace-nowrap shrink-0 shadow-sm"
         >
           &larr; {t('dbMerge.backToTools') || 'Back to Tools'}
         </a>

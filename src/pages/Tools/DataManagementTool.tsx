@@ -138,8 +138,27 @@ export const DataManagementTool: React.FC = () => {
   };
 
   const processFileText = (text: string) => {
-    setSelectedFileText(text);
-    setStatusMessage(null);
+    try {
+      const parsed = JSON.parse(text);
+      if (
+        !parsed ||
+        typeof parsed !== 'object' ||
+        (!Array.isArray(parsed.games) && !Array.isArray(parsed.sessions))
+      ) {
+        setStatusMessage({
+          type: 'error',
+          text: t('actions.invalidFileBackup'),
+        });
+        return;
+      }
+      setSelectedFileText(text);
+      setStatusMessage(null);
+    } catch {
+      setStatusMessage({
+        type: 'error',
+        text: t('actions.invalidFileBackup'),
+      });
+    }
   };
 
   const handleSelectFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,7 +264,7 @@ export const DataManagementTool: React.FC = () => {
     .replace('{sessions}', String(sessions.length));
 
   return (
-    <div className="tool-main-layout py-4 pb-20 max-w-5xl mx-auto space-y-8 animate-fade-in">
+    <div className="w-full py-4 pb-20 max-w-5xl mx-auto space-y-8 animate-fade-in">
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -263,7 +282,7 @@ export const DataManagementTool: React.FC = () => {
             e.preventDefault();
             navigate(toolsPath);
           }}
-          className="inline-flex py-2 px-4 rounded-xl bg-card border border-border text-sm font-medium hover:bg-muted transition-colors self-start md:self-auto"
+          className="inline-flex items-center gap-1.5 py-2.5 px-4 rounded-xl bg-card border border-border text-sm font-semibold hover:bg-muted text-foreground transition-colors whitespace-nowrap shrink-0 self-start md:self-auto shadow-sm"
         >
           &larr; {t('dbMerge.backToTools')}
         </a>

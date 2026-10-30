@@ -1,5 +1,6 @@
 import type { CardRenderOptions } from '../types';
 import { FORMAT_DIMENSIONS } from '../types';
+import { loadBrandAssets } from './imageLoader';
 import { renderTop5Card } from './cardRenderers/top5Renderer';
 import { renderTopGameCard } from './cardRenderers/topGameRenderer';
 import { renderLibraryCard } from './cardRenderers/libraryRenderer';
@@ -26,24 +27,28 @@ export async function renderCardToCanvas(
   // Clear canvas
   ctx.clearRect(0, 0, width, height);
 
+  // Pre-load official brand logo assets
+  const brandAssets = options.brandAssets || (await loadBrandAssets());
+  const optionsWithBrand: CardRenderOptions = { ...options, brandAssets };
+
   switch (options.model) {
     case 'top5':
-      await renderTop5Card(ctx, options);
+      await renderTop5Card(ctx, optionsWithBrand);
       break;
     case 'topGame':
-      await renderTopGameCard(ctx, options);
+      await renderTopGameCard(ctx, optionsWithBrand);
       break;
     case 'library':
-      await renderLibraryCard(ctx, options);
+      await renderLibraryCard(ctx, optionsWithBrand);
       break;
     case 'retrospective':
-      await renderRetrospectiveCard(ctx, options);
+      await renderRetrospectiveCard(ctx, optionsWithBrand);
       break;
     case 'individual':
-      await renderIndividualGameCard(ctx, options);
+      await renderIndividualGameCard(ctx, optionsWithBrand);
       break;
     default:
-      await renderTop5Card(ctx, options);
+      await renderTop5Card(ctx, optionsWithBrand);
   }
 }
 

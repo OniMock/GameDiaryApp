@@ -1,13 +1,16 @@
 import type { GameEntry, SessionEntry } from '../../GameSessions/model/domain/types';
 import type { YearRetrospectiveStats } from '../types';
+import { getEligibleGameUids } from '../../Stats/lib/statsCalculator';
 
 /**
  * Returns a sorted list of unique years present in the session history (descending)
+ * considering only eligible games (total accumulated playtime >= 60s).
  */
 export function getAvailableYears(sessions: SessionEntry[]): number[] {
+  const eligibleUids = getEligibleGameUids(sessions);
   const years = new Set<number>();
   for (const s of sessions) {
-    if (s.timestamp && s.timestamp > 0) {
+    if (s.timestamp && s.timestamp > 0 && eligibleUids.has(s.game_uid)) {
       const y = new Date(s.timestamp * 1000).getFullYear();
       if (!isNaN(y) && y >= 2000 && y <= 2100) {
         years.add(y);
@@ -18,7 +21,9 @@ export function getAvailableYears(sessions: SessionEntry[]): number[] {
 }
 
 /**
- * Pure function to calculate gaming retrospective for a given year or all-time
+ * Pure function to calculate gaming retrospective for a given year or all-time.
+ * Enforces the 60-second rule: only games with total accumulated playtime >= 60s
+ * across their complete history are eligible to appear in any retrospective.
  */
 export function calculateYearRetrospective(
   year: number | 'all',
@@ -30,9 +35,13 @@ export function calculateYearRetrospective(
     gameMap.set(g.uid, g);
   }
 
-  // Filter sessions for the chosen year
+  // 1. Determine eligible game UIDs based on complete session history (>= 60s total accumulated)
+  const eligibleGameUids = getEligibleGameUids(sessions);
+
+  // 2. Filter sessions for the chosen year, considering ONLY historically eligible games
   const filteredSessions = sessions.filter((s) => {
     if (!s.timestamp || s.timestamp <= 0) return false;
+    if (!eligibleGameUids.has(s.game_uid)) return false;
     if (year === 'all') return true;
     const y = new Date(s.timestamp * 1000).getFullYear();
     return y === year;

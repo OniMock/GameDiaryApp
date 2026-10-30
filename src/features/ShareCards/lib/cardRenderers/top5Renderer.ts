@@ -18,7 +18,7 @@ export async function renderTop5Card(
   ctx: CanvasRenderingContext2D,
   options: CardRenderOptions
 ): Promise<void> {
-  const { format, overallStats, mapping, t } = options;
+  const { format, overallStats, mapping, t, locale, brandAssets } = options;
   const { width, height } = FORMAT_DIMENSIONS[format];
 
   // 1. Draw gamer background
@@ -67,7 +67,7 @@ export async function renderTop5Card(
   // Subtitle with total library time
   ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
   ctx.font = `600 ${format === 'horizontal' ? 13 : 17}px Inter, system-ui, sans-serif`;
-  const subText = `${formatDurationSeconds(overallStats.totalDuration)} • ${overallStats.totalSessions} ${t('stats.modal.totalSessions').toLowerCase()}`;
+  const subText = `${formatDurationSeconds(overallStats.totalDuration, locale)} • ${overallStats.totalSessions} ${t('stats.modal.totalSessions').toLowerCase()}`;
   ctx.fillText(subText, marginX, headerY + pillH + (format === 'horizontal' ? 40 : 72));
   ctx.restore();
 
@@ -112,14 +112,22 @@ export async function renderTop5Card(
         ctx.fillText(l, infoX, heroY + 115 + idx * 38);
       });
 
-      // Playtime
+      // Playtime (auto-scaled with guaranteed vertical clearance)
+      const firstDurStr = formatDurationSeconds(first.totalDuration, locale);
+      let firstDurSize = 36;
+      ctx.font = `900 ${firstDurSize}px Inter, system-ui, sans-serif`;
+      while (ctx.measureText(firstDurStr).width > heroW - coverW - 90 && firstDurSize > 24) {
+        firstDurSize -= 2;
+        ctx.font = `900 ${firstDurSize}px Inter, system-ui, sans-serif`;
+      }
       ctx.fillStyle = '#F59E0B';
-      ctx.font = '900 36px Inter, system-ui, sans-serif';
-      ctx.fillText(formatDurationSeconds(first.totalDuration), infoX, heroY + 205);
+      ctx.textBaseline = 'middle';
+      ctx.fillText(firstDurStr, infoX, heroY + 205);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-      ctx.font = '600 16px Inter, system-ui, sans-serif';
-      ctx.fillText(`${first.percentageOfTotal}% ${t('stats.overview.ofTotalTime')} • ${first.sessionCount} ${t('stats.modal.totalSessions').toLowerCase()}`, infoX, heroY + 252);
+      ctx.font = '600 15px Inter, system-ui, sans-serif';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(`${first.percentageOfTotal}% ${t('stats.overview.ofTotalTime')} • ${first.sessionCount} ${t('stats.modal.totalSessions').toLowerCase()}`, infoX, heroY + 250);
       ctx.restore();
     }
 
@@ -153,18 +161,24 @@ export async function renderTop5Card(
       ctx.save();
       drawPlatformBadge(ctx, item.game.category, textX, rowY + 36, 26);
 
+      // Measure duration first to prevent title/hours collision
+      const durStr = formatDurationSeconds(item.totalDuration, locale);
+      ctx.font = '900 28px Inter, system-ui, sans-serif';
+      const durW = ctx.measureText(durStr).width;
+      const availableTitleW = heroW - (textX - marginX) - durW - 48;
+
       ctx.fillStyle = '#FFFFFF';
       ctx.font = '800 24px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      const rLines = wrapText(ctx, item.game.game_name, heroW - (textX - marginX) - 170);
+      const rLines = wrapText(ctx, item.game.game_name, Math.max(availableTitleW, 140));
       ctx.fillText(rLines[0], textX, rowY + 74);
 
       // Hours on right
       ctx.fillStyle = isPodium ? '#F8FAFC' : '#E2E8F0';
       ctx.font = '900 28px Inter, system-ui, sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(formatDurationSeconds(item.totalDuration), marginX + heroW - 32, rowY + 68);
+      ctx.fillText(durStr, marginX + heroW - 32, rowY + 68);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '600 15px Inter, system-ui, sans-serif';
@@ -202,23 +216,28 @@ export async function renderTop5Card(
       const cY = rowY + (rowH - cH) * 0.5;
       drawCoverArt(ctx, img, cX, cY, cW, cH, 14, item.game.game_name, item.game.game_id, item.game.category);
 
-      // Text
+      // Text & safe duration spacing
       const textX = cX + cW + 24;
       ctx.save();
       drawPlatformBadge(ctx, item.game.category, textX, rowY + 22, 24);
+
+      const durStr = formatDurationSeconds(item.totalDuration, locale);
+      ctx.font = '900 24px Inter, system-ui, sans-serif';
+      const durW = ctx.measureText(durStr).width;
+      const availableTitleW = cardW - (textX - marginX) - durW - 48;
 
       ctx.fillStyle = '#FFFFFF';
       ctx.font = '800 20px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      const titleLines = wrapText(ctx, item.game.game_name, cardW - (textX - marginX) - 180);
+      const titleLines = wrapText(ctx, item.game.game_name, Math.max(availableTitleW, 120));
       ctx.fillText(titleLines[0], textX, rowY + 56);
 
       // Hours
       ctx.fillStyle = isRank1 ? '#F59E0B' : '#FFFFFF';
       ctx.font = '900 24px Inter, system-ui, sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(formatDurationSeconds(item.totalDuration), marginX + cardW - 28, rowY + 44);
+      ctx.fillText(durStr, marginX + cardW - 28, rowY + 44);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '600 14px Inter, system-ui, sans-serif';
@@ -227,7 +246,6 @@ export async function renderTop5Card(
     }
   } else {
     // HORIZONTAL LAYOUT (1200 x 630)
-    // Left side: #1 Feature / Right side: #2-#5 list
     const splitX = 520;
 
     // Left spotlight for #1
@@ -259,9 +277,10 @@ export async function renderTop5Card(
       const lines = wrapText(ctx, first.game.game_name, spotW - 48);
       ctx.fillText(lines[0], cX, spotY + 266);
 
+      const firstDur = formatDurationSeconds(first.totalDuration, locale);
       ctx.fillStyle = '#F59E0B';
       ctx.font = '900 28px Inter, system-ui, sans-serif';
-      ctx.fillText(formatDurationSeconds(first.totalDuration), cX, spotY + 316);
+      ctx.fillText(firstDur, cX, spotY + 316);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.font = '600 14px Inter, system-ui, sans-serif';
@@ -294,11 +313,16 @@ export async function renderTop5Card(
 
       const textX = cX + cW + 18;
       ctx.save();
+      const durStr = formatDurationSeconds(item.totalDuration, locale);
+      ctx.font = '900 20px Inter, system-ui, sans-serif';
+      const durW = ctx.measureText(durStr).width;
+      const availableTitleW = listW - (textX - listX) - durW - 32;
+
       ctx.fillStyle = '#FFFFFF';
       ctx.font = '800 17px Inter, system-ui, sans-serif';
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
-      const tLines = wrapText(ctx, item.game.game_name, listW - (textX - listX) - 130);
+      const tLines = wrapText(ctx, item.game.game_name, Math.max(availableTitleW, 100));
       ctx.fillText(tLines[0], textX, rowY + 24);
 
       drawPlatformBadge(ctx, item.game.category, textX, rowY + 52, 20);
@@ -306,7 +330,7 @@ export async function renderTop5Card(
       ctx.fillStyle = '#FFFFFF';
       ctx.font = '900 20px Inter, system-ui, sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(formatDurationSeconds(item.totalDuration), listX + listW - 20, rowY + 28);
+      ctx.fillText(durStr, listX + listW - 20, rowY + 28);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '600 13px Inter, system-ui, sans-serif';
@@ -315,6 +339,6 @@ export async function renderTop5Card(
     }
   }
 
-  // 5. Draw Watermark Footer
-  drawBrandFooter(ctx, width, height);
+  // 5. Draw Watermark Footer with official brand SVG logos
+  drawBrandFooter(ctx, width, height, brandAssets);
 }

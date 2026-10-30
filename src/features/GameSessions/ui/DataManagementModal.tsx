@@ -30,6 +30,7 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFileText, setSelectedFileText] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [isExportingZip, setIsExportingZip] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -37,6 +38,59 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
   const activeFileText = selectedFileText || pendingImportText || null;
 
   if (!isOpen) return null;
+
+  const processFile = async (file: File) => {
+    if (!file.name.toLowerCase().endsWith('.json')) {
+      setStatusMessage({
+        type: 'error',
+        text: t('actions.invalidFileBackup')
+      });
+      return;
+    }
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error('Invalid JSON structure');
+      }
+      if (!Array.isArray(parsed.games) && !Array.isArray(parsed.sessions)) {
+        throw new Error('Missing games or sessions');
+      }
+      setSelectedFileText(text);
+      setStatusMessage(null);
+    } catch {
+      setStatusMessage({
+        type: 'error',
+        text: t('dbMerge.errorParsing')
+      });
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      await processFile(file);
+    }
+  };
 
   const handleDownloadBackup = () => {
     try {
@@ -145,27 +199,8 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
 
   const handleSelectFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!file.name.toLowerCase().endsWith('.json')) {
-      setStatusMessage({ 
-        type: 'error', 
-        text: t('actions.invalidFileBackup') 
-      });
-      return;
-    }
-
-    try {
-      const text = await file.text();
-      setSelectedFileText(text);
-      setStatusMessage(null);
-    } catch {
-      setStatusMessage({ 
-        type: 'error', 
-        text: t('dataManagement.fileReadError') 
-      });
-    } finally {
-      if (fileInputRef.current) fileInputRef.current.value = '';
+    if (file) {
+      await processFile(file);
     }
   };
 
@@ -221,7 +256,11 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
     .replace('{sessions}', String(sessions.length));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm animate-fade-in"
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => e.preventDefault()}
+    >
       <div 
         className="relative w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl p-6 overflow-hidden max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
@@ -405,13 +444,29 @@ export const DataManagementModal: React.FC<DataManagementModalProps> = ({
                   onChange={handleSelectFile} 
                   className="hidden" 
                 />
-                <button
+                <div
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex items-center justify-center gap-3 p-4 rounded-xl border-2 border-dashed border-border hover:border-primary/50 hover:bg-card/50 transition-all text-sm font-medium text-foreground"
+                  className={`w-full flex flex-col items-center justify-center gap-2 p-5 rounded-xl border-2 border-dashed cursor-pointer transition-all text-sm font-medium ${
+                    isDragging
+                      ? 'border-primary bg-primary/10 ring-2 ring-primary/20 scale-[1.01]'
+                      : 'border-border hover:border-primary/50 hover:bg-card/50 text-foreground'
+                  }`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      fileInputRef.current?.click();
+                    }
+                  }}
                 >
-                  <UploadCloud size={20} className="text-primary" />
-                  <span>{t('dataManagement.chooseBackupFile')}</span>
-                </button>
+                  <UploadCloud size={24} className={isDragging ? 'text-primary scale-110 transition-transform' : 'text-primary'} />
+                  <span className="font-semibold text-foreground">{t('dataManagement.chooseBackupFile')}</span>
+                  <span className="text-xs text-muted-foreground">{t('dataManagement.dragDropHint')}</span>
+                </div>
               </div>
 
               {/* Seção 3: Área de Perigo (Exclusão Local) */}
