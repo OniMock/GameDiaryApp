@@ -13,11 +13,13 @@ export interface LanguageMeta {
     home: string;
     tools: string;
     download: string;
+    stats: string;
   };
   pageDescriptions: {
     home: string;
     tools: string;
     download: string;
+    stats: string;
   };
 }
 
@@ -34,12 +36,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | Your Personal PSP Gaming Journal',
       tools: 'System Tools | GameDiary PSP',
-      download: 'Download GameDiary | PSP Plugin & App'
+      download: 'Download GameDiary | PSP Plugin & App',
+      stats: 'Statistics & Analytics | GameDiary PSP'
     },
     pageDescriptions: {
       home: 'GameDiary: The ultimate PSP app to track your PlayStation Portable playtime. A lightweight homebrew kernel plugin and dashboard to manage your gaming history.',
       tools: 'Manage your GameDiary PSP data with precision. Visual backup.json editor and database merge tools.',
-      download: 'Download the latest GameDiary release for PlayStation Portable. Includes kernel plugin, homebrew app, and installation instructions.'
+      download: 'Download the latest GameDiary release for PlayStation Portable. Includes kernel plugin, homebrew app, and installation instructions.',
+      stats: 'Deep personal playtime analytics, top games ranking, platform distribution, and historical gaming trends for your PSP.'
     }
   },
   {
@@ -54,12 +58,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | Seu Diário Gamer Pessoal para PSP',
       tools: 'Ferramentas do Sistema | GameDiary PSP',
-      download: 'Baixar GameDiary | Plugin & Aplicativo para PSP'
+      download: 'Baixar GameDiary | Plugin & Aplicativo para PSP',
+      stats: 'Estatísticas & Análises | GameDiary PSP'
     },
     pageDescriptions: {
       home: 'O rastreador de tempo de jogo definitivo para o PlayStation Portable. A união de um plugin invisível no modo kernel com um aplicativo dashboard premium.',
       tools: 'Gerencie seus dados do GameDiary PSP com precisão. Editor visual de backup.json e ferramentas de mesclagem de banco de dados.',
-      download: 'Baixe a versão mais recente do GameDiary para o PlayStation Portable. Inclui plugin kernel, aplicativo homebrew e guia de instalação.'
+      download: 'Baixe a versão mais recente do GameDiary para o PlayStation Portable. Inclui plugin kernel, aplicativo homebrew e guia de instalação.',
+      stats: 'Estatísticas pessoais completas, ranking de jogos mais jogados, distribuição por plataforma e evolução temporal do seu PSP.'
     }
   },
   {
@@ -74,12 +80,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | Tu Diario de Juegos Personal para PSP',
       tools: 'Herramientas del Sistema | GameDiary PSP',
-      download: 'Descargar GameDiary | Plugin y Aplicación para PSP'
+      download: 'Descargar GameDiary | Plugin y Aplicación para PSP',
+      stats: 'Estadísticas y Análisis | GameDiary PSP'
     },
     pageDescriptions: {
       home: 'El rastreador definitivo de tiempo de juego para PlayStation Portable. Plugin ligero en modo kernel y panel de control moderno.',
       tools: 'Administra tus datos de GameDiary PSP con precisión. Editor visual de backup.json y herramientas de combinación de datos.',
-      download: 'Descarga la última versión de GameDiary para PlayStation Portable. Incluye plugin kernel, aplicación homebrew y guía de instalación.'
+      download: 'Descarga la última versión de GameDiary para PlayStation Portable. Incluye plugin kernel, aplicación homebrew y guía de instalación.',
+      stats: 'Estadísticas personales detalladas, ranking de títulos más jugados, distribución por plataformas y evolución temporal para PSP.'
     }
   },
   {
@@ -94,12 +102,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | Dein persönliches PSP-Gaming-Tagebuch',
       tools: 'System-Tools | GameDiary PSP',
-      download: 'GameDiary herunterladen | PSP-Plugin und App'
+      download: 'GameDiary herunterladen | PSP-Plugin und App',
+      stats: 'Statistiken & Analysen | GameDiary PSP'
     },
     pageDescriptions: {
       home: 'Der ultimative Spielzeittracker für PlayStation Portable. Schlankes Kernel-Plugin kombiniert mit einem modernen Dashboard.',
       tools: 'Verwalte deine GameDiary PSP-Daten mit höchster Präzision. Visueller backup.json-Editor und Datenbank-Merge-Tools.',
-      download: 'Lade die neueste GameDiary-Version für PlayStation Portable herunter. Beinhaltet Kernel-Plugin, Homebrew-App und Installationsanleitung.'
+      download: 'Lade die neueste GameDiary-Version für PlayStation Portable herunter. Beinhaltet Kernel-Plugin, Homebrew-App und Installationsanleitung.',
+      stats: 'Detaillierte persönliche Spielzeitstatistiken, Top-Spiele-Rangliste, Plattformverteilung und historische Gaming-Trends für deine PSP.'
     }
   },
   {
@@ -114,12 +124,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | Votre Journal de Jeu Personnel pour PSP',
       tools: 'Outils Système | GameDiary PSP',
-      download: 'Télécharger GameDiary | Plugin et Application PSP'
+      download: 'Télécharger GameDiary | Plugin et Application PSP',
+      stats: 'Statistiques et Analyses | GameDiary PSP'
     },
     pageDescriptions: {
       home: 'Le tracker de temps de jeu ultime pour PlayStation Portable. Plugin en mode kernel discret et tableau de bord moderne.',
       tools: 'Gérez vos données GameDiary PSP avec précision. Éditeur visuel pour backup.json et outils de fusion de bases de données.',
-      download: 'Téléchargez la dernière version de GameDiary pour PlayStation Portable. Comprend le plugin kernel, l\'application homebrew et le guide d\'installation.'
+      download: 'Téléchargez la dernière version de GameDiary para PlayStation Portable. Comprend le plugin kernel, l\'application homebrew et le guide d\'installation.',
+      stats: 'Statistiques personnelles approfondies, classement des jeux les plus joués, répartition par plateforme et historique pour votre PSP.'
     }
   },
   {
@@ -134,12 +146,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | Il Tuo Diario di Gioco Personale per PSP',
       tools: 'Strumenti di Sistema | GameDiary PSP',
-      download: 'Scarica GameDiary | Plugin e Applicazione per PSP'
+      download: 'Scarica GameDiary | Plugin e Applicazione per PSP',
+      stats: 'Statistiche e Analisi | GameDiary PSP'
     },
     pageDescriptions: {
       home: 'Il tracker di tempo di gioco definitivo per PlayStation Portable. Plugin leggero in modalità kernel e dashboard moderna.',
       tools: 'Gestisci i tuoi dati GameDiary PSP con precisione. Editor visuale per backup.json e strumenti di unione database.',
-      download: 'Scarica l\'ultima versione di GameDiary per PlayStation Portable. Include il plugin kernel, l\'app homebrew e le istruzioni di installazione.'
+      download: 'Scarica l\'ultima versione di GameDiary per PlayStation Portable. Include il plugin kernel, l\'app homebrew e le istruzioni di installazione.',
+      stats: 'Statistiche personali approfondite, classifica dei giochi più giocati, distribuzione per piattaforma e tendenze per PSP.'
     }
   },
   {
@@ -154,12 +168,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | Ваш личный игровой дневник для PSP',
       tools: 'Системные инструменты | GameDiary PSP',
-      download: 'Скачать GameDiary | Плагин и приложение для PSP'
+      download: 'Скачать GameDiary | Плагин и приложение для PSP',
+      stats: 'Статистика и Аналитика | GameDiary PSP'
     },
     pageDescriptions: {
       home: 'Лучший трекер игрового времени для PlayStation Portable. Невидимый плагин ядра и современный пользовательский дашборд.',
       tools: 'Управляйте данными GameDiary PSP с высокой точностью. Визуальный редактор backup.json и инструменты объединения баз данных.',
-      download: 'Скачайте последнюю версию GameDiary для PlayStation Portable. Включает плагин ядра, homebrew-приложение и инструкцию по установке.'
+      download: 'Скачайте последнюю версию GameDiary для PlayStation Portable. Включает плагин ядра, homebrew-приложение и инструкцию по установке.',
+      stats: 'Подробная личная статистика игрового времени, рейтинг любимых игр, распределение по платформам и хронология для PSP.'
     }
   },
   {
@@ -174,12 +190,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | 您的专属 PSP 游戏日志',
       tools: '系统工具 | GameDiary PSP',
-      download: '下载 GameDiary | PSP 插件与应用程序'
+      download: '下载 GameDiary | PSP 插件与应用程序',
+      stats: '统计与分析 | GameDiary PSP'
     },
     pageDescriptions: {
       home: '适用于 PlayStation Portable 的终极游戏时间追踪器。轻量级内核插件结合现代用户端仪表盘应用。',
       tools: '精准管理您的 GameDiary PSP 数据。backup.json 可视化编辑器与数据库合并工具。',
-      download: '下载适用于 PlayStation Portable 的最新 GameDiary 版本。包含内核插件、自制软件应用与详细安装指南。'
+      download: '下载适用于 PlayStation Portable 的最新 GameDiary 版本。包含内核插件、自制软件应用与详细安装指南。',
+      stats: '深入的个人游戏时间统计、最常玩游戏榜单、平台分布以及 PSP 游戏历史趋势。'
     }
   },
   {
@@ -194,12 +212,14 @@ export const SUPPORTED_LANGUAGES: LanguageMeta[] = [
     pageTitles: {
       home: 'GameDiary | あなたの個人用 PSP ゲームジャーナル',
       tools: 'システムツール | GameDiary PSP',
-      download: 'GameDiary のダウンロード | PSP プラグイン＆アプリ'
+      download: 'GameDiary のダウンロード | PSP プラグイン＆アプリ',
+      stats: '統計＆分析 | GameDiary PSP'
     },
     pageDescriptions: {
       home: 'PlayStation Portable 向け究極のプレイ時間トラッカー。超軽量カーネルプラグインと洗練されたダッシュボードアプリ。',
       tools: 'GameDiary PSP データを正確に管理。backup.json ビジュアルエディターおよびデータベース統合ツール。',
-      download: 'PlayStation Portable 向け最新の GameDiary をダウンロード。カーネルプラグイン、自作アプリ、導入手順を同梱。'
+      download: 'PlayStation Portable 向け最新の GameDiary をダウンロード。カーネルプラグイン、自作アプリ、導入手順を同梱。',
+      stats: '詳細な個人プレイ時間統計、最もプレイしたゲームランキング、プラットフォーム別分布、PSPゲーム履歴の推移。'
     }
   }
 ];
@@ -286,6 +306,9 @@ export function getCleanPathname(pathname: string): string {
   if (segments.length > 0 && KNOWN_SLUGS.has(segments[0].toLowerCase())) {
     segments.shift();
   }
+  if (segments.length > 0 && segments[segments.length - 1].toLowerCase() === 'index.html') {
+    segments.pop();
+  }
   return segments.length === 0 ? '/' : `/${segments.join('/')}`;
 }
 
@@ -369,11 +392,13 @@ export function syncDocumentMetadata(langCode: string, cleanPath: string): void 
 
   const meta = SUPPORTED_LANGUAGES.find(l => l.code === langCode) || SUPPORTED_LANGUAGES[0];
 
-  let pageKey: 'home' | 'tools' | 'download' = 'home';
+  let pageKey: 'home' | 'tools' | 'download' | 'stats' = 'home';
   if (cleanPath.startsWith('/download')) {
     pageKey = 'download';
   } else if (cleanPath.startsWith('/tools')) {
     pageKey = 'tools';
+  } else if (cleanPath.startsWith('/stats')) {
+    pageKey = 'stats';
   }
 
   // Update HTML lang

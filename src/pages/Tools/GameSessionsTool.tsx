@@ -5,11 +5,12 @@ import { buildLocalizedPath } from '../../i18n/utils/routing';
 import { useGameSessionsStore } from '../../features/GameSessions/model/store';
 import { GamesManager } from '../../features/GameSessions/ui/GamesManager';
 import { TimelineView } from '../../features/GameSessions/ui/Timeline/TimelineView';
-import { parseBackup, exportBackup } from '../../features/GameSessions/lib/parser';
-import { Download, UploadCloud, Search, X, Loader2 } from 'lucide-react';
+import { exportBackup } from '../../features/GameSessions/lib/parser';
+import { Download, UploadCloud, Search, X, Loader2, ShieldCheck } from 'lucide-react';
 import { GamePreviewCard } from '../../shared/ui/GamePreviewCard';
 import { useGameCovers } from '../../shared/hooks/use-game-covers';
 import { getCoverData } from '../../shared/lib/game-covers';
+import { DataManagementModal } from '../../features/GameSessions/ui/DataManagementModal';
 import type { GameEntry } from '../../features/GameSessions/model/domain/types';
 import JSZip from 'jszip';
 import { cn } from '../../shared/lib/utils';
@@ -75,6 +76,8 @@ export const GameSessionsTool: React.FC = () => {
   const [hoveredGame, setHoveredGame] = useState<{ game: GameEntry, x: number, y: number } | null>(null);
   const [includeIcons, setIncludeIcons] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isDataManagementOpen, setIsDataManagementOpen] = useState(false);
+  const [pendingImportText, setPendingImportText] = useState<string | null>(null);
 
   // Filtered games
   const filteredGames = useMemo(() => {
@@ -85,7 +88,6 @@ export const GameSessionsTool: React.FC = () => {
       g.game_id.toLowerCase().includes(q)
     );
   }, [store.games, searchQuery]);
-
 
   // Check if there's at least one game with a cover available for export
   const hasCovers = useMemo(() => {
@@ -104,9 +106,17 @@ export const GameSessionsTool: React.FC = () => {
     try {
       if (file.name.toLowerCase().endsWith('.json')) {
         const text = await file.text();
-        const { games, sessions, nextUid } = parseBackup(text);
-        store.setAllGames(games, nextUid);
-        store.setAllSessions(sessions);
+        // If library is not empty, prompt user via DataManagementModal to choose Merge vs Replace
+        if (store.games.length > 0) {
+          setPendingImportText(text);
+          setIsDataManagementOpen(true);
+        } else {
+          // If library is empty, directly load data
+          const res = await store.importLibrary(text, 'replace');
+          if (!res.success) {
+            alert(res.error || (t('dbMerge.errorParsing') || 'Error parsing file'));
+          }
+        }
       } else {
         alert(t('actions.invalidFileBackup') || 'Invalid file format. Please upload backup.json');
       }
@@ -214,16 +224,25 @@ export const GameSessionsTool: React.FC = () => {
             {t('tools.gameSessions.subtitle') || 'Visual editor for backup.json'}
           </p>
         </div>
-        <a
-          href={toolsPath}
-          onClick={(e) => {
-            e.preventDefault();
-            navigate(toolsPath);
-          }}
-          className="inline-flex py-2 px-4 rounded-xl bg-card border border-border text-sm font-medium hover:bg-muted transition-colors self-start md:self-auto"
-        >
-          &larr; {t('dbMerge.backToTools') || 'Back to Tools'}
-        </a>
+        <div className="flex items-center gap-3 self-start md:self-auto">
+          <button
+            onClick={() => setIsDataManagementOpen(true)}
+            className="inline-flex items-center gap-2 py-2 px-4 rounded-xl bg-card border border-border text-sm font-semibold hover:bg-muted text-foreground transition-colors shadow-sm"
+          >
+            <ShieldCheck size={16} className="text-primary" />
+            {t('actions.dataManagement') || 'Data Management'}
+          </button>
+          <a
+            href={toolsPath}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(toolsPath);
+            }}
+            className="inline-flex py-2 px-4 rounded-xl bg-card border border-border text-sm font-medium hover:bg-muted transition-colors"
+          >
+            &larr; {t('dbMerge.backToTools') || 'Back to Tools'}
+          </a>
+        </div>
       </header>
       
       <div className="mb-4">
@@ -377,6 +396,16 @@ export const GameSessionsTool: React.FC = () => {
           getGameColor={store.getGameColor}
         />
       )}
+
+      <DataManagementModal
+        isOpen={isDataManagementOpen}
+        onClose={() => {
+          setIsDataManagementOpen(false);
+          setPendingImportText(null);
+        }}
+        pendingImportText={pendingImportText}
+        onClearPendingImport={() => setPendingImportText(null)}
+      />
     </div>
   );
 };

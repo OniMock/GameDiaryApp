@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getCleanPathname } from '../../i18n/utils/routing';
 
-export type AppRoute = 'home' | 'download' | 'tools' | 'tools/game_sessions' | 'tools/db_merge';
+export type AppRoute = 'home' | 'stats' | 'download' | 'tools' | 'tools/game_sessions' | 'tools/db_merge' | 'tools/data_management';
 
 function getRouteFromLocation(): AppRoute {
   if (typeof window === 'undefined') return 'home';
@@ -9,6 +9,9 @@ function getRouteFromLocation(): AppRoute {
   const cleanPath = getCleanPathname(window.location.pathname);
   const hash = window.location.hash;
 
+  if (cleanPath === '/stats' || hash === '#stats') {
+    return 'stats';
+  }
   if (cleanPath === '/download' || hash === '#download') {
     return 'download';
   }
@@ -25,6 +28,13 @@ function getRouteFromLocation(): AppRoute {
     hash === '#tools/db_merge'
   ) {
     return 'tools/db_merge';
+  }
+  if (
+    cleanPath === '/tools/data_management' ||
+    cleanPath === '/tools/data-management' ||
+    hash === '#tools/data_management'
+  ) {
+    return 'tools/data_management';
   }
   if (cleanPath === '/tools' || hash === '#tools') {
     return 'tools';
@@ -89,6 +99,7 @@ export function useHashRouter(): string {
   if (route === 'download') return '#download';
   if (route === 'tools/game_sessions') return '#tools/game_sessions';
   if (route === 'tools/db_merge') return '#tools/db_merge';
+  if (route === 'tools/data_management') return '#tools/data_management';
   if (route === 'tools') return '#tools';
   if (hash === '#support') return '#support';
   return '#home';

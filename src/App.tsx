@@ -1,8 +1,10 @@
 import { MainLayout } from './widgets/Layout/MainLayout';
 import { Home } from './pages/Home/Home';
+import { StatsPage } from './features/Stats/ui/StatsPage';
 import { GameSessionsTool } from './pages/Tools/GameSessionsTool';
 import { ToolsIndex } from './pages/Tools/ToolsIndex';
 import { DatabaseMergeTool } from './pages/Tools/DatabaseMergeTool';
+import { DataManagementTool } from './pages/Tools/DataManagementTool';
 import { Download } from './pages/Download/Download';
 import { useAppRouter } from './shared/hooks/use-router';
 import { useLanguage } from './i18n/hooks/use-language';
@@ -27,12 +29,16 @@ function App() {
 
   const renderPage = () => {
     switch (route) {
+      case 'stats':
+        return <StatsPage />;
       case 'download':
         return <Download />;
       case 'tools/game_sessions':
         return <GameSessionsTool />;
       case 'tools/db_merge':
         return <DatabaseMergeTool />;
+      case 'tools/data_management':
+        return <DataManagementTool />;
       case 'tools':
         return <ToolsIndex />;
       case 'home':

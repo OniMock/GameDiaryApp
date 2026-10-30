@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+    <link rel="icon" type="image/png" sizes="any" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-site-verification" content="161af3675e0d8fa2" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = (saved === 'dark' || saved === 'light') ? saved : (prefersDark ? 'dark' : 'light');
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+          document.documentElement.setAttribute('data-theme', theme);
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Estatísticas & Análises | GameDiary PSP</title>
+    <meta name="description" content="Estatísticas pessoais completas, ranking de jogos mais jogados, distribuição por plataforma e evolução temporal do seu PSP." />
+    <meta name="keywords" content="GameDiary PSP, Game Diary, Homebrew, Aplicativo PSP, PlayStation Portable, Rastreador de Jogos, Tempo de Jogo, Plugin PSP, Diário Gamer" />
+    
+    <!-- Canonical -->
+    <link rel="canonical" href="https://gamediary.onimock.com/pt/stats" />
+
+    <!-- Hreflang Matrix -->
+    <link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://gamediary.onimock.com/pt/stats" />
+    <meta property="og:title" content="Estatísticas & Análises | GameDiary PSP" />
+    <meta property="og:description" content="Estatísticas pessoais completas, ranking de jogos mais jogados, distribuição por plataforma e evolução temporal do seu PSP." />
+    <meta property="og:image" content="https://gamediary.onimock.com/og-image.png" />
+    <meta property="og:site_name" content="GameDiary PSP" />
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="es_ES" />
+    <meta property="og:locale:alternate" content="de_DE" />
+    <meta property="og:locale:alternate" content="fr_FR" />
+    <meta property="og:locale:alternate" content="it_IT" />
+    <meta property="og:locale:alternate" content="ru_RU" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta property="og:locale:alternate" content="ja_JP" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://gamediary.onimock.com/pt/stats" />
+    <meta property="twitter:title" content="Estatísticas & Análises | GameDiary PSP" />
+    <meta property="twitter:description" content="Estatísticas pessoais completas, ranking de jogos mais jogados, distribuição por plataforma e evolução temporal do seu PSP." />
+    <meta property="twitter:image" content="https://gamediary.onimock.com/og-image.png" />
+
+    <!-- Structured Data for Google Site Name -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "GameDiary PSP",
+        "alternateName": ["GameDiary", "Game Diary", "gamediary.onimock.com"],
+        "url": "https://gamediary.onimock.com/"
+      }
+    </script>
+  </head>
+  <body class="antialiased">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

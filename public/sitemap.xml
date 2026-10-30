@@ -137,6 +137,141 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://gamediary.onimock.com/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamediary.onimock.com/pt/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamediary.onimock.com/es/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamediary.onimock.com/de/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamediary.onimock.com/fr/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamediary.onimock.com/it/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamediary.onimock.com/ru/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamediary.onimock.com/cn/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://gamediary.onimock.com/jp/stats</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/stats" />
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/stats" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://gamediary.onimock.com/es/stats" />
+    <xhtml:link rel="alternate" hreflang="de" href="https://gamediary.onimock.com/de/stats" />
+    <xhtml:link rel="alternate" hreflang="fr" href="https://gamediary.onimock.com/fr/stats" />
+    <xhtml:link rel="alternate" hreflang="it" href="https://gamediary.onimock.com/it/stats" />
+    <xhtml:link rel="alternate" hreflang="ru" href="https://gamediary.onimock.com/ru/stats" />
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://gamediary.onimock.com/cn/stats" />
+    <xhtml:link rel="alternate" hreflang="ja" href="https://gamediary.onimock.com/jp/stats" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://gamediary.onimock.com/stats" />
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://gamediary.onimock.com/tools</loc>
     <xhtml:link rel="alternate" hreflang="en" href="https://gamediary.onimock.com/tools" />
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://gamediary.onimock.com/pt/tools" />

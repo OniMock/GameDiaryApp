@@ -2,18 +2,20 @@ import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
 import { useAppRouter } from '../../shared/hooks/use-router';
 import { buildLocalizedPath } from '../../i18n/utils/routing';
-import { Home, Hammer, Download, Coffee } from 'lucide-react';
+import { Home, BarChart3, Hammer, Download, Coffee } from 'lucide-react';
 
 export const MobileNav: React.FC = () => {
   const { t, currentLanguage } = useLanguage();
   const { route, hash, navigate } = useAppRouter();
 
   const isHome = route === 'home' && hash !== '#support';
+  const isStats = route === 'stats';
   const isTools = route.startsWith('tools');
   const isDownload = route === 'download';
   const isSupport = hash === '#support';
 
   const homePath = buildLocalizedPath('/', currentLanguage);
+  const statsPath = buildLocalizedPath('/stats', currentLanguage);
   const toolsPath = buildLocalizedPath('/tools', currentLanguage);
   const downloadPath = buildLocalizedPath('/download', currentLanguage);
   const supportPath = `${homePath}#support`;
@@ -53,7 +55,17 @@ export const MobileNav: React.FC = () => {
         {isHome && <span className="absolute bottom-1 w-1 h-1 bg-primary rounded-full" />}
       </a>
 
-      <a 
+      <a
+        href={statsPath}
+        onClick={handleNavClick(statsPath)}
+        className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${isStats ? 'text-primary' : 'text-muted-foreground'}`}
+      >
+        <BarChart3 size={20} className={isStats ? 'scale-110' : ''} />
+        <span className="text-[10px] font-bold uppercase tracking-tight">{t('nav.stats')}</span>
+        {isStats && <span className="absolute bottom-1 w-1 h-1 bg-primary rounded-full" />}
+      </a>
+
+      <a
         href={toolsPath} 
         onClick={handleNavClick(toolsPath)}
         className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${isTools ? 'text-primary' : 'text-muted-foreground'}`}

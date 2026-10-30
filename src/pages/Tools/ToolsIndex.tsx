@@ -2,7 +2,7 @@ import React from 'react';
 import { useLanguage } from '../../i18n/hooks/use-language';
 import { useAppRouter } from '../../shared/hooks/use-router';
 import { buildLocalizedPath } from '../../i18n/utils/routing';
-import { Database, LayoutGrid, GitMerge } from 'lucide-react';
+import { Database, GitMerge, ShieldCheck } from 'lucide-react';
 
 export const ToolsIndex: React.FC = () => {
   const { t, currentLanguage } = useLanguage();
@@ -10,7 +10,7 @@ export const ToolsIndex: React.FC = () => {
 
   const gameSessionsPath = buildLocalizedPath('/tools/game_sessions', currentLanguage);
   const dbMergePath = buildLocalizedPath('/tools/db_merge', currentLanguage);
-  const toolsPath = buildLocalizedPath('/tools', currentLanguage);
+  const dataManagementPath = buildLocalizedPath('/tools/data_management', currentLanguage);
 
   const tools = [
     {
@@ -30,11 +30,11 @@ export const ToolsIndex: React.FC = () => {
       color: 'bg-emerald-500/10'
     },
     {
-      id: 'placeholder_2',
-      title: t('tools.advancedSettings.title') || 'Advanced Settings',
-      subtitle: t('tools.advancedSettings.subtitle') || 'Under construction.',
-      icon: <LayoutGrid className="w-8 h-8 text-purple-500" />,
-      href: toolsPath,
+      id: 'data_management',
+      title: t('dataManagement.title') || 'Data Management',
+      subtitle: t('dataManagement.subtitle') || 'Local storage, exports and backups',
+      icon: <ShieldCheck className="w-8 h-8 text-purple-500" />,
+      href: dataManagementPath,
       color: 'bg-purple-500/10'
     }
   ];

@@ -10,11 +10,13 @@ export const Header: React.FC = () => {
   const { route, hash, navigate } = useAppRouter();
 
   const isHome = route === 'home' && hash !== '#support';
+  const isStats = route === 'stats';
   const isTools = route.startsWith('tools');
   const isDownload = route === 'download';
   const isSupport = hash === '#support';
 
   const homePath = buildLocalizedPath('/', currentLanguage);
+  const statsPath = buildLocalizedPath('/stats', currentLanguage);
   const toolsPath = buildLocalizedPath('/tools', currentLanguage);
   const downloadPath = buildLocalizedPath('/download', currentLanguage);
   const supportPath = `${homePath}#support`;
@@ -73,6 +75,15 @@ export const Header: React.FC = () => {
             >
               {t('nav.home')}
               <span className={`absolute -bottom-1 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isHome ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
+            </a>
+
+            <a
+              href={statsPath}
+              onClick={handleNavClick(statsPath)}
+              className={`text-sm font-medium relative group transition-colors ${isStats ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            >
+              {t('nav.stats')}
+              <span className={`absolute -bottom-1 left-0 w-full h-[1.5px] bg-primary transform transition-transform origin-left ${isStats ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'}`} />
             </a>
             
             <a 
