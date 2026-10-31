@@ -304,6 +304,8 @@ export const es: LanguageFile = {
     "share.combobox.noResults": "No se encontraron juegos",
     "share.combobox.clearSearch": "Limpiar búsqueda",
     "share.combobox.showingCount": "Mostrando {shown} de {total} juegos",
+    "share.combobox.availableCount": "{total} juegos disponibles",
+    "share.combobox.matchCount": "{count} juegos encontrados",
     "stats.overview.mostActiveMonth": "Mes Más Activo",
     "stats.overview.gamingHabit": "Hábito Más Frecuente",
     "stats.months.1": "Enero",

@@ -308,6 +308,8 @@ export const de: LanguageFile = {
     "share.combobox.noResults": "Keine Spiele gefunden",
     "share.combobox.clearSearch": "Suche löschen",
     "share.combobox.showingCount": "{shown} von {total} Spielen angezeigt",
+    "share.combobox.availableCount": "{total} Spiele verfügbar",
+    "share.combobox.matchCount": "{count} Spiele gefunden",
     "stats.overview.mostActiveMonth": "Aktivster Monat",
     "stats.overview.gamingHabit": "Häufigster Wochentag",
     "stats.months.1": "Januar",

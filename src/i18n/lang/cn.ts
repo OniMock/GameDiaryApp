@@ -300,6 +300,8 @@ export const cn: LanguageFile = {
     "share.combobox.noResults": "未找到相关游戏",
     "share.combobox.clearSearch": "清除搜索",
     "share.combobox.showingCount": "显示 {shown} / {total} 个游戏",
+    "share.combobox.availableCount": "{total} 个游戏可用",
+    "share.combobox.matchCount": "{count} 个匹配游戏",
     "stats.overview.mostActiveMonth": "最活跃月份",
     "stats.overview.gamingHabit": "最常游玩星期",
     "stats.months.1": "1月",

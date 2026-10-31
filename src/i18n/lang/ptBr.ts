@@ -309,6 +309,8 @@ export const ptBr: LanguageFile = {
     "share.combobox.noResults": "Nenhum jogo encontrado",
     "share.combobox.clearSearch": "Limpar busca",
     "share.combobox.showingCount": "Mostrando {shown} de {total} jogos",
+    "share.combobox.availableCount": "{total} jogos disponíveis",
+    "share.combobox.matchCount": "{count} jogos encontrados",
     "stats.overview.mostActiveMonth": "Mês Mais Ativo",
     "stats.overview.gamingHabit": "Hábito Mais Ativo",
     "stats.months.1": "Janeiro",

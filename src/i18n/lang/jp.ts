@@ -305,6 +305,8 @@ export const jp: LanguageFile = {
     "share.combobox.noResults": "ゲームが見つかりません",
     "share.combobox.clearSearch": "検索をクリア",
     "share.combobox.showingCount": "{total} 件中 {shown} 件を表示",
+    "share.combobox.availableCount": "{total} 件のゲームが利用可能",
+    "share.combobox.matchCount": "{count} 件の一致",
     "stats.overview.mostActiveMonth": "最もプレイした月",
     "stats.overview.gamingHabit": "最もプレイした曜日",
     "stats.months.1": "1月",

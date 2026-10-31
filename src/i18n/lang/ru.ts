@@ -304,6 +304,8 @@ export const ru: LanguageFile = {
     "share.combobox.noResults": "Игры не найдены",
     "share.combobox.clearSearch": "Очистить поиск",
     "share.combobox.showingCount": "Показано {shown} из {total} игр",
+    "share.combobox.availableCount": "{total} игр доступно",
+    "share.combobox.matchCount": "{count} совпадений",
     "stats.overview.mostActiveMonth": "Самый активный месяц",
     "stats.overview.gamingHabit": "Любимый день недели",
     "stats.months.1": "Январь",
