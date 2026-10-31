@@ -35,6 +35,7 @@ export async function renderTop5Card(
   });
 
   const loadedItems = await Promise.all(coverPromises);
+  if (options.isCancelled?.()) return;
 
   // 3. Draw Header
   const headerY = format === 'horizontal' ? 22 : 90;
@@ -77,7 +78,7 @@ export async function renderTop5Card(
     // #1 Champion Spotlight Hero Box
     const heroY = 280;
     const heroW = width - marginX * 2;
-    const heroH = 370;
+    const heroH = 390;
 
     if (loadedItems[0]) {
       const { item: first, img: firstImg } = loadedItems[0];
@@ -92,16 +93,16 @@ export async function renderTop5Card(
       ctx.restore();
 
       // Cover
-      const coverW = 280;
-      const coverH = 240;
+      const coverW = 290;
+      const coverH = 250;
       const coverX = marginX + 32;
-      const coverY = heroY + 64;
+      const coverY = heroY + 68;
       drawCoverArt(ctx, firstImg, coverX, coverY, coverW, coverH, 20, first.game.game_name, first.game.game_id, first.game.category);
 
       // Info
       const infoX = coverX + coverW + 36;
       ctx.save();
-      drawPlatformBadge(ctx, first.game.category, infoX, heroY + 70, 30);
+      drawPlatformBadge(ctx, first.game.category, infoX, heroY + 76, 30);
 
       ctx.fillStyle = '#FFFFFF';
       ctx.font = '900 32px Inter, system-ui, sans-serif';
@@ -109,7 +110,7 @@ export async function renderTop5Card(
       ctx.textBaseline = 'top';
       const lines = wrapText(ctx, first.game.game_name, heroW - coverW - 100);
       lines.slice(0, 2).forEach((l, idx) => {
-        ctx.fillText(l, infoX, heroY + 115 + idx * 38);
+        ctx.fillText(l, infoX, heroY + 120 + idx * 38);
       });
 
       // Playtime (auto-scaled with guaranteed vertical clearance)
@@ -122,19 +123,19 @@ export async function renderTop5Card(
       }
       ctx.fillStyle = '#F59E0B';
       ctx.textBaseline = 'middle';
-      ctx.fillText(firstDurStr, infoX, heroY + 205);
+      ctx.fillText(firstDurStr, infoX, heroY + 215);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
       ctx.font = '600 15px Inter, system-ui, sans-serif';
       ctx.textBaseline = 'middle';
-      ctx.fillText(`${first.percentageOfTotal}% ${t('stats.overview.ofTotalTime')} • ${first.sessionCount} ${t('stats.modal.totalSessions').toLowerCase()}`, infoX, heroY + 250);
+      ctx.fillText(`${first.percentageOfTotal}% ${t('stats.overview.ofTotalTime')} • ${first.sessionCount} ${t('stats.modal.totalSessions').toLowerCase()}`, infoX, heroY + 260);
       ctx.restore();
     }
 
     // Rows for #2, #3, #4, #5
     const rowsStartY = heroY + heroH + 34;
-    const rowH = 195;
-    const rowGap = 20;
+    const rowH = 230;
+    const rowGap = 22;
 
     for (let i = 1; i < 5; i++) {
       const entry = loadedItems[i];
@@ -147,19 +148,19 @@ export async function renderTop5Card(
       drawGlassCard(ctx, marginX, rowY, heroW, rowH, 22, 'rgba(17, 24, 39, 0.75)', borderColor);
 
       // Rank Medal
-      drawRankMedal(ctx, item.rank, marginX + 48, rowY + rowH * 0.5, 48);
+      drawRankMedal(ctx, item.rank, marginX + 48, rowY + rowH * 0.5, 52);
 
       // Cover
-      const cW = 180;
-      const cH = 135;
+      const cW = 210;
+      const cH = 158;
       const cX = marginX + 96;
       const cY = rowY + (rowH - cH) * 0.5;
-      drawCoverArt(ctx, img, cX, cY, cW, cH, 16, item.game.game_name, item.game.game_id, item.game.category);
+      drawCoverArt(ctx, img, cX, cY, cW, cH, 18, item.game.game_name, item.game.game_id, item.game.category);
 
       // Title & Platform
       const textX = cX + cW + 28;
       ctx.save();
-      drawPlatformBadge(ctx, item.game.category, textX, rowY + 36, 26);
+      drawPlatformBadge(ctx, item.game.category, textX, rowY + 50, 28);
 
       // Measure duration first to prevent title/hours collision
       const durStr = formatDurationSeconds(item.totalDuration, locale);
@@ -172,17 +173,17 @@ export async function renderTop5Card(
       ctx.textAlign = 'left';
       ctx.textBaseline = 'top';
       const rLines = wrapText(ctx, item.game.game_name, Math.max(availableTitleW, 140));
-      ctx.fillText(rLines[0], textX, rowY + 74);
+      ctx.fillText(rLines[0], textX, rowY + 92);
 
       // Hours on right
       ctx.fillStyle = isPodium ? '#F8FAFC' : '#E2E8F0';
       ctx.font = '900 28px Inter, system-ui, sans-serif';
       ctx.textAlign = 'right';
-      ctx.fillText(durStr, marginX + heroW - 32, rowY + 68);
+      ctx.fillText(durStr, marginX + heroW - 32, rowY + 86);
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.font = '600 15px Inter, system-ui, sans-serif';
-      ctx.fillText(`${item.percentageOfTotal}%`, marginX + heroW - 32, rowY + 104);
+      ctx.fillText(`${item.percentageOfTotal}%`, marginX + heroW - 32, rowY + 124);
       ctx.restore();
     }
   } else if (format === 'square') {

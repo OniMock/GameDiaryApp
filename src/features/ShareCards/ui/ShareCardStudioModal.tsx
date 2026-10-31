@@ -25,7 +25,8 @@ import {
 } from '../../Stats/lib/statsCalculator';
 import { getAvailableYears } from '../lib/retrospectiveUtils';
 import { renderCardToCanvas, downloadCardImage, shareOrDownloadCard } from '../lib/cardGenerator';
-import type { CardModel, CardFormat } from '../types';
+import { FORMAT_DIMENSIONS, type CardModel, type CardFormat } from '../types';
+import { GameSearchCombobox } from './GameSearchCombobox';
 
 interface ShareCardStudioModalProps {
   isOpen: boolean;
@@ -48,6 +49,8 @@ export const ShareCardStudioModal: React.FC<ShareCardStudioModalProps> = ({
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const prevIsOpenRef = useRef(false);
+  const activeRenderIdRef = useRef(0);
+  const lastRenderedCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Eligible games for individual card selector (accumulated duration >= 60s)
   const eligibleGameUids = useMemo(() => getEligibleGameUids(sessions), [sessions]);
@@ -158,12 +161,22 @@ export const ShareCardStudioModal: React.FC<ShareCardStudioModalProps> = ({
     prevIsOpenRef.current = isOpen;
   }, [isOpen, initialModel, initialCategory, initialGameUid, eligibleGameUids, eligibleGames, selectedGameUid]);
 
-  // Render card to canvas
+  // Render card to canvas with complete offscreen isolation and cancellation versioning
   const handleRender = useCallback(async () => {
     if (!canvasRef.current || isModelEmpty) return;
+
+    const renderId = ++activeRenderIdRef.current;
     setIsRendering(true);
+
+    const { width, height } = FORMAT_DIMENSIONS[format];
+    const offscreen = document.createElement('canvas');
+    offscreen.width = width;
+    offscreen.height = height;
+
+    const isCancelled = () => renderId !== activeRenderIdRef.current;
+
     try {
-      await renderCardToCanvas(canvasRef.current, {
+      await renderCardToCanvas(offscreen, {
         model,
         format,
         selectedGameUid,
@@ -175,12 +188,42 @@ export const ShareCardStudioModal: React.FC<ShareCardStudioModalProps> = ({
         mapping,
         t,
         locale: currentLanguage,
+        isCancelled,
       });
+
+      // If a newer render was requested while we were rendering, drop this obsolete result completely
+      if (isCancelled()) {
+        return;
+      }
+
+      // Transfer offscreen result to visible canvas cleanly
+      const visibleCanvas = canvasRef.current;
+      if (!visibleCanvas) return;
+
+      if (visibleCanvas.width !== width || visibleCanvas.height !== height) {
+        visibleCanvas.width = width;
+        visibleCanvas.height = height;
+      }
+      const visibleCtx = visibleCanvas.getContext('2d');
+      if (visibleCtx) {
+        visibleCtx.setTransform(1, 0, 0, 1, 0, 0);
+        visibleCtx.globalAlpha = 1;
+        visibleCtx.globalCompositeOperation = 'source-over';
+        visibleCtx.clearRect(0, 0, width, height);
+        visibleCtx.drawImage(offscreen, 0, 0);
+      }
+
+      // Store verified finished canvas for deterministic export
+      lastRenderedCanvasRef.current = offscreen;
     } catch (err) {
-      console.error('Error rendering card:', err);
-      setStatusMessage({ type: 'error', text: t('share.exportError') });
+      if (!isCancelled()) {
+        console.error('Error rendering card:', err);
+        setStatusMessage({ type: 'error', text: t('share.exportError') });
+      }
     } finally {
-      setIsRendering(false);
+      if (!isCancelled()) {
+        setIsRendering(false);
+      }
     }
   }, [model, format, selectedGameUid, selectedYear, selectedCategory, activeGames, activeSessions, activeOverallStats, mapping, t, currentLanguage, isModelEmpty]);
 
@@ -204,12 +247,13 @@ export const ShareCardStudioModal: React.FC<ShareCardStudioModalProps> = ({
   if (!isOpen) return null;
 
   const handleDownload = async () => {
-    if (!canvasRef.current) return;
+    const sourceCanvas = lastRenderedCanvasRef.current || canvasRef.current;
+    if (!sourceCanvas) return;
     setIsExporting(true);
     setStatusMessage(null);
     try {
       const filename = `gamediary_${model}_${format}.png`;
-      await downloadCardImage(canvasRef.current, filename);
+      await downloadCardImage(sourceCanvas, filename);
       setStatusMessage({ type: 'success', text: t('share.downloadSuccess') });
     } catch (err) {
       console.error('Download error:', err);
@@ -220,12 +264,13 @@ export const ShareCardStudioModal: React.FC<ShareCardStudioModalProps> = ({
   };
 
   const handleShare = async () => {
-    if (!canvasRef.current) return;
+    const sourceCanvas = lastRenderedCanvasRef.current || canvasRef.current;
+    if (!sourceCanvas) return;
     setIsExporting(true);
     setStatusMessage(null);
     try {
       const filename = `gamediary_${model}_${format}.png`;
-      const result = await shareOrDownloadCard(canvasRef.current, 'GameDiary Stats Card', filename);
+      const result = await shareOrDownloadCard(sourceCanvas, 'GameDiary Stats Card', filename);
       if (result.shared) {
         setStatusMessage({ type: 'success', text: t('share.shareSuccess') });
       } else if (result.downloaded) {
@@ -247,10 +292,28 @@ export const ShareCardStudioModal: React.FC<ShareCardStudioModalProps> = ({
     { id: 'individual', label: t('share.model.individual'), desc: t('share.model.individualDesc'), icon: Gamepad2 },
   ];
 
-  const formats: { id: CardFormat; ratio: string; w: number; h: number }[] = [
-    { id: 'vertical', ratio: '9:16 Story', w: 1080, h: 1920 },
-    { id: 'square', ratio: '1:1 Post', w: 1080, h: 1080 },
-    { id: 'horizontal', ratio: '1.91:1 Banner', w: 1200, h: 630 },
+  const formats: { id: CardFormat; ratio: string; label: string; w: number; h: number }[] = [
+    {
+      id: 'vertical',
+      ratio: t('share.format.verticalRatio'),
+      label: t('share.format.vertical'),
+      w: 1080,
+      h: 1920,
+    },
+    {
+      id: 'square',
+      ratio: t('share.format.squareRatio'),
+      label: t('share.format.square'),
+      w: 1080,
+      h: 1080,
+    },
+    {
+      id: 'horizontal',
+      ratio: t('share.format.horizontalRatio'),
+      label: t('share.format.horizontal'),
+      w: 1200,
+      h: 630,
+    },
   ];
 
   return (
@@ -395,17 +458,12 @@ export const ShareCardStudioModal: React.FC<ShareCardStudioModalProps> = ({
                     {t('stats.rankings.noData')}
                   </div>
                 ) : (
-                  <select
-                    value={selectedGameUid}
-                    onChange={(e) => setSelectedGameUid(Number(e.target.value))}
-                    className="w-full p-2.5 rounded-xl bg-card border border-border text-xs font-bold text-foreground focus:outline-none focus:border-primary"
-                  >
-                    {eligibleGames.map((g) => (
-                      <option key={g.uid} value={g.uid}>
-                        {g.game_name} ({g.game_id})
-                      </option>
-                    ))}
-                  </select>
+                  <GameSearchCombobox
+                    games={eligibleGames}
+                    selectedGameUid={selectedGameUid}
+                    onSelectGame={(uid) => setSelectedGameUid(uid)}
+                    mapping={mapping}
+                  />
                 )}
               </div>
             )}
@@ -450,7 +508,7 @@ export const ShareCardStudioModal: React.FC<ShareCardStudioModalProps> = ({
                       }`}
                     >
                       <div className="text-xs">{f.ratio}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5 capitalize">{f.id}</div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">{f.label}</div>
                     </button>
                   );
                 })}

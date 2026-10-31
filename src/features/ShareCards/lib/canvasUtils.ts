@@ -414,23 +414,26 @@ export function drawBrandFooter(
   brandAssets?: { logo: HTMLImageElement | null; logoLetter: HTMLImageElement | null } | null
 ): void {
   ctx.save();
-  const y = height - 56;
+  const isCompact = height <= 700;
+  const y = height - (isCompact ? 42 : 62);
 
   if (brandAssets && (brandAssets.logo || brandAssets.logoLetter)) {
     const emblem = brandAssets.logo;
     const wordmark = brandAssets.logoLetter;
 
-    const emblemH = 28;
+    // Proportional, clearly legible brand dimensions
+    const emblemH = isCompact ? 34 : 44;
     const emblemW = emblem ? Math.round(emblemH * (23.03 / 26.15)) : 0;
 
-    const wordmarkH = 20;
+    const wordmarkH = isCompact ? 24 : 32;
     const wordmarkW = wordmark ? Math.round(wordmarkH * (47.62 / 12.21)) : 0;
 
-    ctx.font = '600 13px Inter, monospace';
+    const domainFontSize = isCompact ? 15 : 18;
+    ctx.font = `600 ${domainFontSize}px Inter, monospace`;
     const domainText = 'gamediary.onimock.com';
     const domainWidth = ctx.measureText(domainText).width;
 
-    const spacing = 12;
+    const spacing = isCompact ? 14 : 18;
     const totalW = (emblem ? emblemW + spacing : 0) + (wordmark ? wordmarkW + spacing : 0) + domainWidth;
     let currentX = Math.round((width - totalW) / 2);
 
@@ -444,7 +447,7 @@ export function drawBrandFooter(
       currentX += wordmarkW + spacing;
     }
 
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText(domainText, currentX, y);
@@ -453,31 +456,31 @@ export function drawBrandFooter(
     return;
   }
 
-  // Mini logo icon
-  const logoSize = 28;
-  const logoX = width * 0.5 - 120;
+  // Fallback if SVG assets not yet loaded
+  const logoSize = isCompact ? 32 : 40;
+  const logoX = width * 0.5 - 140;
   const logoY = y - logoSize * 0.5;
 
   ctx.fillStyle = '#3B82F6';
-  roundRectPath(ctx, logoX, logoY, logoSize, logoSize, 7);
+  roundRectPath(ctx, logoX, logoY, logoSize, logoSize, 9);
   ctx.fill();
 
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = '900 16px Inter, system-ui, sans-serif';
+  ctx.font = `900 ${isCompact ? 18 : 22}px Inter, system-ui, sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('G', logoX + logoSize * 0.5, logoY + logoSize * 0.52);
 
   // Brand Name
-  ctx.font = '800 18px Inter, system-ui, sans-serif';
+  ctx.font = `800 ${isCompact ? 18 : 22}px Inter, system-ui, sans-serif`;
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFFFFF';
-  ctx.fillText('Game', logoX + logoSize + 10, y);
+  ctx.fillText('Game', logoX + logoSize + 12, y);
 
   const gameWidth = ctx.measureText('Game').width;
   ctx.fillStyle = '#3B82F6';
-  ctx.fillText('Diary', logoX + logoSize + 10 + gameWidth, y);
+  ctx.fillText('Diary', logoX + logoSize + 12 + gameWidth, y);
 
   // URL subtitle
   ctx.font = '600 13px Inter, monospace';

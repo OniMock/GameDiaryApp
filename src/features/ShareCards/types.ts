@@ -30,6 +30,7 @@ export interface CardRenderOptions {
   sessions: SessionEntry[];
   overallStats: OverallStats;
   mapping: Record<string, string>;
+  isCancelled?: () => boolean;
 }
 
 export interface YearRetrospectiveStats {

@@ -80,6 +80,7 @@ export async function renderLibraryCard(
       return { game: g, img };
     })
   );
+  if (options.isCancelled?.()) return;
 
   const marginX = format === 'horizontal' ? 56 : 64;
   const bannerY = format === 'horizontal' ? 36 : 80;

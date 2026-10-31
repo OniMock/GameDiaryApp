@@ -66,6 +66,11 @@ describe('Internationalization (i18n) Completeness and Integrity', () => {
       'share.format.vertical',
       'share.format.square',
       'share.format.horizontal',
+      'share.format.verticalRatio',
+      'share.format.squareRatio',
+      'share.format.horizontalRatio',
+      'stats.modal.bestDay',
+      'stats.modal.played',
     ];
 
     Object.entries(locales).forEach(([langCode, dict]) => {
@@ -91,5 +96,51 @@ describe('Internationalization (i18n) Completeness and Integrity', () => {
     expect(ptBr.translations['share.title']).toBe('Estúdio de Cards Compartilháveis');
     expect(ptBr.translations['share.modalSubtitle']).toContain('Crie e exporte cards gamer em alta resolução para redes sociais');
     expect(ptBr.translations['share.subtitle']).toContain('Crie e exporte cards gamer em alta resolução para redes sociais');
+  });
+
+  it('static scan of all source code confirms 100% of used keys exist in all 9 languages', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const srcDir = path.resolve(__dirname, '..');
+    const findFiles = (dir: string): string[] => {
+      let results: string[] = [];
+      const list = fs.readdirSync(dir, { withFileTypes: true });
+      for (const item of list) {
+        const full = path.join(dir, item.name);
+        if (item.isDirectory()) {
+          if (full.includes(path.join('src', 'i18n', 'lang'))) continue;
+          if (full.includes(path.join('src', 'tests'))) continue;
+          results = results.concat(findFiles(full));
+        } else if (item.isFile() && (item.name.endsWith('.ts') || item.name.endsWith('.tsx'))) {
+          results.push(full);
+        }
+      }
+      return results;
+    };
+
+    const files = findFiles(srcDir);
+    const usedKeys = new Set<string>();
+
+    for (const file of files) {
+      const content = fs.readFileSync(file, 'utf8');
+      const staticRegex = /\bt\(\s*['"]([a-zA-Z0-9_.-]+)['"]/g;
+      let match;
+      while ((match = staticRegex.exec(content)) !== null) {
+        usedKeys.add(match[1]);
+      }
+    }
+
+    expect(usedKeys.size).toBeGreaterThan(100);
+
+    Object.entries(locales).forEach(([langCode, dict]) => {
+      const missing: string[] = [];
+      usedKeys.forEach((key) => {
+        if (!dict[key]) {
+          missing.push(key);
+        }
+      });
+      expect(missing, `Language [${langCode}] is missing keys used in source code: ${missing.join(', ')}`).toEqual([]);
+    });
   });
 });

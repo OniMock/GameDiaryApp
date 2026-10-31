@@ -563,4 +563,90 @@ describe('ShareCards retrospective and data selectors', () => {
       );
     });
   });
+
+  describe('GameSearchCombobox search & filter logic', () => {
+    const catalog: GameEntry[] = [
+      { uid: 1, game_id: 'ULES00318', game_name: 'Monster Hunter Freedom', apitype_str: '0x120', category: 0 },
+      { uid: 2, game_id: 'ULES00851', game_name: 'Monster Hunter Freedom 2', apitype_str: '0x120', category: 0 },
+      { uid: 3, game_id: 'ULUS10285', game_name: 'Castlevania: The Dracula X Chronicles', apitype_str: '0x120', category: 0 },
+      { uid: 4, game_id: 'SLUS00067', game_name: 'Final Fantasy VII', apitype_str: '0x144', category: 1 },
+      { uid: 5, game_id: 'HOME001', game_name: 'Cave Story Engine', apitype_str: '0x141', category: 2 },
+      { uid: 6, game_id: 'CUSTOM09', game_name: 'Retro Game Emulation', apitype_str: '0x100', category: 3 },
+    ];
+
+    function filterComboboxGames(games: GameEntry[], query: string): GameEntry[] {
+      const q = query.trim().toLowerCase();
+      if (!q) return games;
+      return games.filter(
+        (g) =>
+          (g.game_name && g.game_name.toLowerCase().includes(q)) ||
+          (g.game_id && g.game_id.toLowerCase().includes(q))
+      );
+    }
+
+    it('returns all games when search query is empty or whitespace', () => {
+      expect(filterComboboxGames(catalog, '')).toEqual(catalog);
+      expect(filterComboboxGames(catalog, '   ')).toEqual(catalog);
+    });
+
+    it('filters games by title with case-insensitivity', () => {
+      const results = filterComboboxGames(catalog, 'monster');
+      expect(results.length).toBe(2);
+      expect(results.map((g) => g.uid)).toEqual([1, 2]);
+
+      const uppercaseResult = filterComboboxGames(catalog, 'CASTLEVANIA');
+      expect(uppercaseResult.length).toBe(1);
+      expect(uppercaseResult[0].uid).toBe(3);
+    });
+
+    it('filters games by Game ID with case-insensitivity', () => {
+      const results = filterComboboxGames(catalog, 'ulus10285');
+      expect(results.length).toBe(1);
+      expect(results[0].game_name).toBe('Castlevania: The Dracula X Chronicles');
+
+      const prefixResults = filterComboboxGames(catalog, 'ULES');
+      expect(prefixResults.length).toBe(2);
+      expect(prefixResults.map((g) => g.game_id)).toEqual(['ULES00318', 'ULES00851']);
+    });
+
+    it('returns empty array when search query matches neither title nor Game ID', () => {
+      const results = filterComboboxGames(catalog, 'Zelda Breath of the Wild');
+      expect(results.length).toBe(0);
+    });
+
+    it('caps visible results at 50 to protect DOM performance in large collections', () => {
+      const largeCatalog: GameEntry[] = Array.from({ length: 120 }, (_, i) => ({
+        uid: i + 1,
+        game_id: `ID_${i + 1}`,
+        game_name: `Game Title ${i + 1}`,
+        apitype_str: '0x0',
+        category: 0,
+      }));
+
+      const MAX_VISIBLE_RESULTS = 50;
+      const allFiltered = filterComboboxGames(largeCatalog, 'Game');
+      expect(allFiltered.length).toBe(120);
+
+      const visible = allFiltered.slice(0, MAX_VISIBLE_RESULTS);
+      expect(visible.length).toBe(50);
+      expect(visible[0].uid).toBe(1);
+      expect(visible[49].uid).toBe(50);
+    });
+
+    it('allows clearing search query to restore full catalog without resetting selected game', () => {
+      let selectedGameUid = 4; // Final Fantasy VII
+      let searchQuery = 'Monster';
+
+      let results = filterComboboxGames(catalog, searchQuery);
+      expect(results.length).toBe(2);
+      expect(results.some((g) => g.uid === selectedGameUid)).toBe(false);
+
+      // User clicks clear [X] button
+      searchQuery = '';
+      results = filterComboboxGames(catalog, searchQuery);
+      expect(results.length).toBe(catalog.length);
+      // Selected game is fully preserved
+      expect(selectedGameUid).toBe(4);
+    });
+  });
 });

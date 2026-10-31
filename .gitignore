@@ -17,6 +17,7 @@ dist-ssr
 .vscode/*
 .cursor/*
 !.vscode/extensions.json
+!.vscode/tasks.json
 .idea
 .DS_Store
 *.suo
@@ -26,4 +27,5 @@ dist-ssr
 *.sw?
 backup.json
 test-artifacts/
+generated-cards/
 scripts/.cache_game_map.json

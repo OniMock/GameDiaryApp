@@ -14,6 +14,8 @@ export async function renderCardToCanvas(
   canvas: HTMLCanvasElement,
   options: CardRenderOptions
 ): Promise<void> {
+  if (options.isCancelled?.()) return;
+
   const { width, height } = FORMAT_DIMENSIONS[options.format];
 
   canvas.width = width;
@@ -24,11 +26,21 @@ export async function renderCardToCanvas(
     throw new Error('Canvas 2D context could not be acquired');
   }
 
-  // Clear canvas
+  // Fully reset context state (clears any residual clips, transforms, filters, alphas)
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+  ctx.filter = 'none';
   ctx.clearRect(0, 0, width, height);
 
   // Pre-load official brand logo assets
   const brandAssets = options.brandAssets || (await loadBrandAssets());
+  if (options.isCancelled?.()) return;
+
   const optionsWithBrand: CardRenderOptions = { ...options, brandAssets };
 
   switch (options.model) {

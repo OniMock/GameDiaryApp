@@ -65,8 +65,12 @@ export interface GameDetailedStats {
   sessionCount: number;
   firstPlayed: number | null;
   lastPlayed: number | null;
+  lastSessionDuration: number;
   avgSessionDuration: number;
   longestSessionDuration: number;
+  longestSessionTimestamp: number | null;
+  bestDayDate: number | null;
+  bestDayDuration: number;
   sessions: SessionEntry[];
   percentageOfTotal: number;
 }
@@ -640,19 +644,73 @@ export function getGameDetailedStats(
     sessionCount > 0 ? Math.round(totalDuration / sessionCount) : 0;
 
   let longestSessionDuration = 0;
+  let longestSessionTimestamp: number | null = null;
   let firstPlayed: number | null = null;
   let lastPlayed: number | null = null;
+  let lastSessionDuration = 0;
+
+  // Track daily aggregated play time to calculate the peak gaming day
+  interface DayAccumulator {
+    totalDuration: number;
+    latestTimestamp: number;
+  }
+  const dayMap = new Map<string, DayAccumulator>();
 
   for (const s of gameSessions) {
     const dur = Number(s.duration) || 0;
-    if (dur > longestSessionDuration) {
-      longestSessionDuration = dur;
-    }
     const rawTs = Number(s.timestamp) || 0;
     const ts = rawTs > 1e11 ? Math.floor(rawTs / 1000) : rawTs;
+
     if (ts > 0) {
-      if (firstPlayed === null || ts < firstPlayed) firstPlayed = ts;
-      if (lastPlayed === null || ts > lastPlayed) lastPlayed = ts;
+      if (firstPlayed === null || ts < firstPlayed) {
+        firstPlayed = ts;
+      }
+      if (lastPlayed === null || ts > lastPlayed) {
+        lastPlayed = ts;
+        lastSessionDuration = dur;
+      } else if (ts === lastPlayed && dur > lastSessionDuration) {
+        lastSessionDuration = dur;
+      }
+
+      // Group by local calendar date (matches application formatUnixDate timezone)
+      const d = new Date(ts * 1000);
+      const dayKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const existing = dayMap.get(dayKey);
+      if (existing) {
+        existing.totalDuration += dur;
+        if (ts > existing.latestTimestamp) {
+          existing.latestTimestamp = ts;
+        }
+      } else {
+        dayMap.set(dayKey, { totalDuration: dur, latestTimestamp: ts });
+      }
+    }
+
+    if (dur > longestSessionDuration) {
+      longestSessionDuration = dur;
+      longestSessionTimestamp = ts > 0 ? ts : null;
+    } else if (dur === longestSessionDuration && dur > 0 && ts > 0) {
+      // Deterministic tie-breaking for longest session: pick the most recent
+      if (longestSessionTimestamp === null || ts > longestSessionTimestamp) {
+        longestSessionTimestamp = ts;
+      }
+    }
+  }
+
+  // Calculate best gaming day with deterministic tie-breaking (most recent day)
+  let bestDayDate: number | null = null;
+  let bestDayDuration = 0;
+
+  for (const [, dayData] of dayMap.entries()) {
+    if (
+      dayData.totalDuration > bestDayDuration ||
+      (dayData.totalDuration === bestDayDuration &&
+        bestDayDuration > 0 &&
+        bestDayDate !== null &&
+        dayData.latestTimestamp > bestDayDate)
+    ) {
+      bestDayDuration = dayData.totalDuration;
+      bestDayDate = dayData.latestTimestamp;
     }
   }
 
@@ -671,8 +729,12 @@ export function getGameDetailedStats(
     sessionCount,
     firstPlayed,
     lastPlayed,
+    lastSessionDuration,
     avgSessionDuration,
     longestSessionDuration,
+    longestSessionTimestamp,
+    bestDayDate,
+    bestDayDuration,
     sessions: gameSessions,
     percentageOfTotal,
   };

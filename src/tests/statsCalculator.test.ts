@@ -384,6 +384,82 @@ describe('statsCalculator', () => {
       const details = getGameDetailedStats(99999, mockGames, mockSessions, overall);
       expect(details).toBeNull();
     });
+
+    it('calculates lastSessionDuration and longestSessionTimestamp regardless of array order', () => {
+      const testGame: GameEntry = { uid: 10, game_id: 'G10', game_name: 'Test RPG', apitype_str: '0x0', category: 0 };
+      // Sessions out of order:
+      // Session 1: ts = 1000, dur = 3000
+      // Session 2: ts = 3000, dur = 1200 (latest session!)
+      // Session 3: ts = 2000, dur = 7200 (longest single session!)
+      const testSessions: SessionEntry[] = [
+        { game_uid: 10, duration: 3000, timestamp: 1000 },
+        { game_uid: 10, duration: 1200, timestamp: 3000 },
+        { game_uid: 10, duration: 7200, timestamp: 2000 },
+      ];
+
+      const overall = calculateOverallStats([testGame], testSessions);
+      const details = getGameDetailedStats(10, [testGame], testSessions, overall);
+
+      expect(details).not.toBeNull();
+      expect(details?.firstPlayed).toBe(1000);
+      expect(details?.lastPlayed).toBe(3000);
+      expect(details?.lastSessionDuration).toBe(1200);
+      expect(details?.longestSessionDuration).toBe(7200);
+      expect(details?.longestSessionTimestamp).toBe(2000);
+    });
+
+    it('accurately aggregates daily play time to identify the peak gaming day (bestDayDate and bestDayDuration)', () => {
+      const testGame: GameEntry = { uid: 20, game_id: 'G20', game_name: 'Marathon Game', apitype_str: '0x0', category: 0 };
+
+      // Day 1: 2026-05-10 10:00, 14:00, 20:00 (3 sessions: 7200s + 4680s + 7200s = 19080s = 5h 18m)
+      const day1Ts1 = Math.floor(new Date(2026, 4, 10, 10, 0, 0).getTime() / 1000);
+      const day1Ts2 = Math.floor(new Date(2026, 4, 10, 14, 0, 0).getTime() / 1000);
+      const day1Ts3 = Math.floor(new Date(2026, 4, 10, 20, 0, 0).getTime() / 1000);
+
+      // Day 2: 2026-05-15 (single session of 10800s = 3h, longest individual session!)
+      const day2Ts = Math.floor(new Date(2026, 4, 15, 12, 0, 0).getTime() / 1000);
+
+      const testSessions: SessionEntry[] = [
+        { game_uid: 20, duration: 7200, timestamp: day1Ts1 },
+        { game_uid: 20, duration: 10800, timestamp: day2Ts }, // Longest single session
+        { game_uid: 20, duration: 4680, timestamp: day1Ts2 },
+        { game_uid: 20, duration: 7200, timestamp: day1Ts3 },
+      ];
+
+      const overall = calculateOverallStats([testGame], testSessions);
+      const details = getGameDetailedStats(20, [testGame], testSessions, overall);
+
+      expect(details).not.toBeNull();
+      // Longest single session was Day 2 (10800s / 3h)
+      expect(details?.longestSessionDuration).toBe(10800);
+      expect(details?.longestSessionTimestamp).toBe(day2Ts);
+
+      // But best day was Day 1 because 7200 + 4680 + 7200 = 19080s (5h 18m) > 10800s (3h)
+      expect(details?.bestDayDuration).toBe(19080);
+      expect(details?.bestDayDate).toBe(day1Ts3);
+    });
+
+    it('resolves best day ties deterministically by choosing the most recent day', () => {
+      const testGame: GameEntry = { uid: 30, game_id: 'G30', game_name: 'Tie Game', apitype_str: '0x0', category: 0 };
+
+      // Earlier Day: 2026-01-01 -> 3600s
+      const dayEarlier = Math.floor(new Date(2026, 0, 1, 15, 0, 0).getTime() / 1000);
+      // Later Day: 2026-06-01 -> 3600s
+      const dayLater = Math.floor(new Date(2026, 5, 1, 15, 0, 0).getTime() / 1000);
+
+      const testSessions: SessionEntry[] = [
+        { game_uid: 30, duration: 3600, timestamp: dayEarlier },
+        { game_uid: 30, duration: 3600, timestamp: dayLater },
+      ];
+
+      const overall = calculateOverallStats([testGame], testSessions);
+      const details = getGameDetailedStats(30, [testGame], testSessions, overall);
+
+      expect(details).not.toBeNull();
+      expect(details?.bestDayDuration).toBe(3600);
+      // Most recent day selected upon tie
+      expect(details?.bestDayDate).toBe(dayLater);
+    });
   });
 
   describe('calculateGameAccumulatedDurations, getEligibleGameUids, and isGameEligible', () => {

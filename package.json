@@ -10,6 +10,8 @@
     "generate:mock": "node scripts/generate-mock-db.js",
     "build": "node scripts/generate-pages.js && tsc -b && vite build",
     "test": "vitest run",
+    "check:i18n": "node scripts/check-i18n.cjs",
+    "generate:cards": "node scripts/generate-share-cards.cjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

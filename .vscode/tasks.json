@@ -1,0 +1,145 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "GameDiary: Gerar Mock DB (Terminal Interativo)",
+      "type": "shell",
+      "command": "node scripts/generate-mock-db.js --interactive",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "GameDiary: Gerar Mock DB (Prompt de Meses e Jogos)",
+      "type": "shell",
+      "command": "node scripts/generate-mock-db.js --months \"${input:mockMonths}\" --games \"${input:mockGames}\" --platform \"${input:mockPlatform}\"",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": true,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "GameDiary: Gerar Mock DB (Últimos 3 Meses até Hoje)",
+      "type": "shell",
+      "command": "node scripts/generate-mock-db.js --months 3 --games 20",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "GameDiary: Gerar Mock DB (Mês Atual até Hoje)",
+      "type": "shell",
+      "command": "node scripts/generate-mock-db.js --months 1 --games 15",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "GameDiary: Gerar Todos os Share Cards (15 PNGs)",
+      "type": "shell",
+      "command": "npm run generate:cards",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "GameDiary: Gerar e Abrir Pasta de Share Cards (15 PNGs)",
+      "type": "shell",
+      "command": "npm run generate:cards -- --open",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "GameDiary: Gerar Share Cards por Idioma",
+      "type": "shell",
+      "command": "npm run generate:cards -- --lang \"${input:shareLang}\" --open",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false
+      }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "shareLang",
+      "type": "pickString",
+      "description": "Selecione o idioma para renderizar os cards:",
+      "options": ["pt", "en", "es", "de", "fr", "it", "cn", "jp", "ru"],
+      "default": "pt"
+    },
+    {
+      "id": "mockMonths",
+      "type": "promptString",
+      "description": "Quantidade de meses a gerar até hoje [ex: 1, 3, 6, 12]:",
+      "default": "3"
+    },
+    {
+      "id": "mockGames",
+      "type": "promptString",
+      "description": "Quantidade de jogos no catálogo [ex: 15, 25, 50]:",
+      "default": "20"
+    },
+    {
+      "id": "mockPlatform",
+      "type": "pickString",
+      "description": "Filtrar por plataforma:",
+      "options": ["all", "psp", "psx"],
+      "default": "all"
+    }
+  ]
+}
