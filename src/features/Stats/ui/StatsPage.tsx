@@ -35,6 +35,7 @@ import {
   type PeriodFilter,
 } from '../lib/statsCalculator';
 import { GameDetailsModal } from './GameDetailsModal';
+import { RankingsList } from './RankingsList';
 import { ShareCardStudioModal } from '../../ShareCards/ui/ShareCardStudioModal';
 import type { CardModel } from '../../ShareCards/types';
 
@@ -586,78 +587,13 @@ export const StatsPage: React.FC = () => {
           </div>
         )}
 
-        {/* Top 4 to 10 Table/Cards List */}
-        {stats.rankings.length === 0 ? (
-          <div className="p-8 text-center bg-card border border-border rounded-2xl text-xs text-muted-foreground">
-            {t('stats.rankings.noData')}
-          </div>
-        ) : (
-          <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-            <div className="divide-y divide-border">
-              {stats.rankings.slice(0, 10).map((item) => {
-                const cover = getCoverData(item.game.game_id, mapping);
-                const barPercent = Math.round((item.totalDuration / top1Duration) * 100);
-
-                return (
-                  <div
-                    key={item.game.uid}
-                    onClick={() => setSelectedGameUid(item.game.uid)}
-                    className="p-4 sm:px-6 hover:bg-muted/50 transition-colors cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
-                  >
-                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                      <div className="w-7 text-center font-black text-sm text-muted-foreground group-hover:text-primary shrink-0">
-                        #{item.rank}
-                      </div>
-
-                      <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0 border border-border flex items-center justify-center">
-                        {cover.url ? (
-                          <img
-                            src={cover.url}
-                            alt=""
-                            className="w-full h-full object-contain group-hover:scale-105 transition-transform"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <Gamepad2 size={20} className="text-muted-foreground/30" />
-                        )}
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-sm text-foreground truncate group-hover:text-primary transition-colors">
-                            {item.game.game_name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono mt-0.5">
-                          <span>{item.game.game_id}</span>
-                          <span>•</span>
-                          <span>{item.sessionCount} {t('stats.rankings.sessions')}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2 shrink-0 pl-10 sm:pl-0">
-                      <div className="font-black text-sm text-foreground font-mono">
-                        {formatDurationSeconds(item.totalDuration, currentLanguage)}
-                      </div>
-                      <div className="flex items-center gap-2 w-32">
-                        <div className="h-1.5 flex-1 bg-muted rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-primary rounded-full"
-                            style={{ width: `${barPercent}%` }}
-                          />
-                        </div>
-                        <span className="text-[11px] text-muted-foreground font-bold w-10 text-right">
-                          {item.percentageOfTotal}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {/* Full Rankings List with Search, Sort, Virtualization and Progressive Loading */}
+        <RankingsList
+          rankings={stats.rankings}
+          top1Duration={top1Duration}
+          mapping={mapping}
+          onSelectGame={(uid) => setSelectedGameUid(uid)}
+        />
       </div>
 
       {/* Grid: Platform Distribution & Monthly Evolution */}

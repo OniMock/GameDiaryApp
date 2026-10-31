@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 import { Search, X, ChevronDown, Check, Gamepad2 } from 'lucide-react';
 import { useLanguage } from '../../../i18n/hooks/use-language';
-import { matchGamePlatform } from '../../Stats/lib/statsCalculator';
+import { matchGamePlatform, normalizeSearchText, matchGameSearch } from '../../Stats/lib/statsCalculator';
 import { getCoverData } from '../../../shared/lib/game-covers';
 import type { GameEntry } from '../../GameSessions/model/domain/types';
+
+export { normalizeSearchText, matchGameSearch };
 
 export interface GameSearchComboboxProps {
   games: GameEntry[];
@@ -24,46 +26,6 @@ export const failedCoversCache = new Set<string>();
 
 const useIsomorphicLayoutEffect =
   typeof window !== 'undefined' ? useLayoutEffect : useEffect;
-
-/**
- * Normalizes text for search by stripping diacritics/accents, trimming and lowercasing.
- * E.g.: "Pokémon" -> "pokemon", "Héroes" -> "heroes"
- */
-export function normalizeSearchText(text: string): string {
-  if (!text) return '';
-  return text
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .trim();
-}
-
-/**
- * Global search matcher across the entire catalog.
- * Matches by game name (with accent normalization) or Game ID (with/without hyphens).
- */
-export function matchGameSearch(game: GameEntry, query: string): boolean {
-  if (!query) return true;
-  const normalizedQuery = normalizeSearchText(query);
-  if (!normalizedQuery) return true;
-
-  // 1. Match game title with diacritics removed
-  const normalizedName = normalizeSearchText(game.game_name || '');
-  if (normalizedName.includes(normalizedQuery)) return true;
-
-  // 2. Match raw Game ID
-  const rawId = (game.game_id || '').toLowerCase();
-  if (rawId.includes(normalizedQuery)) return true;
-
-  // 3. Match sanitized Game ID (without hyphens or whitespace)
-  const cleanQueryId = normalizedQuery.replace(/[-\s]/g, '');
-  if (cleanQueryId) {
-    const cleanGameId = rawId.replace(/[-\s]/g, '');
-    if (cleanGameId.includes(cleanQueryId)) return true;
-  }
-
-  return false;
-}
 
 /**
  * Calculates scroll position for any target item.

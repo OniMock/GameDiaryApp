@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { COVER_OVERRIDES } from '../lib/game-covers';
 
 type GameMapping = Record<string, string>;
 
@@ -20,7 +21,7 @@ export const useGameCovers = () => {
           throw new Error('Failed to load game mapping');
         }
         const data = await response.json();
-        setMapping(data);
+        setMapping({ ...data, ...COVER_OVERRIDES });
         setError(null);
       } catch (err) {
         console.error('Error loading game cover mapping:', err);

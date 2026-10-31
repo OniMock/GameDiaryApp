@@ -16,11 +16,24 @@ export const cleanGameId = (gameId: string): string => {
 export type Platform = 'psx' | 'psp' | 'unknown';
 
 /**
+ * Known overrides for games whose upstream mapping points to a Git symlink text file
+ * (which raw.githubusercontent serves as plain text pointer instead of binary PNG)
+ * or where a direct canonical image path is required.
+ */
+export const COVER_OVERRIDES: Record<string, string> = {
+  // Gran Turismo 2 (Simulation Mode) - upstream symlink resolves to Rev 1 image
+  SCUS94488: 'psx/Named_Titles/Gran Turismo 2 (USA) (Rev 1).png',
+  SCUS94455: 'psx/Named_Titles/Gran Turismo 2 (USA).png',
+  // Grand Theft Auto 2 - upstream symlink resolves to base Europe image
+  SLES02453: 'psx/Named_Titles/Grand Theft Auto 2 (Europe) (En,Fr,De,Es,It).png',
+};
+
+/**
  * Returns the cover URL and platform for a given GameID.
  */
 export const getCoverData = (gameId: string, mapping: Record<string, string>): { url: string | null, platform: Platform } => {
   const cleanedId = cleanGameId(gameId);
-  const relativePath = mapping[cleanedId];
+  const relativePath = COVER_OVERRIDES[cleanedId] || mapping[cleanedId];
   
   if (!relativePath) {
     return { url: null, platform: 'unknown' };

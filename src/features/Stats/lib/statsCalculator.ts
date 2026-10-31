@@ -11,9 +11,18 @@ export interface GameStatItem {
   sessionCount: number;
   firstPlayed: number | null; // unix seconds
   lastPlayed: number | null; // unix seconds
+  longestSession: number | null; // in seconds
+  shortestSession: number | null; // in seconds
   percentageOfTotal: number; // 0 to 100
   rank: number;
 }
+
+export type RankingSortOption =
+  | 'mostPlayed'
+  | 'leastPlayed'
+  | 'mostSessions'
+  | 'leastSessions'
+  | 'lastPlayed';
 
 export interface PlatformStatItem {
   key: PlatformFilter;
@@ -251,6 +260,46 @@ export function formatUnixDateTime(timestamp: number, locale = 'default'): strin
 }
 
 /**
+ * Normalizes text for search by stripping diacritics/accents, trimming and lowercasing.
+ * E.g.: "Pokémon" -> "pokemon", "Héroes" -> "heroes"
+ */
+export function normalizeSearchText(text: string): string {
+  if (!text) return '';
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Global search matcher across the entire catalog.
+ * Matches by game name (with accent normalization) or Game ID (with/without hyphens).
+ */
+export function matchGameSearch(game: GameEntry, query: string): boolean {
+  if (!query) return true;
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return true;
+
+  // 1. Match game title with diacritics removed
+  const normalizedName = normalizeSearchText(game.game_name || '');
+  if (normalizedName.includes(normalizedQuery)) return true;
+
+  // 2. Match raw Game ID
+  const rawId = (game.game_id || '').toLowerCase();
+  if (rawId.includes(normalizedQuery)) return true;
+
+  // 3. Match sanitized Game ID (without hyphens or whitespace)
+  const cleanQueryId = normalizedQuery.replace(/[-\s]/g, '');
+  if (cleanQueryId) {
+    const cleanGameId = rawId.replace(/[-\s]/g, '');
+    if (cleanGameId.includes(cleanQueryId)) return true;
+  }
+
+  return false;
+}
+
+/**
  * Matches a game's category to the PlatformFilter
  */
 export function matchGamePlatform(category: number): PlatformFilter {
@@ -401,6 +450,8 @@ export function calculateOverallStats(
     count: number;
     firstPlayed: number;
     lastPlayed: number;
+    longestSession: number;
+    shortestSession: number;
   }
   const gameStatsMap = new Map<number, Accumulator>();
 
@@ -429,12 +480,16 @@ export function calculateOverallStats(
         count: 1,
         firstPlayed: ts,
         lastPlayed: ts,
+        longestSession: dur,
+        shortestSession: dur,
       });
     } else {
       current.duration += dur;
       current.count += 1;
       if (ts < current.firstPlayed) current.firstPlayed = ts;
       if (ts > current.lastPlayed) current.lastPlayed = ts;
+      if (dur > current.longestSession) current.longestSession = dur;
+      if (dur < current.shortestSession) current.shortestSession = dur;
     }
 
     if (ts > 0) {
@@ -487,6 +542,8 @@ export function calculateOverallStats(
     const sessionCount = stats ? stats.count : 0;
     const firstPlayed = stats ? stats.firstPlayed : null;
     const lastPlayed = stats ? stats.lastPlayed : null;
+    const longestSession = stats ? stats.longestSession : null;
+    const shortestSession = stats ? stats.shortestSession : null;
     const percentageOfTotal =
       totalDuration > 0 ? Number(((gameDuration / totalDuration) * 100).toFixed(1)) : 0;
 
@@ -497,6 +554,8 @@ export function calculateOverallStats(
       sessionCount,
       firstPlayed,
       lastPlayed,
+      longestSession,
+      shortestSession,
       percentageOfTotal,
       rank: 0, // Assigned after sort
     });
@@ -738,4 +797,84 @@ export function getGameDetailedStats(
     sessions: gameSessions,
     percentageOfTotal,
   };
+}
+
+/**
+ * Deterministically sorts ranking items by the chosen sort option.
+ * Consistent fallback rules: games without valid data for the sort option go after games with data.
+ * Tie-breaker: accumulated total duration, then game name, then uid.
+ */
+export function sortRankings(
+  items: GameStatItem[],
+  sortOption: RankingSortOption
+): GameStatItem[] {
+  return [...items].sort((a, b) => {
+    switch (sortOption) {
+      case 'leastPlayed': {
+        if (a.totalDuration !== b.totalDuration) return a.totalDuration - b.totalDuration;
+        if (a.sessionCount !== b.sessionCount) return a.sessionCount - b.sessionCount;
+        const nameCmp = (a.game.game_name || '').localeCompare(b.game.game_name || '');
+        if (nameCmp !== 0) return nameCmp;
+        return a.game.uid - b.game.uid;
+      }
+      case 'mostSessions': {
+        const aValid = a.sessionCount > 0;
+        const bValid = b.sessionCount > 0;
+        if (!aValid && bValid) return 1;
+        if (aValid && !bValid) return -1;
+        if (b.sessionCount !== a.sessionCount) {
+          return b.sessionCount - a.sessionCount;
+        }
+        if (b.totalDuration !== a.totalDuration) return b.totalDuration - a.totalDuration;
+        const nameCmp = (a.game.game_name || '').localeCompare(b.game.game_name || '');
+        if (nameCmp !== 0) return nameCmp;
+        return a.game.uid - b.game.uid;
+      }
+      case 'leastSessions': {
+        const aValid = a.sessionCount > 0;
+        const bValid = b.sessionCount > 0;
+        if (!aValid && bValid) return 1;
+        if (aValid && !bValid) return -1;
+        if (a.sessionCount !== b.sessionCount) {
+          return a.sessionCount - b.sessionCount;
+        }
+        if (b.totalDuration !== a.totalDuration) return b.totalDuration - a.totalDuration;
+        const nameCmp = (a.game.game_name || '').localeCompare(b.game.game_name || '');
+        if (nameCmp !== 0) return nameCmp;
+        return a.game.uid - b.game.uid;
+      }
+      case 'lastPlayed': {
+        const aLast = a.lastPlayed;
+        const bLast = b.lastPlayed;
+        if (aLast == null && bLast != null) return 1;
+        if (aLast != null && bLast == null) return -1;
+        if (aLast != null && bLast != null && bLast !== aLast) {
+          return bLast - aLast;
+        }
+        if (b.totalDuration !== a.totalDuration) return b.totalDuration - a.totalDuration;
+        const nameCmp = (a.game.game_name || '').localeCompare(b.game.game_name || '');
+        if (nameCmp !== 0) return nameCmp;
+        return a.game.uid - b.game.uid;
+      }
+      case 'mostPlayed':
+      default: {
+        if (b.totalDuration !== a.totalDuration) return b.totalDuration - a.totalDuration;
+        if (b.sessionCount !== a.sessionCount) return b.sessionCount - a.sessionCount;
+        const nameCmp = (a.game.game_name || '').localeCompare(b.game.game_name || '');
+        if (nameCmp !== 0) return nameCmp;
+        return a.game.uid - b.game.uid;
+      }
+    }
+  });
+}
+
+/**
+ * Filters rankings by global search query (game name or Game ID).
+ */
+export function filterRankingsBySearch(
+  items: GameStatItem[],
+  query: string
+): GameStatItem[] {
+  if (!query || !query.trim()) return items;
+  return items.filter((item) => matchGameSearch(item.game, query));
 }
