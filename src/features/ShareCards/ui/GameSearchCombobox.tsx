@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useCallback } from 'react';
 import { Search, X, ChevronDown, Check, Gamepad2 } from 'lucide-react';
 import { useLanguage } from '../../../i18n/hooks/use-language';
 import { matchGamePlatform } from '../../Stats/lib/statsCalculator';
@@ -12,6 +12,7 @@ export interface GameSearchComboboxProps {
   mapping?: Record<string, string>;
   disabled?: boolean;
   className?: string;
+  initialOpen?: boolean;
 }
 
 export const ITEM_HEIGHT = 56;
@@ -20,6 +21,9 @@ export const OVERSCAN = 4;
 
 // Cache to prevent duplicate requests to failed cover images
 export const failedCoversCache = new Set<string>();
+
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 /**
  * Normalizes text for search by stripping diacritics/accents, trimming and lowercasing.
@@ -59,6 +63,104 @@ export function matchGameSearch(game: GameEntry, query: string): boolean {
   }
 
   return false;
+}
+
+/**
+ * Calculates scroll position for any target item.
+ * Pure, deterministic O(1) calculation supporting 'auto', 'center', 'top', and 'bottom'.
+ */
+export function calculateScrollOffset(
+  index: number,
+  totalItems: number,
+  itemHeight: number = ITEM_HEIGHT,
+  containerHeight: number = CONTAINER_MAX_HEIGHT,
+  align: 'auto' | 'center' | 'top' | 'bottom' = 'auto',
+  currentScroll: number = 0
+): number {
+  if (totalItems <= 0 || index < 0 || index >= totalItems) return 0;
+
+  const totalHeight = totalItems * itemHeight;
+  const maxScroll = Math.max(0, totalHeight - containerHeight);
+  const itemTop = index * itemHeight;
+  const itemBottom = itemTop + itemHeight;
+  const visibleBottom = currentScroll + containerHeight;
+
+  if (align === 'center') {
+    const centered = itemTop - containerHeight / 2 + itemHeight / 2;
+    return Math.max(0, Math.min(centered, maxScroll));
+  }
+
+  if (align === 'top') {
+    return Math.max(0, Math.min(itemTop, maxScroll));
+  }
+
+  if (align === 'bottom') {
+    return Math.max(0, Math.min(itemBottom - containerHeight, maxScroll));
+  }
+
+  // Auto
+  if (itemTop < currentScroll) {
+    return itemTop;
+  }
+  if (itemBottom > visibleBottom) {
+    return Math.min(itemBottom - containerHeight, maxScroll);
+  }
+  return currentScroll;
+}
+
+export interface VirtualSliceItem {
+  index: number;
+  game: GameEntry;
+  offsetTop: number;
+}
+
+/**
+ * Computes the virtual window of elements to render.
+ * CRITICAL FIX: Strictly bounds rendered elements to visible window + overscan.
+ * If highlightedIndex is outside the window, appends ONLY that 1 single item,
+ * preventing any DOM explosion across distant index gaps.
+ */
+export function computeVirtualSlice(
+  games: GameEntry[],
+  scrollTop: number,
+  highlightedIndex: number = -1,
+  itemHeight: number = ITEM_HEIGHT,
+  containerHeight: number = CONTAINER_MAX_HEIGHT,
+  overscan: number = OVERSCAN
+): VirtualSliceItem[] {
+  const total = games.length;
+  if (total === 0) return [];
+
+  const start = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+  const end = Math.min(
+    total - 1,
+    Math.floor((scrollTop + containerHeight) / itemHeight) + overscan
+  );
+
+  const items: VirtualSliceItem[] = [];
+  for (let i = start; i <= end; i++) {
+    items.push({
+      index: i,
+      game: games[i],
+      offsetTop: i * itemHeight,
+    });
+  }
+
+  // If highlighted item is outside the visible slice, include JUST that 1 item
+  // so aria-activedescendant points to a valid DOM node, without rendering intermediate gap
+  if (
+    highlightedIndex >= 0 &&
+    highlightedIndex < total &&
+    (highlightedIndex < start || highlightedIndex > end)
+  ) {
+    items.push({
+      index: highlightedIndex,
+      game: games[highlightedIndex],
+      offsetTop: highlightedIndex * itemHeight,
+    });
+  }
+
+  return items;
 }
 
 /**
@@ -116,12 +218,33 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
   mapping = {},
   disabled = false,
   className = '',
+  initialOpen = false,
 }) => {
   const { t } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(initialOpen);
   const [searchQuery, setSearchQuery] = useState('');
-  const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  const [scrollTop, setScrollTop] = useState(0);
+
+  // Find initial selected game index in the catalog
+  const initialIndex = useMemo(() => {
+    const idx = games.findIndex((g) => g.uid === selectedGameUid);
+    return idx >= 0 ? idx : 0;
+  }, [games, selectedGameUid]);
+
+  const [highlightedIndex, setHighlightedIndex] = useState(initialIndex);
+
+  // Synchronously compute initial scroll offset centered on selected game
+  const initialScrollTop = useMemo(() => {
+    return calculateScrollOffset(
+      initialIndex,
+      games.length,
+      ITEM_HEIGHT,
+      CONTAINER_MAX_HEIGHT,
+      'center',
+      0
+    );
+  }, [initialIndex, games.length]);
+
+  const [scrollTop, setScrollTop] = useState(initialScrollTop);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerButtonRef = useRef<HTMLButtonElement>(null);
@@ -140,64 +263,59 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
     return games.filter((g) => matchGameSearch(g, searchQuery));
   }, [games, searchQuery]);
 
-  // Virtualization calculations
+  // Virtualization slice computation (strictly bounded to ~10-14 items)
+  const virtualItems = useMemo(
+    () =>
+      computeVirtualSlice(
+        filteredGames,
+        scrollTop,
+        highlightedIndex,
+        ITEM_HEIGHT,
+        CONTAINER_MAX_HEIGHT,
+        OVERSCAN
+      ),
+    [filteredGames, scrollTop, highlightedIndex]
+  );
+
   const totalHeight = filteredGames.length * ITEM_HEIGHT;
   const containerHeight = Math.min(CONTAINER_MAX_HEIGHT, totalHeight);
 
-  const virtualItems = useMemo(() => {
-    if (filteredGames.length === 0) {
-      return [];
-    }
+  // Open combobox and coordinate scroll position with active game
+  const handleOpen = useCallback(() => {
+    const idx = filteredGames.findIndex((g) => g.uid === selectedGameUid);
+    const targetIdx = idx >= 0 ? idx : 0;
+    setHighlightedIndex(targetIdx);
 
-    let start = Math.max(0, Math.floor(scrollTop / ITEM_HEIGHT) - OVERSCAN);
-    let end = Math.min(
-      filteredGames.length - 1,
-      Math.floor((scrollTop + CONTAINER_MAX_HEIGHT) / ITEM_HEIGHT) + OVERSCAN
+    const targetScroll = calculateScrollOffset(
+      targetIdx,
+      filteredGames.length,
+      ITEM_HEIGHT,
+      CONTAINER_MAX_HEIGHT,
+      'center',
+      0
     );
+    setScrollTop(targetScroll);
+    setIsOpen(true);
+  }, [filteredGames, selectedGameUid]);
 
-    // Guarantee that highlightedIndex is always mounted in the DOM when active
-    // so aria-activedescendant and keyboard navigation never encounter an unmounted node
-    if (highlightedIndex >= 0 && highlightedIndex < filteredGames.length) {
-      start = Math.min(start, highlightedIndex);
-      end = Math.max(end, highlightedIndex);
-    }
-
-    const items: { index: number; game: GameEntry; offsetTop: number }[] = [];
-    for (let i = start; i <= end; i++) {
-      items.push({
-        index: i,
-        game: filteredGames[i],
-        offsetTop: i * ITEM_HEIGHT,
-      });
-    }
-
-    return items;
-  }, [filteredGames, scrollTop, highlightedIndex]);
-
-  // Scroll to index helper
-  const scrollToIndex = useCallback(
-    (index: number, align: 'auto' | 'center' = 'auto') => {
-      if (!listRef.current || index < 0 || index >= filteredGames.length) return;
-
-      const itemTop = index * ITEM_HEIGHT;
-      const itemBottom = itemTop + ITEM_HEIGHT;
-      const currentScroll = listRef.current.scrollTop;
-      const currentBottom = currentScroll + CONTAINER_MAX_HEIGHT;
-
-      if (align === 'center') {
-        const centered = itemTop - CONTAINER_MAX_HEIGHT / 2 + ITEM_HEIGHT / 2;
-        const maxScroll = Math.max(0, totalHeight - CONTAINER_MAX_HEIGHT);
-        listRef.current.scrollTop = Math.max(0, Math.min(centered, maxScroll));
-      } else {
-        if (itemTop < currentScroll) {
-          listRef.current.scrollTop = itemTop;
-        } else if (itemBottom > currentBottom) {
-          listRef.current.scrollTop = itemBottom - CONTAINER_MAX_HEIGHT;
-        }
+  // Synchronize DOM scroll position with state synchronously before browser paint
+  useIsomorphicLayoutEffect(() => {
+    if (isOpen && listRef.current) {
+      if (listRef.current.scrollTop !== scrollTop) {
+        listRef.current.scrollTop = scrollTop;
       }
-    },
-    [filteredGames.length, totalHeight]
-  );
+    }
+  }, [isOpen, scrollTop]);
+
+  // Focus search input when opening
+  useEffect(() => {
+    if (isOpen) {
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 30);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -221,23 +339,6 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
     };
   }, [isOpen]);
 
-  // When opening: auto-focus search input, highlight active game and scroll it into view
-  useEffect(() => {
-    if (isOpen) {
-      const initialIdx = filteredGames.findIndex((g) => g.uid === selectedGameUid);
-      const targetIdx = initialIdx >= 0 ? initialIdx : 0;
-      setHighlightedIndex(targetIdx);
-
-      const timer = setTimeout(() => {
-        searchInputRef.current?.focus();
-        if (targetIdx >= 0) {
-          scrollToIndex(targetIdx, 'center');
-        }
-      }, 30);
-      return () => clearTimeout(timer);
-    }
-  }, [isOpen, selectedGameUid, filteredGames, scrollToIndex]);
-
   const handleScroll = (e: React.UIEvent<HTMLUListElement>) => {
     setScrollTop(e.currentTarget.scrollTop);
   };
@@ -255,11 +356,22 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
   const handleClearSearch = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setSearchQuery('');
-    setHighlightedIndex(0);
-    setScrollTop(0);
-    if (listRef.current) listRef.current.scrollTop = 0;
+    const restoredIdx = games.findIndex((g) => g.uid === selectedGameUid);
+    const targetIdx = restoredIdx >= 0 ? restoredIdx : 0;
+    setHighlightedIndex(targetIdx);
+
+    const targetScroll = calculateScrollOffset(
+      targetIdx,
+      games.length,
+      ITEM_HEIGHT,
+      CONTAINER_MAX_HEIGHT,
+      'center',
+      0
+    );
+    setScrollTop(targetScroll);
+    if (listRef.current) listRef.current.scrollTop = targetScroll;
     searchInputRef.current?.focus();
-  }, []);
+  }, [games, selectedGameUid]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
@@ -268,22 +380,40 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
       case 'ArrowDown': {
         e.preventDefault();
         if (!isOpen) {
-          setIsOpen(true);
+          handleOpen();
         } else if (filteredGames.length > 0) {
           const next = highlightedIndex < filteredGames.length - 1 ? highlightedIndex + 1 : 0;
           setHighlightedIndex(next);
-          scrollToIndex(next, 'auto');
+          const nextScroll = calculateScrollOffset(
+            next,
+            filteredGames.length,
+            ITEM_HEIGHT,
+            CONTAINER_MAX_HEIGHT,
+            next === 0 ? 'top' : 'auto',
+            scrollTop
+          );
+          setScrollTop(nextScroll);
+          if (listRef.current) listRef.current.scrollTop = nextScroll;
         }
         break;
       }
       case 'ArrowUp': {
         e.preventDefault();
         if (!isOpen) {
-          setIsOpen(true);
+          handleOpen();
         } else if (filteredGames.length > 0) {
           const prev = highlightedIndex > 0 ? highlightedIndex - 1 : filteredGames.length - 1;
           setHighlightedIndex(prev);
-          scrollToIndex(prev, 'auto');
+          const prevScroll = calculateScrollOffset(
+            prev,
+            filteredGames.length,
+            ITEM_HEIGHT,
+            CONTAINER_MAX_HEIGHT,
+            prev === filteredGames.length - 1 ? 'bottom' : 'auto',
+            scrollTop
+          );
+          setScrollTop(prevScroll);
+          if (listRef.current) listRef.current.scrollTop = prevScroll;
         }
         break;
       }
@@ -292,7 +422,7 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
         if (isOpen && filteredGames[highlightedIndex]) {
           handleSelectGame(filteredGames[highlightedIndex].uid);
         } else if (!isOpen) {
-          setIsOpen(true);
+          handleOpen();
         }
         break;
       }
@@ -358,7 +488,7 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
         ref={triggerButtonRef}
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={() => (isOpen ? setIsOpen(false) : handleOpen())}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls="game-combobox-list"
@@ -466,37 +596,37 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
           </div>
 
           {/* Virtualized Options List */}
-          {filteredGames.length === 0 ? (
-            <div className="py-8 px-4 text-center">
-              <Search size={22} className="mx-auto text-muted-foreground/40 mb-2" />
-              <p className="text-xs font-bold text-foreground">
-                {t('share.combobox.noResults')}
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-0.5 max-w-[220px] mx-auto truncate">
-                &ldquo;{searchQuery}&rdquo;
-              </p>
-              <button
-                type="button"
-                onClick={handleClearSearch}
-                className="mt-3 px-3 py-1 rounded-lg text-[11px] font-bold text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
-              >
-                {t('share.combobox.clearSearch')}
-              </button>
-            </div>
-          ) : (
-            <ul
-              ref={listRef}
-              id="game-combobox-list"
-              role="listbox"
-              tabIndex={-1}
-              onScroll={handleScroll}
-              style={{
-                height: containerHeight,
-                maxHeight: CONTAINER_MAX_HEIGHT,
-              }}
-              className="relative overflow-y-auto overflow-x-hidden focus:outline-none"
-            >
-              {/* Virtual spacer preserving total scrollable height */}
+          <ul
+            ref={listRef}
+            id="game-combobox-list"
+            role="listbox"
+            tabIndex={-1}
+            onScroll={handleScroll}
+            style={{
+              height: filteredGames.length === 0 ? 'auto' : containerHeight,
+              maxHeight: CONTAINER_MAX_HEIGHT,
+            }}
+            className="relative overflow-y-auto overflow-x-hidden focus:outline-none"
+          >
+            {filteredGames.length === 0 ? (
+              <li className="py-8 px-4 text-center list-none" role="status">
+                <Search size={22} className="mx-auto text-muted-foreground/40 mb-2" />
+                <p className="text-xs font-bold text-foreground">
+                  {t('share.combobox.noResults')}
+                </p>
+                <p className="text-[11px] text-muted-foreground mt-0.5 max-w-[220px] mx-auto truncate">
+                  &ldquo;{searchQuery}&rdquo;
+                </p>
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="mt-3 px-3 py-1 rounded-lg text-[11px] font-bold text-primary bg-primary/10 hover:bg-primary/20 transition-colors"
+                >
+                  {t('share.combobox.clearSearch')}
+                </button>
+              </li>
+            ) : (
+              /* Virtual spacer preserving total scrollable height */
               <div
                 style={{
                   height: totalHeight,
@@ -560,8 +690,8 @@ export const GameSearchCombobox: React.FC<GameSearchComboboxProps> = ({
                   );
                 })}
               </div>
-            </ul>
-          )}
+            )}
+          </ul>
         </div>
       )}
     </div>
