@@ -81,6 +81,8 @@
     }
   ],
   "rewrites": [
+    { "source": "/pt/stats", "destination": "/pt/stats/index.html" },
+    { "source": "/pt/stats/(.*)", "destination": "/pt/stats/index.html" },
     { "source": "/pt/tools", "destination": "/pt/tools/index.html" },
     { "source": "/pt/tools/(.*)", "destination": "/pt/tools/index.html" },
     { "source": "/pt/download", "destination": "/pt/download/index.html" },
@@ -88,6 +90,8 @@
     { "source": "/pt", "destination": "/pt/index.html" },
     { "source": "/pt/(.*)", "destination": "/pt/index.html" },
 
+    { "source": "/es/stats", "destination": "/es/stats/index.html" },
+    { "source": "/es/stats/(.*)", "destination": "/es/stats/index.html" },
     { "source": "/es/tools", "destination": "/es/tools/index.html" },
     { "source": "/es/tools/(.*)", "destination": "/es/tools/index.html" },
     { "source": "/es/download", "destination": "/es/download/index.html" },
@@ -95,6 +99,8 @@
     { "source": "/es", "destination": "/es/index.html" },
     { "source": "/es/(.*)", "destination": "/es/index.html" },
 
+    { "source": "/de/stats", "destination": "/de/stats/index.html" },
+    { "source": "/de/stats/(.*)", "destination": "/de/stats/index.html" },
     { "source": "/de/tools", "destination": "/de/tools/index.html" },
     { "source": "/de/tools/(.*)", "destination": "/de/tools/index.html" },
     { "source": "/de/download", "destination": "/de/download/index.html" },
@@ -102,6 +108,8 @@
     { "source": "/de", "destination": "/de/index.html" },
     { "source": "/de/(.*)", "destination": "/de/index.html" },
 
+    { "source": "/fr/stats", "destination": "/fr/stats/index.html" },
+    { "source": "/fr/stats/(.*)", "destination": "/fr/stats/index.html" },
     { "source": "/fr/tools", "destination": "/fr/tools/index.html" },
     { "source": "/fr/tools/(.*)", "destination": "/fr/tools/index.html" },
     { "source": "/fr/download", "destination": "/fr/download/index.html" },
@@ -109,6 +117,8 @@
     { "source": "/fr", "destination": "/fr/index.html" },
     { "source": "/fr/(.*)", "destination": "/fr/index.html" },
 
+    { "source": "/it/stats", "destination": "/it/stats/index.html" },
+    { "source": "/it/stats/(.*)", "destination": "/it/stats/index.html" },
     { "source": "/it/tools", "destination": "/it/tools/index.html" },
     { "source": "/it/tools/(.*)", "destination": "/it/tools/index.html" },
     { "source": "/it/download", "destination": "/it/download/index.html" },
@@ -116,6 +126,8 @@
     { "source": "/it", "destination": "/it/index.html" },
     { "source": "/it/(.*)", "destination": "/it/index.html" },
 
+    { "source": "/ru/stats", "destination": "/ru/stats/index.html" },
+    { "source": "/ru/stats/(.*)", "destination": "/ru/stats/index.html" },
     { "source": "/ru/tools", "destination": "/ru/tools/index.html" },
     { "source": "/ru/tools/(.*)", "destination": "/ru/tools/index.html" },
     { "source": "/ru/download", "destination": "/ru/download/index.html" },
@@ -123,6 +135,8 @@
     { "source": "/ru", "destination": "/ru/index.html" },
     { "source": "/ru/(.*)", "destination": "/ru/index.html" },
 
+    { "source": "/cn/stats", "destination": "/cn/stats/index.html" },
+    { "source": "/cn/stats/(.*)", "destination": "/cn/stats/index.html" },
     { "source": "/cn/tools", "destination": "/cn/tools/index.html" },
     { "source": "/cn/tools/(.*)", "destination": "/cn/tools/index.html" },
     { "source": "/cn/download", "destination": "/cn/download/index.html" },
@@ -130,6 +144,8 @@
     { "source": "/cn", "destination": "/cn/index.html" },
     { "source": "/cn/(.*)", "destination": "/cn/index.html" },
 
+    { "source": "/jp/stats", "destination": "/jp/stats/index.html" },
+    { "source": "/jp/stats/(.*)", "destination": "/jp/stats/index.html" },
     { "source": "/jp/tools", "destination": "/jp/tools/index.html" },
     { "source": "/jp/tools/(.*)", "destination": "/jp/tools/index.html" },
     { "source": "/jp/download", "destination": "/jp/download/index.html" },
@@ -137,6 +153,8 @@
     { "source": "/jp", "destination": "/jp/index.html" },
     { "source": "/jp/(.*)", "destination": "/jp/index.html" },
 
+    { "source": "/stats", "destination": "/stats/index.html" },
+    { "source": "/stats/(.*)", "destination": "/stats/index.html" },
     { "source": "/tools", "destination": "/tools/index.html" },
     { "source": "/tools/(.*)", "destination": "/tools/index.html" },
     { "source": "/download", "destination": "/download/index.html" },
